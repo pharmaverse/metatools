@@ -40,6 +40,22 @@ test_that("check_ct_data works correctly", {
       select_dataset("ADSL")
    data <- haven::read_xpt(pkg_example("adsl.xpt"))
    expect_error(check_ct_data(data, spec))
-   expect_equaal(check_ct_data(data, spec, TRUE), TRUE)
+   expect_equal(check_ct_data(data, spec, TRUE), TRUE)
+
+   full_spec <- suppressWarnings(define_to_MetaCore(metacore_example("ADaM_define.xml")))
+   expect_equal(check_ct_data(data, full_spec, TRUE), TRUE)
+})
+
+test_that("variable_check works correctly", {
+    spec <- suppressWarnings(define_to_MetaCore(metacore_example("ADaM_define.xml"))) %>%
+       select_dataset("ADSL")
+   data <- haven::read_xpt(pkg_example("adsl.xpt"))
+   expect_equal(variable_check(data, spec), TRUE)
+   data_miss <- data %>% select(-1)
+   expect_error(variable_check(data_miss, spec))
+   data_extra <- data %>% mutate(foo = "hello")
+   expect_error(variable_check(data_extra, spec))
+   data_mis_ex <- data_extra %>% select(-1)
+   expect_error(variable_check(data_mis_ex, spec))
 
 })

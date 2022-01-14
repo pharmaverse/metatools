@@ -53,12 +53,13 @@ check_ct_col <- function(data, metacore, col_name, na_acceptable = FALSE){
 
 #' Check Control Terminology for a Dataset
 #'
-#' This function checks that all columns in the dataset only contains the control
-#' terminology as defined by the metacore specification
+#' This function checks that all columns in the dataset only contains the
+#' control terminology as defined by the metacore specification
 #' @param data dataset to check
-#' @param metacore a subsetted metacore object. It should only have the in If the
-#'   variable has different codelists for different datasets the metacore object
-#'   will need to be subsetted using `select_dataset` from the metacore package.
+#' @param metacore metacore object that contains the specifications for the
+#'   dataset of interest. If any variable has different codelists for different
+#'   datasets the metacore object will need to be subsetted using
+#'   `select_dataset` from the metacore package.
 #'
 #' @importFrom purrr map_lgl
 #' @importFrom dplyr filter pull select inner_join
@@ -66,7 +67,7 @@ check_ct_col <- function(data, metacore, col_name, na_acceptable = FALSE){
 #' @export
 #'
 #' @examples
-#'  spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) %>%
+#' spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) %>%
 #'     select_dataset("ADSL")
 #' data <- haven::read_xpt(pkg_example("adsl.xpt"))
 #' check_ct_data(data, spec, TRUE)
@@ -98,4 +99,59 @@ check_ct_data <- function(data, metacore,  na_acceptable = FALSE){
          paste0(collapse = "\n")
       stop(paste0("The following variables contained values not found in the control terminology:\n", message))
    }
+}
+
+
+#' Check Variable Names
+#'
+#' This function checks the variables in the dataset against the variables
+#' defined in the metacore specifications. If everything matches the function
+#' will return `TRUE` and a message starting everything is as expected. If there
+#' are additional or missing variables and error will explain the discrepancies
+#' @param data dataset to check
+#' @param metacore metacore object that contains the specifications for the
+#'   dataset of interest.
+#' @param dataset_name Optional string to specify the dataset. This is only
+#'   needed if the metacore object provided hasn't already been subsetted.
+#'
+#' @return message if the dataset matches the specification, and error otherwise
+#' @export
+#' @importFrom metacore select_dataset
+#' @importFrom purrr discard
+#' @importFrom dplyr pull
+#'
+#' @examples
+#'  spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) %>%
+#'     select_dataset("ADSL")
+#' data <- haven::read_xpt(pkg_example("adsl.xpt"))
+#' variable_check(data, spec)
+variable_check <- function(data, metacore, dataset_name = NULL){
+   if(!(nrow(metacore$ds_spec) == 1 | !is.null(dataset_name))){
+      stop("Requires either a subsetted metacore object or a dataset name")
+   }
+   if(!is.null(dataset_name)){
+      metacore <- select_dataset(metacore, dataset_name)
+   }
+   var_list <- metacore$var_spec %>%
+      pull(variable)
+   missing <- var_list %>%
+      discard(~. %in% names(data))
+   extra <- names(data) %>%
+      discard(~. %in% var_list)
+   if(length(missing) == 0 & length(extra) == 0){
+      message("No missing or extra variables")
+      TRUE
+   } else if (length(missing) > 0 & length(extra) > 0){
+      stop(paste0("The following variables are missing:\n",
+                  paste0(missing, collapse = "\n"),
+                  "\nThe following variables do not belong:\n",
+                  paste0(extra, collapse = "\n")))
+   } else if(length(missing) >0){
+      stop(paste0("The following variables are missing:\n",
+                  paste0(missing, collapse = "\n")))
+   } else {
+      stop(paste0("The following variables do not belong:\n",
+                  paste0(extra, collapse = "\n")))
+   }
+
 }

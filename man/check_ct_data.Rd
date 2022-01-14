@@ -4,19 +4,26 @@
 \alias{check_ct_data}
 \title{Check Control Terminology for a Dataset}
 \usage{
-check_ct_data(data, metacore)
+check_ct_data(data, metacore, na_acceptable = FALSE)
 }
 \arguments{
 \item{data}{dataset to check}
 
-\item{metacore}{a subsetted metacore object. It should only have the in If the
-variable has different codelists for different datasets the metacore object
-will need to be subsetted using `select_dataset` from the metacore package.}
+\item{metacore}{metacore object that contains the specifications for the
+dataset of interest. If any variable has different codelists for different
+datasets the metacore object will need to be subsetted using
+`select_dataset` from the metacore package.}
 }
 \value{
-
+`TRUE` if all columns pass. It will error otherwise
 }
 \description{
-This function checks that all columns in the dataset only contains the control
-terminology as defined by the metacore specification
+This function checks that all columns in the dataset only contains the
+control terminology as defined by the metacore specification
+}
+\examples{
+spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) \%>\%
+    select_dataset("ADSL")
+data <- haven::read_xpt(pkg_example("adsl.xpt"))
+check_ct_data(data, spec, TRUE)
 }
