@@ -84,11 +84,13 @@ create_subgrps <- function(ref_vec, grp_defs){
 #' @return Dataset with a new column added
 #' @export
 #'
-#' @importFrom rlang !! enquo enexpr as_label set_names :=
+#' @importFrom rlang enexpr as_label set_names := as_name
 #' @importFrom dplyr left_join rename
+#' @importFrom metacore get_control_term
 #'
 #' @examples
 #' library(metacore)
+#' library(tibble)
 #' data <- tribble(
 #'    ~USUBJID, ~VAR1,  ~VAR2,
 #'    1,         "M",    "Male",
@@ -97,21 +99,23 @@ create_subgrps <- function(ref_vec, grp_defs){
 #'    4,         "U",    "Unknown",
 #'    5,         "M",    "Male",
 #' )
-#' var_from_codelist(data, spec, SEX, VAR2)
-#' var_from_codelist(data, spec, SEX, VAR1, decode_to_code = FALSE)
+#' spec <- define_to_MetaCore(metacore_example("ADaM_define.xml"))
+#' var_from_codelist(data, spec, VAR2, SEX)
+#' var_from_codelist(data, spec, "VAR2", "SEX")
+#' var_from_codelist(data, spec,  VAR1, SEX, decode_to_code = FALSE)
 var_from_codelist <- function(data, metacore, input_var, out_var,
                               decode_to_code = TRUE){
-   code_translation <- get_control_term(metacore, !!enquo(out_var))
+   code_translation <- get_control_term(metacore, {{out_var}})
    input_var_str <- ifelse(mode(enexpr(input_var)) == "character",
-                           input_var, as_label(enexpr(input_var)))
+                           as_name(input_var), as_label(enexpr(input_var)))
    if(decode_to_code){
       data %>%
          left_join(code_translation, by =  set_names("decode", input_var_str)) %>%
-         rename(!!enquo(out_var) := code)
+         rename({{out_var}} := code)
    }else if (!decode_to_code){
       data %>%
          left_join(code_translation, by =  set_names("code", input_var_str)) %>%
-         rename(!!enquo(out_var) := decode)
+         rename({{out_var}} := decode)
    } else {
       stop("decode_to_code must be either TRUE or FALSE")
    }
@@ -126,7 +130,7 @@ var_from_codelist <- function(data, metacore, input_var, out_var,
 #' version of that categorical variable.
 #'
 #' @param data dataset with reference variable in it
-#' @param metacore_subset a metacore object to get the codelist from. If the
+#' @param metacore a metacore object to get the codelist from. If the
 #'   variable has different codelists for different datasets the metacore object
 #'   will need to be subsetted using `select_dataset` from the metacore package.
 #' @param ref_var Name of variable to be used as the reference i.e AGE when
@@ -134,8 +138,9 @@ var_from_codelist <- function(data, metacore, input_var, out_var,
 #' @param grp_var Name of the new grouped variable
 #' @param num_grp_var Name of the new numeric decode for the grouped variable.
 #'   This is optional if no value given no variable will be created
-#' @importFrom rlang enquo !! enexpr :=
+#' @importFrom rlang enexpr :=
 #' @importFrom dplyr %>% pull mutate
+#' @importFrom metacore get_control_term
 #'
 #' @return dataset with new column added
 #' @export
@@ -150,20 +155,22 @@ var_from_codelist <- function(data, metacore, input_var, out_var,
 #' # Grouping Column and Numeric Decode
 #' create_cat_var(dm, spec, AGE, AGEGR1, AGEGR1N)
 #'
-create_cat_var <- function(data, metacore_subset, ref_var, grp_var,
+create_cat_var <- function(data, metacore, ref_var, grp_var,
                            num_grp_var = NULL){
-   grp_defs <- get_control_term(metacore_subset, !!enquo(grp_var)) %>%
+   grp_defs <- get_control_term(metacore, {{grp_var}}) %>%
       pull(decode)
 
    out <- data %>%
-      mutate(!!enquo(grp_var) := create_subgrps(!!enquo(ref_var), grp_defs))
+      mutate({{grp_var}}:= create_subgrps({{ref_var}}, grp_defs))
 
    if(!is.null(enexpr(num_grp_var))){
       out <- out %>%
-         var_from_codelist(metacore_subset, !!enquo(grp_var), !!enquo(num_grp_var))
+         var_from_codelist(metacore, {{grp_var}}, {{num_grp_var}})
    }
    out
 }
+
+
 
 
 
