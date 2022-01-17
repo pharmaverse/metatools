@@ -23,7 +23,8 @@ This function sorts the dataset according to the order found in the
 metacore object.
 }
 \examples{
- spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) \%>\%
+library(metacore)
+spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) \%>\%
     select_dataset("ADSL")
 data <- haven::read_xpt(pkg_example("adsl.xpt"))
 order_sort(data, spec)

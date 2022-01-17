@@ -23,7 +23,8 @@ This function sorts the dataset according to the key sequence found in the
 metacore object.
 }
 \examples{
- spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) \%>\%
+library(metacore)
+spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) \%>\%
     select_dataset("ADSL")
 data <- haven::read_xpt(pkg_example("adsl.xpt"))
 key_sort(data, spec)

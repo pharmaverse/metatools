@@ -38,6 +38,7 @@ create_subgrps <- function(ref_vec, grp_defs){
       stop("ref_vec must be numeric")
    }
 
+   #TODO add in error if codelist is in the wrong format
    equations<- case_when(
       str_detect(grp_defs, "-") ~ paste0("function(x){if_else(", dash_to_eq(grp_defs), ", '",grp_defs, "','')}"),
       str_detect(grp_defs, "^(<\\s?=|>\\s?=|<|>)\\s?\\d+") ~ paste0("function(x){if_else(x", grp_defs, ",'", grp_defs, "', '')}"),

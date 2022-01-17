@@ -15,14 +15,13 @@
 #' @importFrom dplyr filter arrange pull select all_of everything
 #'
 #' @examples
-#'  spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) %>%
+#' library(metacore)
+#' spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) %>%
 #'     select_dataset("ADSL")
 #' data <- haven::read_xpt(pkg_example("adsl.xpt"))
 #' order_sort(data, spec)
 order_sort <- function(data, metacore, dataset_name = NULL){
-   if(!(nrow(metacore$ds_spec) == 1 | !is.null(dataset_name))){
-      stop("Requires either a subsetted metacore object or a dataset name")
-   }
+   metacore <- make_lone_dataset(metacore, dataset_name)
    var_ord <- metacore$ds_vars %>%
       filter(!is.na(order)) %>%
       arrange(order) %>%
@@ -48,14 +47,13 @@ order_sort <- function(data, metacore, dataset_name = NULL){
 #' @importFrom dplyr filter arrange pull select all_of everything
 #'
 #' @examples
-#'  spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) %>%
+#' library(metacore)
+#' spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) %>%
 #'     select_dataset("ADSL")
 #' data <- haven::read_xpt(pkg_example("adsl.xpt"))
 #' key_sort(data, spec)
 key_sort <- function(data, metacore, dataset_name = NULL){
-   if(!(nrow(metacore$ds_spec) == 1 | !is.null(dataset_name))){
-      stop("Requires either a subsetted metacore object or a dataset name")
-   }
+   metacore <- make_lone_dataset(metacore, dataset_name)
    var_ord <- metacore$ds_vars %>%
       filter(!is.na(key_seq)) %>%
       arrange(key_seq) %>%

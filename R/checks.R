@@ -126,12 +126,7 @@ check_ct_data <- function(data, metacore,  na_acceptable = FALSE){
 #' data <- haven::read_xpt(pkg_example("adsl.xpt"))
 #' variable_check(data, spec)
 variable_check <- function(data, metacore, dataset_name = NULL){
-   if(!(nrow(metacore$ds_spec) == 1 | !is.null(dataset_name))){
-      stop("Requires either a subsetted metacore object or a dataset name")
-   }
-   if(!is.null(dataset_name)){
-      metacore <- select_dataset(metacore, dataset_name)
-   }
+   metacore <- make_lone_dataset(metacore, dataset_name)
    var_list <- metacore$var_spec %>%
       pull(variable)
    missing <- var_list %>%
