@@ -15,12 +15,17 @@
 #'
 #' @return datset
 #' @export
+#' @importFrom stringr str_to_lower str_detect str_extract str_to_upper
+#' @importFrom dplyr filter pull mutate group_by group_split inner_join select full_join
+#' @importFrom purrr map reduce
 #'
 #' @examples
 #' library(metacore)
-#' metacore <- define_to_MetaCore(metacore_example("ADaM_define.xml")) %>%
+#' library(haven)
+#' library(magrittr)
+#' metacore <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
 #' select_dataset("ADSL")
-#' ds_list <- list(DM =  read_xpt(pkg_example("dm.xpt")))
+#' ds_list <- list(DM =  read_xpt(metatools_example("dm.xpt")))
 #' build_from_derived(metacore, ds_list)
 build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
                                predecessor_only = FALSE){
@@ -28,20 +33,20 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
    derirvations <- metacore$derivations
    if(predecessor_only) {
       limited_dev_ids <- metacore$value_spec %>%
-         filter(str_detect(origin, "[P|p]redecessor")) %>%
-         pull(derivation_id)
+         filter(str_detect(.data$origin, "[P|p]redecessor")) %>%
+         pull(.data$derivation_id)
 
       derirvations <- derirvations %>%
-         filter(derivation_id %in% limited_dev_ids)
+         filter(.data$derivation_id %in% limited_dev_ids)
    }
    vars_to_pull_through <- derirvations %>%
-      filter(str_detect(derivation, "^\\w*\\.[a-zA-Z0-9]*$"))
+      filter(str_detect(.data$derivation, "^\\w*\\.[a-zA-Z0-9]*$"))
    # To lower so it is flexible about how people name their ds list
    vars_w_ds <- vars_to_pull_through %>%
-      mutate(ds = str_extract(derivation, "^\\w*(?=\\.)") %>%
+      mutate(ds = str_extract(.data$derivation, "^\\w*(?=\\.)") %>%
                 str_to_lower())
    ds_names <- vars_w_ds %>%
-      pull(ds) %>%
+      pull(.data$ds) %>%
       unique()
    names(ds_list) <- names(ds_list) %>%
       str_to_lower()
@@ -51,13 +56,13 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
       )
    }
    join_by <- metacore$ds_vars %>%
-      filter(!is.na(key_seq)) %>%
-      pull(variable)
+      filter(!is.na(.data$key_seq)) %>%
+      pull(.data$variable)
    vars_w_ds %>%
-      mutate(col_name = str_extract(derivation, "(?<=\\.).*")) %>%
+      mutate(col_name = str_extract(.data$derivation, "(?<=\\.).*")) %>%
       inner_join(metacore$value_spec, ., by = "derivation_id") %>%
-      select(variable, ds, col_name) %>%
-      group_by(ds) %>%
+      select(.data$variable, .data$ds, .data$col_name) %>%
+      group_by(.data$ds) %>%
       group_split() %>%
       map(get_variables, ds_list) %>%
       reduce(full_join, by = join_by)

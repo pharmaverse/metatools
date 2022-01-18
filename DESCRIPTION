@@ -2,12 +2,12 @@ Package: metatools
 Type: Package
 Title: Enable the Use of Metacore to Help Create and Check Dataset
 Version: 0.1.0
-Author@R: c(person(given = "Christina",
+Authors@R: c(person(given = "Christina",
              family = "Fillmore",
              role = c("aut", "cre"),
              email = "christina.e.fillmore@gsk.com",
              comment = c(ORCID = "0000-0003-0595-2302")))
-Description: Uses the metadata information stored in metacore to check and build metadata associated columns, such as control terminology
+Description: Uses the metadata information stored in metacore to check and build metadata associated columns, such as control terminology.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -19,5 +19,8 @@ Imports:
     rlang,
     stringr
 Suggests: 
-    testthat (>= 3.0.0)
+    tibble,
+    testthat (>= 3.0.0),
+    haven,
+    magrittr
 Config/testthat/edition: 3

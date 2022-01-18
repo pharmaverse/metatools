@@ -16,16 +16,18 @@
 #'
 #' @examples
 #' library(metacore)
-#' spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) %>%
+#' library(haven)
+#' library(magrittr)
+#' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
 #'     select_dataset("ADSL")
-#' data <- haven::read_xpt(pkg_example("adsl.xpt"))
-#' order_sort(data, spec)
-order_sort <- function(data, metacore, dataset_name = NULL){
+#' data <- read_xpt(metatools_example("adsl.xpt"))
+#' sort_order(data, spec)
+sort_order <- function(data, metacore, dataset_name = NULL){
    metacore <- make_lone_dataset(metacore, dataset_name)
    var_ord <- metacore$ds_vars %>%
-      filter(!is.na(order)) %>%
-      arrange(order) %>%
-      pull(variable)
+      filter(!is.na(.data$order)) %>%
+      arrange(.data$order) %>%
+      pull(.data$variable)
    data %>%
       select(all_of(var_ord), everything())
 }
@@ -44,20 +46,22 @@ order_sort <- function(data, metacore, dataset_name = NULL){
 #' @return dataset with ordered columns
 #' @export
 #' @importFrom metacore select_dataset
-#' @importFrom dplyr filter arrange pull select all_of everything
+#' @importFrom dplyr filter arrange pull select all_of everything across
 #'
 #' @examples
 #' library(metacore)
-#' spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) %>%
+#' library(haven)
+#' library(magrittr)
+#' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
 #'     select_dataset("ADSL")
-#' data <- haven::read_xpt(pkg_example("adsl.xpt"))
-#' key_sort(data, spec)
-key_sort <- function(data, metacore, dataset_name = NULL){
+#' data <- read_xpt(metatools_example("adsl.xpt"))
+#' sort_key(data, spec)
+sort_key <- function(data, metacore, dataset_name = NULL){
    metacore <- make_lone_dataset(metacore, dataset_name)
    var_ord <- metacore$ds_vars %>%
-      filter(!is.na(key_seq)) %>%
-      arrange(key_seq) %>%
-      pull(variable)
+      filter(!is.na(.data$key_seq)) %>%
+      arrange(.data$key_seq) %>%
+      pull(.data$variable)
 
    data %>%
       arrange(across(var_ord))

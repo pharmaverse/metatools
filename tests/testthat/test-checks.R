@@ -2,10 +2,11 @@
 library(metacore)
 library(tibble)
 library(dplyr)
+library(haven)
 test_that("check_ct_col works correctly",{
-   spec <- suppressWarnings(define_to_MetaCore(metacore_example("ADaM_define.xml"))) %>%
+   spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
       select_dataset("ADSL")
-   data <- haven::read_xpt(pkg_example("adsl.xpt"))
+   data <-read_xpt(metatools_example("adsl.xpt"))
    # Check it works with a character col
    expect_equal(check_ct_col(data, spec, ARM), TRUE)
    # Check it works with a numeric col
@@ -16,7 +17,7 @@ test_that("check_ct_col works correctly",{
 
 
    # Test permitted Values
-   spec2 <- suppressWarnings(spec_to_metacore(metacore_example("p21_mock.xlsx")))
+   spec2 <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
    expect_equal(check_ct_col(data, spec2, ARM), TRUE)
 
    #Test external dictionaries
@@ -36,26 +37,27 @@ test_that("check_ct_col works correctly",{
 })
 
 test_that("check_ct_data works correctly", {
-   spec <- suppressWarnings(define_to_MetaCore(metacore_example("ADaM_define.xml"))) %>%
+   full_spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE)
+
+   spec <- full_spec %>%
       select_dataset("ADSL")
-   data <- haven::read_xpt(pkg_example("adsl.xpt"))
+   data <- read_xpt(metatools_example("adsl.xpt"))
    expect_error(check_ct_data(data, spec))
    expect_equal(check_ct_data(data, spec, TRUE), TRUE)
 
-   full_spec <- suppressWarnings(define_to_MetaCore(metacore_example("ADaM_define.xml")))
    expect_equal(check_ct_data(data, full_spec, TRUE), TRUE)
 })
 
 test_that("variable_check works correctly", {
-    spec <- suppressWarnings(define_to_MetaCore(metacore_example("ADaM_define.xml"))) %>%
+    spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
        select_dataset("ADSL")
-   data <- haven::read_xpt(pkg_example("adsl.xpt"))
-   expect_equal(variable_check(data, spec), TRUE)
+   data <- read_xpt(metatools_example("adsl.xpt"))
+   expect_equal(check_variables(data, spec), TRUE)
    data_miss <- data %>% select(-1)
-   expect_error(variable_check(data_miss, spec))
+   expect_error(check_variables(data_miss, spec))
    data_extra <- data %>% mutate(foo = "hello")
-   expect_error(variable_check(data_extra, spec))
+   expect_error(check_variables(data_extra, spec))
    data_mis_ex <- data_extra %>% select(-1)
-   expect_error(variable_check(data_mis_ex, spec))
+   expect_error(check_variables(data_mis_ex, spec))
 
 })

@@ -6,13 +6,13 @@
 #' @param file Name of file. If `NULL`, the example files will be listed.
 #' @export
 #' @examples
-#' pkg_example()
-#' pkg_example("dm.xpt")
-pkg_example <- function(file = NULL) {
+#' metatools_example()
+#' metatools_example("dm.xpt")
+metatools_example <- function(file = NULL) {
    if (is.null(file)) {
-      dir(system.file("extdata", package = "plaster"))
+      dir(system.file("extdata", package = "metatools"))
    } else {
-      system.file("extdata", file, package = "plaster", mustWork = TRUE)
+      system.file("extdata", file, package = "metatools", mustWork = TRUE)
    }
 }
 

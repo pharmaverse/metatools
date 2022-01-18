@@ -1,5 +1,5 @@
 library(testthat)
-library(plaster)
+library(metatools)
 library(metacore)
 
-test_check("plaster")
+test_check("metatools")

@@ -21,9 +21,10 @@
 #' @examples
 #' library(metacore)
 #' library(haven)
-#' spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) %>%
+#' library(magrittr)
+#' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
 #'     select_dataset("ADSL")
-#' data <- read_xpt(pkg_example("adsl.xpt"))
+#' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_ct_col(data, spec, TRT01PN)
 #' check_ct_col(data, spec, "TRT01PN")
 check_ct_col <- function(data, metacore, col_name, na_acceptable = FALSE){
@@ -36,7 +37,7 @@ check_ct_col <- function(data, metacore, col_name, na_acceptable = FALSE){
    if(is.vector(ct)) {
       check <- ct
    } else if("code" %in% names(ct)){
-      check <- ct %>% pull(code)
+      check <- ct %>% pull(.data$code)
    } else {
       stop("We currently don't have the ability to check against external libraries")
    }
@@ -60,37 +61,42 @@ check_ct_col <- function(data, metacore, col_name, na_acceptable = FALSE){
 #'   dataset of interest. If any variable has different codelists for different
 #'   datasets the metacore object will need to be subsetted using
 #'   `select_dataset` from the metacore package.
-#'
+#' @param na_acceptable Logical value, set to `FALSE` by default, meaning
+#'   missing values are not acceptable. If set to `TRUE` then will pass check if
+#'   values are in the control terminology or are missing
 #' @importFrom purrr map_lgl
 #' @importFrom dplyr filter pull select inner_join
 #' @return `TRUE` if all columns pass. It will error otherwise
 #' @export
 #'
 #' @examples
-#' spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) %>%
+#' library(haven)
+#' library(metacore)
+#' library(magrittr)
+#' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
 #'     select_dataset("ADSL")
-#' data <- haven::read_xpt(pkg_example("adsl.xpt"))
+#' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_ct_data(data, spec, TRUE)
 check_ct_data <- function(data, metacore,  na_acceptable = FALSE){
    codes_in_data <- metacore$value_spec %>%
-      filter(variable %in% names(data), !is.na(code_id)) %>%
-      pull(code_id) %>%
+      filter(.data$variable %in% names(data), !is.na(.data$code_id)) %>%
+      pull(.data$code_id) %>%
       unique()
    # Remove any codes that have external libraries
    codes_to_check <- metacore$codelist %>%
-      filter(type != "external_library", code_id %in% codes_in_data) %>%
-      select(code_id)
+      filter(.data$type != "external_library", .data$code_id %in% codes_in_data) %>%
+      select(.data$code_id)
    # convert list of codes to variables
    cols_to_check <- metacore$value_spec %>%
       inner_join(codes_to_check, by = "code_id") %>%
-      filter(variable %in% names(data)) %>%
-      pull(variable) %>%
+      filter(.data$variable %in% names(data)) %>%
+      pull(.data$variable) %>%
       unique()
    # send all variables through check_ct_col
    results <- cols_to_check %>%
       map_lgl(function(x){
          check_ct_col(data, metacore, {{x}}, na_acceptable)
-         })
+      })
    # Write out warning message
    if(all(results)){
       return(TRUE)
@@ -121,14 +127,17 @@ check_ct_data <- function(data, metacore,  na_acceptable = FALSE){
 #' @importFrom dplyr pull
 #'
 #' @examples
-#'  spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) %>%
+#' library(haven)
+#' library(metacore)
+#' library(magrittr)
+#' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
 #'     select_dataset("ADSL")
-#' data <- haven::read_xpt(pkg_example("adsl.xpt"))
-#' variable_check(data, spec)
-variable_check <- function(data, metacore, dataset_name = NULL){
+#' data <- read_xpt(metatools_example("adsl.xpt"))
+#' check_variables(data, spec)
+check_variables <- function(data, metacore, dataset_name = NULL){
    metacore <- make_lone_dataset(metacore, dataset_name)
    var_list <- metacore$var_spec %>%
-      pull(variable)
+      pull(.data$variable)
    missing <- var_list %>%
       discard(~. %in% names(data))
    extra <- names(data) %>%

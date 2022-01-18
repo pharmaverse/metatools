@@ -100,11 +100,11 @@ create_subgrps <- function(ref_vec, grp_defs){
 #'    4,         "U",    "Unknown",
 #'    5,         "M",    "Male",
 #' )
-#' spec <- define_to_MetaCore(metacore_example("ADaM_define.xml"))
-#' var_from_codelist(data, spec, VAR2, SEX)
-#' var_from_codelist(data, spec, "VAR2", "SEX")
-#' var_from_codelist(data, spec,  VAR1, SEX, decode_to_code = FALSE)
-var_from_codelist <- function(data, metacore, input_var, out_var,
+#' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE)
+#' create_var_from_codelist(data, spec, VAR2, SEX)
+#' create_var_from_codelist(data, spec, "VAR2", "SEX")
+#' create_var_from_codelist(data, spec,  VAR1, SEX, decode_to_code = FALSE)
+create_var_from_codelist <- function(data, metacore, input_var, out_var,
                               decode_to_code = TRUE){
    code_translation <- get_control_term(metacore, {{out_var}})
    input_var_str <- ifelse(mode(enexpr(input_var)) == "character",
@@ -148,9 +148,10 @@ var_from_codelist <- function(data, metacore, input_var, out_var,
 #' @examples
 #' library(metacore)
 #' library(haven)
-#' spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) %>%
+#' library(magrittr)
+#' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
 #'  select_dataset("ADSL")
-#' dm <- read_xpt(pkg_example("dm.xpt"))
+#' dm <- read_xpt(metatools_example("dm.xpt"))
 #' # Grouping Column Only
 #' create_cat_var(dm, spec, AGE, AGEGR1)
 #' # Grouping Column and Numeric Decode
@@ -159,7 +160,7 @@ var_from_codelist <- function(data, metacore, input_var, out_var,
 create_cat_var <- function(data, metacore, ref_var, grp_var,
                            num_grp_var = NULL){
    grp_defs <- get_control_term(metacore, {{grp_var}}) %>%
-      pull(decode)
+      pull(.data$decode)
 
    out <- data %>%
       mutate({{grp_var}}:= create_subgrps({{ref_var}}, grp_defs))

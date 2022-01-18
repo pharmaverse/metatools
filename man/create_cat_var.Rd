@@ -32,9 +32,10 @@ version of that categorical variable.
 \examples{
 library(metacore)
 library(haven)
-spec <- define_to_MetaCore(metacore_example("ADaM_define.xml")) \%>\%
+library(magrittr)
+spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) \%>\%
  select_dataset("ADSL")
-dm <- read_xpt(pkg_example("dm.xpt"))
+dm <- read_xpt(metatools_example("dm.xpt"))
 # Grouping Column Only
 create_cat_var(dm, spec, AGE, AGEGR1)
 # Grouping Column and Numeric Decode
