@@ -13,9 +13,9 @@ create_var_from_codelist(
 )
 }
 \arguments{
-\item{data}{dataset that contains the input variable}
+\item{data}{Dataset that contains the input variable}
 
-\item{metacore}{a metacore object to get the codelist from. If the `out_var`
+\item{metacore}{A metacore object to get the codelist from. If the `out_var`
 has different codelists for different datasets the metacore object will
 need to be subsetted using `select_dataset` from the metacore package.}
 

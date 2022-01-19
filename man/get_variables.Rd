@@ -7,9 +7,9 @@
 get_variables(x, ds_list)
 }
 \arguments{
-\item{x}{dataset with the old and new variable name and dataset name}
+\item{x}{Dataset with the old and new variable name and dataset name}
 
-\item{ds_list}{list of datasets}
+\item{ds_list}{List of datasets}
 }
 \value{
 datasets

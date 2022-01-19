@@ -12,7 +12,7 @@ build_from_derived(
 )
 }
 \arguments{
-\item{metacore}{metacore object that contains the specifications for the
+\item{metacore}{Metacore object that contains the specifications for the
 dataset of interest.}
 
 \item{ds_list}{Named list of datsets that are needed to build the from}
@@ -20,7 +20,7 @@ dataset of interest.}
 \item{dataset_name}{Optional string to specify the dataset. This is only
 needed if the metacore object provided hasn't already been subsetted.}
 
-\item{predecessor_only}{by default `FALSE`, but if `TRUE` will only use
+\item{predecessor_only}{By default `FALSE`, but if `TRUE` will only use
 derivations with the origin of 'Predecessor'}
 }
 \value{

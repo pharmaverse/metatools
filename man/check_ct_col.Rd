@@ -4,16 +4,16 @@
 \alias{check_ct_col}
 \title{Check Control Terminology for a Single Column}
 \usage{
-check_ct_col(data, metacore, col_name, na_acceptable = FALSE)
+check_ct_col(data, metacore, var, na_acceptable = FALSE)
 }
 \arguments{
-\item{data}{data to check}
+\item{data}{Data to check}
 
-\item{metacore}{a metacore object to get the codelist from. If the variable
+\item{metacore}{A metacore object to get the codelist from. If the variable
 has different codelists for different datasets the metacore object will
 need to be subsetted using `select_dataset` from the metacore package.}
 
-\item{col_name}{Name of column}
+\item{var}{Name of variable to check}
 
 \item{na_acceptable}{Logical value, set to `FALSE` by default, meaning
 missing values are not acceptable. If set to `TRUE` then will pass check if

@@ -19,8 +19,8 @@ dash_to_eq <- function(string){
 
 #' Create Subgroups
 #'
-#' @param ref_vec vector of numeric values
-#' @param grp_defs vector of strings with groupings defined. Format must be
+#' @param ref_vec Vector of numeric values
+#' @param grp_defs Vector of strings with groupings defined. Format must be
 #'   either: <00, >=00, 00-00, or  00-<00
 #'
 #' @return Character vector of the values in the subgroups
@@ -70,8 +70,8 @@ create_subgrps <- function(ref_vec, grp_defs){
 #' This functions uses code/decode pairs from a metacore object to create new
 #' variables in the data
 #'
-#' @param data dataset that contains the input variable
-#' @param metacore a metacore object to get the codelist from. If the `out_var`
+#' @param data Dataset that contains the input variable
+#' @param metacore A metacore object to get the codelist from. If the `out_var`
 #'   has different codelists for different datasets the metacore object will
 #'   need to be subsetted using `select_dataset` from the metacore package.
 #' @param input_var Name of the variable that will be translated for the new
@@ -109,6 +109,9 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var,
    code_translation <- get_control_term(metacore, {{out_var}})
    input_var_str <- ifelse(mode(enexpr(input_var)) == "character",
                            as_name(input_var), as_label(enexpr(input_var)))
+   if(is.vector(code_translation) | !("decode" %in% names(code_translation))){
+      stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
+   }
    if(decode_to_code){
       data %>%
          left_join(code_translation, by =  set_names("decode", input_var_str)) %>%
@@ -130,8 +133,8 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var,
 #' variable (`ref_var`) it will create a categorical variable and the numeric
 #' version of that categorical variable.
 #'
-#' @param data dataset with reference variable in it
-#' @param metacore a metacore object to get the codelist from. If the
+#' @param data Dataset with reference variable in it
+#' @param metacore A metacore object to get the codelist from. If the
 #'   variable has different codelists for different datasets the metacore object
 #'   will need to be subsetted using `select_dataset` from the metacore package.
 #' @param ref_var Name of variable to be used as the reference i.e AGE when
@@ -159,7 +162,12 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var,
 #'
 create_cat_var <- function(data, metacore, ref_var, grp_var,
                            num_grp_var = NULL){
-   grp_defs <- get_control_term(metacore, {{grp_var}}) %>%
+
+   ct <- get_control_term(metacore, {{grp_var}})
+   if(is.vector(ct) | !("decode" %in% names(ct))){
+      stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
+   }
+   grp_defs <- ct %>%
       pull(.data$decode)
 
    out <- data %>%
@@ -167,12 +175,46 @@ create_cat_var <- function(data, metacore, ref_var, grp_var,
 
    if(!is.null(enexpr(num_grp_var))){
       out <- out %>%
-         var_from_codelist(metacore, {{grp_var}}, {{num_grp_var}})
+         create_var_from_codelist(metacore, {{grp_var}}, {{num_grp_var}})
    }
    out
 }
 
 
-
+#' Convert Variable to Factor with Levels Set by Control Terms
+#'
+#' This functions takes a dataset, a metacore object and a variable name. Then
+#' looks at the metacore object for the control terms for the given variable and
+#' uses that to convert the variable to a factor with those levels. If the
+#' control terminology is a code list, the code column will be used. The
+#' function fails if the control terminology is an external library
+#' @param data A dataset containing the variable to be modified
+#' @param metacore A metacore object to get the codelist from. If the
+#'   variable has different codelists for different datasets the metacore object
+#'   will need to be subsetted using `select_dataset` from the metacore package
+#' @param var Name of variable to change
+#'
+#' @return dataset
+#' @export
+#'
+#' @examples
+#' library(metacore)
+#' library(haven)
+#' library(magrittr)
+#' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
+#' dm <- read_xpt(metatools_example("dm.xpt"))
+#' convert_var_to_fct(dm, spec, SEX)
+convert_var_to_fct <- function(data, metacore, var){
+   code_translation <- get_control_term(metacore, {{var}})
+   if(is.vector(code_translation)){
+      levels <- code_translation
+   } else if("code" %in% names(code_translation)) {
+      levels <- code_translation$code
+   } else {
+      stop("We currently don't have the ability to use external libraries")
+   }
+   data %>%
+      mutate({{var}} := factor({{var}}, levels = levels))
+}
 
 

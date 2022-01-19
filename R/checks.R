@@ -3,11 +3,11 @@
 #' This function checks the column in the dataset only contains the control
 #' terminology as defined by the metacore specification
 #'
-#' @param data data to check
-#' @param metacore a metacore object to get the codelist from. If the variable
+#' @param data Data to check
+#' @param metacore A metacore object to get the codelist from. If the variable
 #'   has different codelists for different datasets the metacore object will
 #'   need to be subsetted using `select_dataset` from the metacore package.
-#' @param col_name Name of column
+#' @param var Name of variable to check
 #' @param na_acceptable Logical value, set to `FALSE` by default, meaning
 #'   missing values are not acceptable. If set to `TRUE` then will pass check if
 #'   values are in the control terminology or are missing
@@ -27,13 +27,13 @@
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_ct_col(data, spec, TRT01PN)
 #' check_ct_col(data, spec, "TRT01PN")
-check_ct_col <- function(data, metacore, col_name, na_acceptable = FALSE){
-   col_name_str <- as_label(enexpr(col_name)) %>%
+check_ct_col <- function(data, metacore, var, na_acceptable = FALSE){
+   col_name_str <- as_label(enexpr(var)) %>%
       str_remove_all("\"")
    if(!col_name_str %in% names(data)){
       stop(paste(col_name_str, "not found in dataset. Please check and try again"))
    }
-   ct <- get_control_term(metacore, {{col_name}})
+   ct <- get_control_term(metacore, {{var}})
    if(is.vector(ct)) {
       check <- ct
    } else if("code" %in% names(ct)){
@@ -48,7 +48,7 @@ check_ct_col <- function(data, metacore, col_name, na_acceptable = FALSE){
          check <- c(check, NA)
       }
    }
-   test <- pull(data, {{col_name}}) %in% check
+   test <- pull(data, {{var}}) %in% check
    all(test)
 }
 
@@ -56,8 +56,8 @@ check_ct_col <- function(data, metacore, col_name, na_acceptable = FALSE){
 #'
 #' This function checks that all columns in the dataset only contains the
 #' control terminology as defined by the metacore specification
-#' @param data dataset to check
-#' @param metacore metacore object that contains the specifications for the
+#' @param data Dataset to check
+#' @param metacore Metacore object that contains the specifications for the
 #'   dataset of interest. If any variable has different codelists for different
 #'   datasets the metacore object will need to be subsetted using
 #'   `select_dataset` from the metacore package.
@@ -114,8 +114,8 @@ check_ct_data <- function(data, metacore,  na_acceptable = FALSE){
 #' defined in the metacore specifications. If everything matches the function
 #' will return `TRUE` and a message starting everything is as expected. If there
 #' are additional or missing variables and error will explain the discrepancies
-#' @param data dataset to check
-#' @param metacore metacore object that contains the specifications for the
+#' @param data Dataset to check
+#' @param metacore Metacore object that contains the specifications for the
 #'   dataset of interest.
 #' @param dataset_name Optional string to specify the dataset. This is only
 #'   needed if the metacore object provided hasn't already been subsetted.

@@ -20,8 +20,8 @@ metatools_example <- function(file = NULL) {
 #' Convert metacore objec to just a single dataset
 #'
 #'
-#' @param metacore metacore object, which may or may not be subsetted
-#' @param dataset_name name of datasets which may or may not be null. If it is
+#' @param metacore Metacore object, which may or may not be subsetted
+#' @param dataset_name Name of datasets which may or may not be null. If it is
 #'   not null then it will be used to subset.
 #'
 #' @return metacore object

@@ -7,9 +7,9 @@
 create_subgrps(ref_vec, grp_defs)
 }
 \arguments{
-\item{ref_vec}{vector of numeric values}
+\item{ref_vec}{Vector of numeric values}
 
-\item{grp_defs}{vector of strings with groupings defined. Format must be
+\item{grp_defs}{Vector of strings with groupings defined. Format must be
 either: <00, >=00, 00-00, or  00-<00}
 }
 \value{

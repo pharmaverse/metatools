@@ -5,12 +5,12 @@
 #' 'dataset.variable' will be pulled through to creat the new dataset. These
 #' columns are often called 'Predecessors' in ADaM, but this is not univeral so
 #' that is optional to specify.
-#' @param metacore metacore object that contains the specifications for the
+#' @param metacore Metacore object that contains the specifications for the
 #'   dataset of interest.
 #' @param ds_list Named list of datsets that are needed to build the from
 #' @param dataset_name Optional string to specify the dataset. This is only
 #'   needed if the metacore object provided hasn't already been subsetted.
-#' @param predecessor_only by default `FALSE`, but if `TRUE` will only use
+#' @param predecessor_only By default `FALSE`, but if `TRUE` will only use
 #'   derivations with the origin of 'Predecessor'
 #'
 #' @return datset
@@ -78,8 +78,8 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
 #' This function is used with `build_from_derived` to build a dataset of columns
 #' that are pulled directly from other datasets hris
 #'
-#' @param x dataset with the old and new variable name and dataset name
-#' @param ds_list list of datasets
+#' @param x Dataset with the old and new variable name and dataset name
+#' @param ds_list List of datasets
 #'
 #' @return datasets
 #' @noMd

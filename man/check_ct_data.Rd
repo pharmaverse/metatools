@@ -7,9 +7,9 @@
 check_ct_data(data, metacore, na_acceptable = FALSE)
 }
 \arguments{
-\item{data}{dataset to check}
+\item{data}{Dataset to check}
 
-\item{metacore}{metacore object that contains the specifications for the
+\item{metacore}{Metacore object that contains the specifications for the
 dataset of interest. If any variable has different codelists for different
 datasets the metacore object will need to be subsetted using
 `select_dataset` from the metacore package.}

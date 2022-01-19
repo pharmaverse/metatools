@@ -7,9 +7,9 @@
 create_cat_var(data, metacore, ref_var, grp_var, num_grp_var = NULL)
 }
 \arguments{
-\item{data}{dataset with reference variable in it}
+\item{data}{Dataset with reference variable in it}
 
-\item{metacore}{a metacore object to get the codelist from. If the
+\item{metacore}{A metacore object to get the codelist from. If the
 variable has different codelists for different datasets the metacore object
 will need to be subsetted using `select_dataset` from the metacore package.}
 
