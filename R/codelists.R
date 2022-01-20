@@ -88,6 +88,7 @@ create_subgrps <- function(ref_vec, grp_defs){
 #' @importFrom rlang enexpr as_label set_names := as_name
 #' @importFrom dplyr left_join rename
 #' @importFrom metacore get_control_term
+#' @importFrom stringr str_remove_all
 #'
 #' @examples
 #' library(metacore)
@@ -100,15 +101,15 @@ create_subgrps <- function(ref_vec, grp_defs){
 #'    4,         "U",    "Unknown",
 #'    5,         "M",    "Male",
 #' )
-#' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE)
+#' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
 #' create_var_from_codelist(data, spec, VAR2, SEX)
 #' create_var_from_codelist(data, spec, "VAR2", "SEX")
 #' create_var_from_codelist(data, spec,  VAR1, SEX, decode_to_code = FALSE)
 create_var_from_codelist <- function(data, metacore, input_var, out_var,
                               decode_to_code = TRUE){
    code_translation <- get_control_term(metacore, {{out_var}})
-   input_var_str <- ifelse(mode(enexpr(input_var)) == "character",
-                           as_name(input_var), as_label(enexpr(input_var)))
+   input_var_str <- as_label(enexpr(input_var)) %>%
+      str_remove_all("\"")
    if(is.vector(code_translation) | !("decode" %in% names(code_translation))){
       stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
    }
@@ -193,8 +194,11 @@ create_cat_var <- function(data, metacore, ref_var, grp_var,
 #'   variable has different codelists for different datasets the metacore object
 #'   will need to be subsetted using `select_dataset` from the metacore package
 #' @param var Name of variable to change
+#' @importFrom rlang as_label enexpr
+#' @importFrom stringr str_remove_all
+#' @importFrom dplyr mutate
 #'
-#' @return dataset
+#' @return Dataset with variable changed to a factor
 #' @export
 #'
 #' @examples
@@ -203,15 +207,23 @@ create_cat_var <- function(data, metacore, ref_var, grp_var,
 #' library(magrittr)
 #' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
 #' dm <- read_xpt(metatools_example("dm.xpt"))
+#' # Variable with codelist control terms
 #' convert_var_to_fct(dm, spec, SEX)
+#' # Variable with permitted value control terms
+#' convert_var_to_fct(dm, spec, ARM)
 convert_var_to_fct <- function(data, metacore, var){
    code_translation <- get_control_term(metacore, {{var}})
+   var_str <- as_label(enexpr(var)) %>%
+      str_remove_all("\"")
    if(is.vector(code_translation)){
       levels <- code_translation
    } else if("code" %in% names(code_translation)) {
       levels <- code_translation$code
    } else {
       stop("We currently don't have the ability to use external libraries")
+   }
+   if(!var_str %in% names(data)){
+      stop(paste(var_str, "cannot be found in the dataset. Please create variable before converting to factor"))
    }
    data %>%
       mutate({{var}} := factor({{var}}, levels = levels))
