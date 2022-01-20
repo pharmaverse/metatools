@@ -71,8 +71,6 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
 
 
 
-
-
 #' Internal functions to get variables from a dataset list
 #'
 #' This function is used with `build_from_derived` to build a dataset of columns
@@ -90,4 +88,35 @@ get_variables <- function(x, ds_list){
    data %>%
       select(x$col_name) %>%
       rename(rename_vec)
+}
+
+
+#' Drop Unspecified Variables
+#'
+#' This function drops all unspcifed variables. It will throw and error if the
+#' dataset does not contain all expected variables.
+#' @param data Dataset to change
+#' @param metacore Metacore object that only contains the specifications for the
+#'   dataset of interest.
+#' @param dataset_name Optional string to specify the dataset. This is only
+#'   needed if the metacore object provided hasn't already been subsetted.
+#' @importFrom dplyr pull across select
+#' @return Dataset with only specified columns
+#' @export
+#'
+#' @examples
+#' library(metacore)
+#' library(haven)
+#' library(dplyr)
+#' metacore <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
+#'   select_dataset("ADSL")
+#' data <- read_xpt(metatools_example("adsl.xpt")) %>%
+#'   mutate(foo = "Hello")
+#' drop_unspec_vars(data, metacore)
+drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL){
+   metacore <- make_lone_dataset(metacore, dataset_name)
+   var_list <- metacore$var_spec %>%
+      pull(.data$variable)
+   dataset %>%
+      select(var_list)
 }
