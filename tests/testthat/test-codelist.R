@@ -43,15 +43,15 @@ test_that("create_cat_var", {
    # Create manual dataset to check against
    man_dat <- tribble(
       ~AGEGR1,     ~n,
+      "65-80",    172,
       "<65",       42,
       ">80",       92,
-      "65-80",    172
    )
    # Grouping col only
    auto_dat <- create_cat_var(dm, spec, AGE, AGEGR1) %>%
       group_by(AGEGR1) %>%
       summarise(n = n())
-   expect_equal(man_dat, auto_dat)
+   expect_equal(auto_dat, man_dat)
    # Grouping Column and Numeric Decode
    grp_num_dat <- create_cat_var(dm, spec, AGE, AGEGR1, AGEGR1N)
    grp_num_dat %>%
