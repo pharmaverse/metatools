@@ -115,7 +115,7 @@ check_ct_data <- function(data, metacore,  na_acceptable = FALSE){
 #' will return `TRUE` and a message starting everything is as expected. If there
 #' are additional or missing variables and error will explain the discrepancies
 #' @param data Dataset to check
-#' @param metacore Metacore object that contains the specifications for the
+#' @param metacore Metacore object that only contains the specifications for the
 #'   dataset of interest.
 #' @param dataset_name Optional string to specify the dataset. This is only
 #'   needed if the metacore object provided hasn't already been subsetted.
@@ -157,5 +157,4 @@ check_variables <- function(data, metacore, dataset_name = NULL){
       stop(paste0("The following variables do not belong:\n",
                   paste0(extra, collapse = "\n")))
    }
-
 }
