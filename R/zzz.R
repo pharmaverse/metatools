@@ -1,4 +1,6 @@
-globalVariables(c(".",
-                  ".data",
-                  "code",
-                  "decode"))
+globalVariables(c(
+  ".",
+  ".data",
+  "code",
+  "decode"
+))

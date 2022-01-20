@@ -19,17 +19,17 @@
 #' library(haven)
 #' library(magrittr)
 #' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
-#'     select_dataset("ADSL")
+#'   select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' sort_order(data, spec)
-sort_order <- function(data, metacore, dataset_name = NULL){
-   metacore <- make_lone_dataset(metacore, dataset_name)
-   var_ord <- metacore$ds_vars %>%
-      filter(!is.na(.data$order)) %>%
-      arrange(.data$order) %>%
-      pull(.data$variable)
-   data %>%
-      select(all_of(var_ord), everything())
+sort_order <- function(data, metacore, dataset_name = NULL) {
+  metacore <- make_lone_dataset(metacore, dataset_name)
+  var_ord <- metacore$ds_vars %>%
+    filter(!is.na(.data$order)) %>%
+    arrange(.data$order) %>%
+    pull(.data$variable)
+  data %>%
+    select(all_of(var_ord), everything())
 }
 
 
@@ -53,16 +53,16 @@ sort_order <- function(data, metacore, dataset_name = NULL){
 #' library(haven)
 #' library(magrittr)
 #' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
-#'     select_dataset("ADSL")
+#'   select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' sort_key(data, spec)
-sort_key <- function(data, metacore, dataset_name = NULL){
-   metacore <- make_lone_dataset(metacore, dataset_name)
-   var_ord <- metacore$ds_vars %>%
-      filter(!is.na(.data$key_seq)) %>%
-      arrange(.data$key_seq) %>%
-      pull(.data$variable)
+sort_key <- function(data, metacore, dataset_name = NULL) {
+  metacore <- make_lone_dataset(metacore, dataset_name)
+  var_ord <- metacore$ds_vars %>%
+    filter(!is.na(.data$key_seq)) %>%
+    arrange(.data$key_seq) %>%
+    pull(.data$variable)
 
-   data %>%
-      arrange(across(var_ord))
+  data %>%
+    arrange(across(var_ord))
 }

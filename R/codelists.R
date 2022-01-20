@@ -8,12 +8,12 @@
 #' @noRd
 #' @importFrom stringr str_extract str_detect
 #' @importFrom dplyr if_else
-dash_to_eq <- function(string){
-   front <- str_extract(string, "^.*(?=\\-)")
-   front_eq <- if_else(str_detect(front, "<|>|="), front, paste0(">=", front))
-   back <- str_extract(string, "(?<=\\-).*$")
-   back_eq <- if_else(str_detect(back, "<|>|="), back, paste0("<=", back))
-   paste0("x", front_eq, " & x", back_eq)
+dash_to_eq <- function(string) {
+  front <- str_extract(string, "^.*(?=\\-)")
+  front_eq <- if_else(str_detect(front, "<|>|="), front, paste0(">=", front))
+  back <- str_extract(string, "(?<=\\-).*$")
+  back_eq <- if_else(str_detect(back, "<|>|="), back, paste0("<=", back))
+  paste0("x", front_eq, " & x", back_eq)
 }
 
 
@@ -33,34 +33,34 @@ dash_to_eq <- function(string){
 #' create_subgrps(c(1:10), c("<2", "2-5", ">5"))
 #' create_subgrps(c(1:10), c("<=2", ">2-5", ">5"))
 #' create_subgrps(c(1:10), c("<2", "2-<5", ">=5"))
-create_subgrps <- function(ref_vec, grp_defs){
-   if(!is.numeric(ref_vec)){
-      stop("ref_vec must be numeric")
-   }
+create_subgrps <- function(ref_vec, grp_defs) {
+  if (!is.numeric(ref_vec)) {
+    stop("ref_vec must be numeric")
+  }
 
-   #TODO add in error if codelist is in the wrong format
-   equations<- case_when(
-      str_detect(grp_defs, "-") ~ paste0("function(x){if_else(", dash_to_eq(grp_defs), ", '",grp_defs, "','')}"),
-      str_detect(grp_defs, "^(<\\s?=|>\\s?=|<|>)\\s?\\d+") ~ paste0("function(x){if_else(x", grp_defs, ",'", grp_defs, "', '')}"),
-      TRUE ~ NA_character_
-   )
+  # TODO add in error if codelist is in the wrong format
+  equations <- case_when(
+    str_detect(grp_defs, "-") ~ paste0("function(x){if_else(", dash_to_eq(grp_defs), ", '", grp_defs, "','')}"),
+    str_detect(grp_defs, "^(<\\s?=|>\\s?=|<|>)\\s?\\d+") ~ paste0("function(x){if_else(x", grp_defs, ",'", grp_defs, "', '')}"),
+    TRUE ~ NA_character_
+  )
 
-   if(all(!is.na(equations))){
-      functions <- equations %>%
-         map(~eval(parse(text = .)))
-      out <- functions %>%
-         map(~.(ref_vec)) %>%
-         reduce(str_c)
-   }else {
-      stop("Unable to deciver all groups please update and try again")
-   }
-   all_options <- str_c(grp_defs, collapse = "|")
-   too_many_grps <- str_count(out, all_options) %>%
-      keep(~. > 1)
-   if(length(too_many_grps) > 0){
-      stop("Grouping is not exclusive. Please look at the groups and try again")
-   }
-   out
+  if (all(!is.na(equations))) {
+    functions <- equations %>%
+      map(~ eval(parse(text = .)))
+    out <- functions %>%
+      map(~ .(ref_vec)) %>%
+      reduce(str_c)
+  } else {
+    stop("Unable to deciver all groups please update and try again")
+  }
+  all_options <- str_c(grp_defs, collapse = "|")
+  too_many_grps <- str_count(out, all_options) %>%
+    keep(~ . > 1)
+  if (length(too_many_grps) > 0) {
+    stop("Grouping is not exclusive. Please look at the groups and try again")
+  }
+  out
 }
 
 
@@ -94,36 +94,36 @@ create_subgrps <- function(ref_vec, grp_defs){
 #' library(metacore)
 #' library(tibble)
 #' data <- tribble(
-#'    ~USUBJID, ~VAR1,  ~VAR2,
-#'    1,         "M",    "Male",
-#'    2,         "F",    "Female",
-#'    3,         "F",    "Female",
-#'    4,         "U",    "Unknown",
-#'    5,         "M",    "Male",
+#'   ~USUBJID, ~VAR1, ~VAR2,
+#'   1, "M", "Male",
+#'   2, "F", "Female",
+#'   3, "F", "Female",
+#'   4, "U", "Unknown",
+#'   5, "M", "Male",
 #' )
 #' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
 #' create_var_from_codelist(data, spec, VAR2, SEX)
 #' create_var_from_codelist(data, spec, "VAR2", "SEX")
-#' create_var_from_codelist(data, spec,  VAR1, SEX, decode_to_code = FALSE)
+#' create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
 create_var_from_codelist <- function(data, metacore, input_var, out_var,
-                              decode_to_code = TRUE){
-   code_translation <- get_control_term(metacore, {{out_var}})
-   input_var_str <- as_label(enexpr(input_var)) %>%
-      str_remove_all("\"")
-   if(is.vector(code_translation) | !("decode" %in% names(code_translation))){
-      stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
-   }
-   if(decode_to_code){
-      data %>%
-         left_join(code_translation, by =  set_names("decode", input_var_str)) %>%
-         rename({{out_var}} := code)
-   }else if (!decode_to_code){
-      data %>%
-         left_join(code_translation, by =  set_names("code", input_var_str)) %>%
-         rename({{out_var}} := decode)
-   } else {
-      stop("decode_to_code must be either TRUE or FALSE")
-   }
+                                     decode_to_code = TRUE) {
+  code_translation <- get_control_term(metacore, {{ out_var }})
+  input_var_str <- as_label(enexpr(input_var)) %>%
+    str_remove_all("\"")
+  if (is.vector(code_translation) | !("decode" %in% names(code_translation))) {
+    stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
+  }
+  if (decode_to_code) {
+    data %>%
+      left_join(code_translation, by = set_names("decode", input_var_str)) %>%
+      rename({{ out_var }} := code)
+  } else if (!decode_to_code) {
+    data %>%
+      left_join(code_translation, by = set_names("code", input_var_str)) %>%
+      rename({{ out_var }} := decode)
+  } else {
+    stop("decode_to_code must be either TRUE or FALSE")
+  }
 }
 
 
@@ -154,31 +154,29 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var,
 #' library(haven)
 #' library(magrittr)
 #' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
-#'  select_dataset("ADSL")
+#'   select_dataset("ADSL")
 #' dm <- read_xpt(metatools_example("dm.xpt"))
 #' # Grouping Column Only
 #' create_cat_var(dm, spec, AGE, AGEGR1)
 #' # Grouping Column and Numeric Decode
 #' create_cat_var(dm, spec, AGE, AGEGR1, AGEGR1N)
-#'
 create_cat_var <- function(data, metacore, ref_var, grp_var,
-                           num_grp_var = NULL){
+                           num_grp_var = NULL) {
+  ct <- get_control_term(metacore, {{ grp_var }})
+  if (is.vector(ct) | !("decode" %in% names(ct))) {
+    stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
+  }
+  grp_defs <- ct %>%
+    pull(.data$decode)
 
-   ct <- get_control_term(metacore, {{grp_var}})
-   if(is.vector(ct) | !("decode" %in% names(ct))){
-      stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
-   }
-   grp_defs <- ct %>%
-      pull(.data$decode)
+  out <- data %>%
+    mutate({{ grp_var }} := create_subgrps({{ ref_var }}, grp_defs))
 
-   out <- data %>%
-      mutate({{grp_var}}:= create_subgrps({{ref_var}}, grp_defs))
-
-   if(!is.null(enexpr(num_grp_var))){
-      out <- out %>%
-         create_var_from_codelist(metacore, {{grp_var}}, {{num_grp_var}})
-   }
-   out
+  if (!is.null(enexpr(num_grp_var))) {
+    out <- out %>%
+      create_var_from_codelist(metacore, {{ grp_var }}, {{ num_grp_var }})
+  }
+  out
 }
 
 
@@ -211,22 +209,20 @@ create_cat_var <- function(data, metacore, ref_var, grp_var,
 #' convert_var_to_fct(dm, spec, SEX)
 #' # Variable with permitted value control terms
 #' convert_var_to_fct(dm, spec, ARM)
-convert_var_to_fct <- function(data, metacore, var){
-   code_translation <- get_control_term(metacore, {{var}})
-   var_str <- as_label(enexpr(var)) %>%
-      str_remove_all("\"")
-   if(is.vector(code_translation)){
-      levels <- code_translation
-   } else if("code" %in% names(code_translation)) {
-      levels <- code_translation$code
-   } else {
-      stop("We currently don't have the ability to use external libraries")
-   }
-   if(!var_str %in% names(data)){
-      stop(paste(var_str, "cannot be found in the dataset. Please create variable before converting to factor"))
-   }
-   data %>%
-      mutate({{var}} := factor({{var}}, levels = levels))
+convert_var_to_fct <- function(data, metacore, var) {
+  code_translation <- get_control_term(metacore, {{ var }})
+  var_str <- as_label(enexpr(var)) %>%
+    str_remove_all("\"")
+  if (is.vector(code_translation)) {
+    levels <- code_translation
+  } else if ("code" %in% names(code_translation)) {
+    levels <- code_translation$code
+  } else {
+    stop("We currently don't have the ability to use external libraries")
+  }
+  if (!var_str %in% names(data)) {
+    stop(paste(var_str, "cannot be found in the dataset. Please create variable before converting to factor"))
+  }
+  data %>%
+    mutate({{ var }} := factor({{ var }}, levels = levels))
 }
-
-
