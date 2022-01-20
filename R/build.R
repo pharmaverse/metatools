@@ -101,6 +101,7 @@ get_variables <- function(x, ds_list){
 #' @param dataset_name Optional string to specify the dataset. This is only
 #'   needed if the metacore object provided hasn't already been subsetted.
 #' @importFrom dplyr pull across select
+#' @importFrom purrr discard
 #' @return Dataset with only specified columns
 #' @export
 #'
@@ -115,8 +116,15 @@ get_variables <- function(x, ds_list){
 #' drop_unspec_vars(data, metacore)
 drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL){
    metacore <- make_lone_dataset(metacore, dataset_name)
-   var_list <- metacore$var_spec %>%
+   var_list <- metacore$ds_vars %>%
       pull(.data$variable)
-   dataset %>%
-      select(var_list)
+   to_drop <- names(dataset) %>%
+      discard(~. %in% var_list)
+   if(length(to_drop) > 1){
+      out <- dataset %>%
+         select(-all_of(to_drop))
+   } else {
+      out <- dataset
+   }
+   out
 }
