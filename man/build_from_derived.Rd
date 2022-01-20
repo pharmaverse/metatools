@@ -29,8 +29,8 @@ datset
 \description{
 This function builds a dataset out of the columns that just need to be pulled
 through. So any variable that has a derivation in the format of
-'dataset.variable' will be pulled through to creat the new dataset. These
-columns are often called 'Predecessors' in ADaM, but this is not univeral so
+'dataset.variable' will be pulled through to create the new dataset. These
+columns are often called 'Predecessors' in ADaM, but this is not universal so
 that is optional to specify.
 }
 \examples{
@@ -38,7 +38,7 @@ library(metacore)
 library(haven)
 library(magrittr)
 metacore <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) \%>\%
-select_dataset("ADSL")
-ds_list <- list(DM =  read_xpt(metatools_example("dm.xpt")))
+  select_dataset("ADSL")
+ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
 build_from_derived(metacore, ds_list)
 }

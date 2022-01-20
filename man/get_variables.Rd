@@ -16,5 +16,5 @@ datasets
 }
 \description{
 This function is used with `build_from_derived` to build a dataset of columns
-that are pulled directly from other datasets hris
+that are pulled directly from other datasets
 }

@@ -40,15 +40,15 @@ variables in the data
 library(metacore)
 library(tibble)
 data <- tribble(
-   ~USUBJID, ~VAR1,  ~VAR2,
-   1,         "M",    "Male",
-   2,         "F",    "Female",
-   3,         "F",    "Female",
-   4,         "U",    "Unknown",
-   5,         "M",    "Male",
+  ~USUBJID, ~VAR1, ~VAR2,
+  1, "M", "Male",
+  2, "F", "Female",
+  3, "F", "Female",
+  4, "U", "Unknown",
+  5, "M", "Male",
 )
-spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE)
+spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
 create_var_from_codelist(data, spec, VAR2, SEX)
 create_var_from_codelist(data, spec, "VAR2", "SEX")
-create_var_from_codelist(data, spec,  VAR1, SEX, decode_to_code = FALSE)
+create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
 }

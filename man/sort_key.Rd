@@ -27,7 +27,7 @@ library(metacore)
 library(haven)
 library(magrittr)
 spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) \%>\%
-    select_dataset("ADSL")
+  select_dataset("ADSL")
 data <- read_xpt(metatools_example("adsl.xpt"))
 sort_key(data, spec)
 }

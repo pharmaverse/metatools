@@ -9,7 +9,7 @@ check_variables(data, metacore, dataset_name = NULL)
 \arguments{
 \item{data}{Dataset to check}
 
-\item{metacore}{Metacore object that contains the specifications for the
+\item{metacore}{Metacore object that only contains the specifications for the
 dataset of interest.}
 
 \item{dataset_name}{Optional string to specify the dataset. This is only
@@ -29,7 +29,7 @@ library(haven)
 library(metacore)
 library(magrittr)
 spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) \%>\%
-    select_dataset("ADSL")
+  select_dataset("ADSL")
 data <- read_xpt(metatools_example("adsl.xpt"))
 check_variables(data, spec)
 }

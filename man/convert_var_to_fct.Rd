@@ -16,7 +16,7 @@ will need to be subsetted using `select_dataset` from the metacore package}
 \item{var}{Name of variable to change}
 }
 \value{
-dataset
+Dataset with variable changed to a factor
 }
 \description{
 This functions takes a dataset, a metacore object and a variable name. Then
@@ -29,8 +29,10 @@ function fails if the control terminology is an external library
 library(metacore)
 library(haven)
 library(magrittr)
-spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) \%>\%
- select_dataset("ADSL")
+spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
 dm <- read_xpt(metatools_example("dm.xpt"))
+# Variable with codelist control terms
 convert_var_to_fct(dm, spec, SEX)
+# Variable with permitted value control terms
+convert_var_to_fct(dm, spec, ARM)
 }

@@ -2,8 +2,8 @@
 #'
 #' This function builds a dataset out of the columns that just need to be pulled
 #' through. So any variable that has a derivation in the format of
-#' 'dataset.variable' will be pulled through to creat the new dataset. These
-#' columns are often called 'Predecessors' in ADaM, but this is not univeral so
+#' 'dataset.variable' will be pulled through to create the new dataset. These
+#' columns are often called 'Predecessors' in ADaM, but this is not universal so
 #' that is optional to specify.
 #' @param metacore Metacore object that contains the specifications for the
 #'   dataset of interest.
@@ -74,7 +74,7 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
 #' Internal functions to get variables from a dataset list
 #'
 #' This function is used with `build_from_derived` to build a dataset of columns
-#' that are pulled directly from other datasets hris
+#' that are pulled directly from other datasets
 #'
 #' @param x Dataset with the old and new variable name and dataset name
 #' @param ds_list List of datasets
