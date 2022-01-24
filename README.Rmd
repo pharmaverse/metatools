@@ -1,0 +1,68 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# metatools
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of metatools is to enable the use of metacore objects. Metatools can be used to build datasets or enhance columns in existing datasets as well as checking datasets against the metadata in metacore. 
+
+## Installation
+
+You can install the released version of metatools from [GitHub](https://github.com/) with:
+
+``` r
+install.packages("metatools")
+```
+
+And the development version from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("gsk-tech/metatools")
+```
+## Example
+
+Here is a basic example of some functions to build datasets and create new columns. 
+
+```{r example}
+library(metatools)
+library(metacore)
+library(haven)
+library(magrittr)
+metacore <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
+  select_dataset("ADSL")
+ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
+
+build_from_derived(metacore, ds_list) %>% # To pull in columns from DM to be in ADSL
+   create_cat_var(metacore, AGE, AGEGR1, AGEGR1N) %>% #Add an AGEGR1 and AGEGR1N column
+   convert_var_to_fct(metacore, ETHNIC) # Change ETHNIC to as factor 
+   
+```
+
+Metatools can also be used to run checks 
+```{r}
+data <- read_xpt(metatools_example("adsl.xpt"))
+#Checking all values are in the control terminology for just TRT01PN
+check_ct_col(data, metacore, TRT01PN)
+#Checking all values are in the control terminology for all variables 
+check_ct_data(data, metacore, TRUE)
+# Check all variables in the metadata are in the dataset and there aren't any extra columns 
+check_variables(data, metacore)
+
+```
+
+
