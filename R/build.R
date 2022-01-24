@@ -95,7 +95,7 @@ get_variables <- function(x, ds_list) {
 #'
 #' This function drops all unspcifed variables. It will throw and error if the
 #' dataset does not contain all expected variables.
-#' @param data Dataset to change
+#' @param dataset Dataset to change
 #' @param metacore Metacore object that only contains the specifications for the
 #'   dataset of interest.
 #' @param dataset_name Optional string to specify the dataset. This is only

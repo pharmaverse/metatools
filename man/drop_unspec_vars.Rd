@@ -7,13 +7,13 @@
 drop_unspec_vars(dataset, metacore, dataset_name = NULL)
 }
 \arguments{
+\item{dataset}{Dataset to change}
+
 \item{metacore}{Metacore object that only contains the specifications for the
 dataset of interest.}
 
 \item{dataset_name}{Optional string to specify the dataset. This is only
 needed if the metacore object provided hasn't already been subsetted.}
-
-\item{data}{Dataset to change}
 }
 \value{
 Dataset with only specified columns
