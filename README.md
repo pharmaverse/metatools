@@ -6,6 +6,7 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/pharmaverse/metatools/workflows/R-CMD-check/badge.svg)](https://github.com/pharmaverse/metatools/actions)
+[![test-coverage](https://github.com/pharmaverse/metatools/workflows/test-coverage/badge.svg)](https://github.com/pharmaverse/metatools/actions)
 <!-- badges: end -->
 
 The goal of metatools is to enable the use of metacore objects.
