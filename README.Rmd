@@ -13,11 +13,13 @@ knitr::opts_chunk$set(
 )
 ```
 
-# metatools <a href='https://github.com/pharmaverse/metatools'><img src="man/figures/metatools-dark.png" align="right" style="height:139px;"/></a>
+# metatools <a href='https://github.com/pharmaverse/metatools'><img src="man/figures/metatools.png" align="right" style="height:139px;"/></a>
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/pharmaverse/metatools/workflows/R-CMD-check/badge.svg)](https://github.com/pharmaverse/metatools/actions)
-[![test-coverage](https://github.com/pharmaverse/metatools/workflows/test-coverage/badge.svg)](https://github.com/pharmaverse/metatools/actions)
+[<img src="https://img.shields.io/codecov/c/github/pharmaverse/metatools">](https://codecov.io/gh/pharmaverse/metatools)
+[<img src="https://img.shields.io/badge/License-MIT-blue.svg">](https://github.com/pharmaverse/metatools/blob/main/LICENSE)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
 The goal of metatools is to enable the use of metacore objects. Metatools can be used to build datasets or enhance columns in existing datasets as well as checking datasets against the metadata in metacore. 
