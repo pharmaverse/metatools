@@ -6,7 +6,7 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/pharmaverse/metatools/workflows/R-CMD-check/badge.svg)](https://github.com/pharmaverse/metatools/actions)
-[<img src="https://img.shields.io/codecov/c/github/pharmaverse/metatools">](https://codecov.io/gh/pharmaverse/metatools)
+[![codecov](https://codecov.io/gh/pharmaverse/metatools/branch/main/graph/badge.svg?token=55N5APFLPA)](https://codecov.io/gh/pharmaverse/metatools)
 [<img src="https://img.shields.io/badge/License-MIT-blue.svg">](https://github.com/pharmaverse/metatools/blob/main/LICENSE)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
