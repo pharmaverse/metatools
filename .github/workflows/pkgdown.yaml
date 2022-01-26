@@ -27,9 +27,12 @@ jobs:
         run: |
           install.packages("remotes")
           remotes::install_github("https://github.com/atorus-research/metacore")
-          remotes::install_deps(dependencies = TRUE)
-          remotes::install_cran("pkgdown")
         shell: Rscript {0}
+
+      - uses: r-lib/actions/setup-r-dependencies@v1
+        with:
+          extra-packages: pkgdown
+          needs: website
 
       - name: Deploy package
         run: |
