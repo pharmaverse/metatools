@@ -66,7 +66,7 @@
 <p>And the development version from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># install.packages("devtools")</span>
-<span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"gsk-tech/metatools"</span><span class="op">)</span></code></pre></div>
+<span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"pharmaverse/metatools"</span><span class="op">)</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
@@ -88,18 +88,18 @@
    <span class="fu"><a href="reference/create_cat_var.html">create_cat_var</a></span><span class="op">(</span><span class="va">metacore</span>, <span class="va">AGE</span>, <span class="va">AGEGR1</span>, <span class="va">AGEGR1N</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/metacore/man/pipe.html" class="external-link">%&gt;%</a></span> <span class="co">#Add an AGEGR1 and AGEGR1N column</span>
    <span class="fu"><a href="reference/convert_var_to_fct.html">convert_var_to_fct</a></span><span class="op">(</span><span class="va">metacore</span>, <span class="va">ETHNIC</span><span class="op">)</span> <span class="co"># Change ETHNIC to as factor </span>
 <span class="co">#&gt; # A tibble: 306 x 15</span>
-<span class="co">#&gt;    STUDYID  USUBJID  SUBJID SITEID TRT01P    AGE AGEU  RACE  SEX   ETHNIC  DTHFL</span>
-<span class="co">#&gt;    &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;fct&gt;   &lt;chr&gt;</span>
-<span class="co">#&gt;  1 CDISCPI~ 01-701-~ 1015   701    Placebo    63 YEARS WHITE F     HISPAN~ ""   </span>
-<span class="co">#&gt;  2 CDISCPI~ 01-701-~ 1023   701    Placebo    64 YEARS WHITE M     HISPAN~ ""   </span>
-<span class="co">#&gt;  3 CDISCPI~ 01-701-~ 1028   701    Xanome~    71 YEARS WHITE M     NOT HI~ ""   </span>
-<span class="co">#&gt;  4 CDISCPI~ 01-701-~ 1033   701    Xanome~    74 YEARS WHITE M     NOT HI~ ""   </span>
-<span class="co">#&gt;  5 CDISCPI~ 01-701-~ 1034   701    Xanome~    77 YEARS WHITE F     NOT HI~ ""   </span>
-<span class="co">#&gt;  6 CDISCPI~ 01-701-~ 1047   701    Placebo    85 YEARS WHITE F     NOT HI~ ""   </span>
-<span class="co">#&gt;  7 CDISCPI~ 01-701-~ 1057   701    Screen~    59 YEARS WHITE F     HISPAN~ ""   </span>
-<span class="co">#&gt;  8 CDISCPI~ 01-701-~ 1097   701    Xanome~    68 YEARS WHITE M     NOT HI~ ""   </span>
-<span class="co">#&gt;  9 CDISCPI~ 01-701-~ 1111   701    Xanome~    81 YEARS WHITE F     NOT HI~ ""   </span>
-<span class="co">#&gt; 10 CDISCPI~ 01-701-~ 1115   701    Xanome~    84 YEARS WHITE M     NOT HI~ ""   </span>
+<span class="co">#&gt;    STUDYID     USUBJID SUBJID SITEID TRT01P   AGE AGEU  RACE  SEX   ETHNIC DTHFL</span>
+<span class="co">#&gt;    &lt;chr&gt;       &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;fct&gt;  &lt;chr&gt;</span>
+<span class="co">#&gt;  1 CDISCPILOT~ 01-701~ 1015   701    Place~    63 YEARS WHITE F     HISPA~ ""   </span>
+<span class="co">#&gt;  2 CDISCPILOT~ 01-701~ 1023   701    Place~    64 YEARS WHITE M     HISPA~ ""   </span>
+<span class="co">#&gt;  3 CDISCPILOT~ 01-701~ 1028   701    Xanom~    71 YEARS WHITE M     NOT H~ ""   </span>
+<span class="co">#&gt;  4 CDISCPILOT~ 01-701~ 1033   701    Xanom~    74 YEARS WHITE M     NOT H~ ""   </span>
+<span class="co">#&gt;  5 CDISCPILOT~ 01-701~ 1034   701    Xanom~    77 YEARS WHITE F     NOT H~ ""   </span>
+<span class="co">#&gt;  6 CDISCPILOT~ 01-701~ 1047   701    Place~    85 YEARS WHITE F     NOT H~ ""   </span>
+<span class="co">#&gt;  7 CDISCPILOT~ 01-701~ 1057   701    Scree~    59 YEARS WHITE F     HISPA~ ""   </span>
+<span class="co">#&gt;  8 CDISCPILOT~ 01-701~ 1097   701    Xanom~    68 YEARS WHITE M     NOT H~ ""   </span>
+<span class="co">#&gt;  9 CDISCPILOT~ 01-701~ 1111   701    Xanom~    81 YEARS WHITE F     NOT H~ ""   </span>
+<span class="co">#&gt; 10 CDISCPILOT~ 01-701~ 1115   701    Xanom~    84 YEARS WHITE M     NOT H~ ""   </span>
 <span class="co">#&gt; # ... with 296 more rows, and 4 more variables: RFSTDTC &lt;chr&gt;, RFENDTC &lt;chr&gt;,</span>
 <span class="co">#&gt; #   AGEGR1 &lt;chr&gt;, AGEGR1N &lt;chr&gt;</span></code></pre></div>
 <p>Metatools can also be used to run checks</p>
