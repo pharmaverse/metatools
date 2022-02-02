@@ -30,7 +30,7 @@ And the development version from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("gsk-tech/metatools")
+devtools::install_github("pharmaverse/metatools")
 ```
 
 ## Example
@@ -54,18 +54,18 @@ build_from_derived(metacore, ds_list) %>% # To pull in columns from DM to be in 
    create_cat_var(metacore, AGE, AGEGR1, AGEGR1N) %>% #Add an AGEGR1 and AGEGR1N column
    convert_var_to_fct(metacore, ETHNIC) # Change ETHNIC to as factor 
 #> # A tibble: 306 x 15
-#>    STUDYID  USUBJID  SUBJID SITEID TRT01P    AGE AGEU  RACE  SEX   ETHNIC  DTHFL
-#>    <chr>    <chr>    <chr>  <chr>  <chr>   <dbl> <chr> <chr> <chr> <fct>   <chr>
-#>  1 CDISCPI~ 01-701-~ 1015   701    Placebo    63 YEARS WHITE F     HISPAN~ ""   
-#>  2 CDISCPI~ 01-701-~ 1023   701    Placebo    64 YEARS WHITE M     HISPAN~ ""   
-#>  3 CDISCPI~ 01-701-~ 1028   701    Xanome~    71 YEARS WHITE M     NOT HI~ ""   
-#>  4 CDISCPI~ 01-701-~ 1033   701    Xanome~    74 YEARS WHITE M     NOT HI~ ""   
-#>  5 CDISCPI~ 01-701-~ 1034   701    Xanome~    77 YEARS WHITE F     NOT HI~ ""   
-#>  6 CDISCPI~ 01-701-~ 1047   701    Placebo    85 YEARS WHITE F     NOT HI~ ""   
-#>  7 CDISCPI~ 01-701-~ 1057   701    Screen~    59 YEARS WHITE F     HISPAN~ ""   
-#>  8 CDISCPI~ 01-701-~ 1097   701    Xanome~    68 YEARS WHITE M     NOT HI~ ""   
-#>  9 CDISCPI~ 01-701-~ 1111   701    Xanome~    81 YEARS WHITE F     NOT HI~ ""   
-#> 10 CDISCPI~ 01-701-~ 1115   701    Xanome~    84 YEARS WHITE M     NOT HI~ ""   
+#>    STUDYID     USUBJID SUBJID SITEID TRT01P   AGE AGEU  RACE  SEX   ETHNIC DTHFL
+#>    <chr>       <chr>   <chr>  <chr>  <chr>  <dbl> <chr> <chr> <chr> <fct>  <chr>
+#>  1 CDISCPILOT~ 01-701~ 1015   701    Place~    63 YEARS WHITE F     HISPA~ ""   
+#>  2 CDISCPILOT~ 01-701~ 1023   701    Place~    64 YEARS WHITE M     HISPA~ ""   
+#>  3 CDISCPILOT~ 01-701~ 1028   701    Xanom~    71 YEARS WHITE M     NOT H~ ""   
+#>  4 CDISCPILOT~ 01-701~ 1033   701    Xanom~    74 YEARS WHITE M     NOT H~ ""   
+#>  5 CDISCPILOT~ 01-701~ 1034   701    Xanom~    77 YEARS WHITE F     NOT H~ ""   
+#>  6 CDISCPILOT~ 01-701~ 1047   701    Place~    85 YEARS WHITE F     NOT H~ ""   
+#>  7 CDISCPILOT~ 01-701~ 1057   701    Scree~    59 YEARS WHITE F     HISPA~ ""   
+#>  8 CDISCPILOT~ 01-701~ 1097   701    Xanom~    68 YEARS WHITE M     NOT H~ ""   
+#>  9 CDISCPILOT~ 01-701~ 1111   701    Xanom~    81 YEARS WHITE F     NOT H~ ""   
+#> 10 CDISCPILOT~ 01-701~ 1115   701    Xanom~    84 YEARS WHITE M     NOT H~ ""   
 #> # ... with 296 more rows, and 4 more variables: RFSTDTC <chr>, RFENDTC <chr>,
 #> #   AGEGR1 <chr>, AGEGR1N <chr>
 ```
