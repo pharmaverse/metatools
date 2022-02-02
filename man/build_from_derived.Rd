@@ -15,7 +15,7 @@ build_from_derived(
 \item{metacore}{Metacore object that contains the specifications for the
 dataset of interest.}
 
-\item{ds_list}{Named list of datsets that are needed to build the from}
+\item{ds_list}{Named list of datasets that are needed to build the from}
 
 \item{dataset_name}{Optional string to specify the dataset. This is only
 needed if the metacore object provided hasn't already been subsetted.}

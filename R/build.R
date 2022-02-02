@@ -7,7 +7,7 @@
 #' that is optional to specify.
 #' @param metacore Metacore object that contains the specifications for the
 #'   dataset of interest.
-#' @param ds_list Named list of datsets that are needed to build the from
+#' @param ds_list Named list of datasets that are needed to build the from
 #' @param dataset_name Optional string to specify the dataset. This is only
 #'   needed if the metacore object provided hasn't already been subsetted.
 #' @param predecessor_only By default `FALSE`, but if `TRUE` will only use

@@ -5,6 +5,7 @@
 
 <!-- badges: start -->
 
+[<img src="http://pharmaverse.org/shields/metatools.svg">](https://pharmaverse.org)
 [![R-CMD-check](https://github.com/pharmaverse/metatools/workflows/R-CMD-check/badge.svg)](https://github.com/pharmaverse/metatools/actions)
 [![codecov](https://codecov.io/gh/pharmaverse/metatools/branch/main/graph/badge.svg?token=55N5APFLPA)](https://codecov.io/gh/pharmaverse/metatools)
 [<img src="https://img.shields.io/badge/License-MIT-blue.svg">](https://github.com/pharmaverse/metatools/blob/main/LICENSE)
