@@ -21,8 +21,8 @@
 #' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
 #'   select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
-#' sort_order(data, spec)
-sort_order <- function(data, metacore, dataset_name = NULL) {
+#' order_cols(data, spec)
+order_cols <- function(data, metacore, dataset_name = NULL) {
   metacore <- make_lone_dataset(metacore, dataset_name)
   var_ord <- metacore$ds_vars %>%
     filter(!is.na(.data$order)) %>%
@@ -55,8 +55,8 @@ sort_order <- function(data, metacore, dataset_name = NULL) {
 #' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
 #'   select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
-#' sort_key(data, spec)
-sort_key <- function(data, metacore, dataset_name = NULL) {
+#' sort_by_key (data, spec)
+sort_by_key <- function(data, metacore, dataset_name = NULL) {
   metacore <- make_lone_dataset(metacore, dataset_name)
   var_ord <- metacore$ds_vars %>%
     filter(!is.na(.data$key_seq)) %>%
