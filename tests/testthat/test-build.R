@@ -29,8 +29,21 @@ test_that("build_from_derived", {
     unique() %>%
     ifelse(. == "ARM", "TRT01P", .) %>%
     sort()
-  build_from_derived(metacore, ds_list) %>%
+  build_from_derived(metacore, ds_list, keep = FALSE) %>%
     names() %>%
     sort() %>%
     expect_equal(man_vars)
+
+  # Vars pulled through with old columns kept
+  man_vars <- metacore$derivations %>%
+     filter(str_detect(derivation, "^DM\\.")) %>%
+     pull(derivation) %>%
+     str_remove("^DM\\.") %>%
+     unique() %>%
+     c(., "TRT01P") %>%
+     sort()
+  build_from_derived(metacore, ds_list) %>%
+     names() %>%
+     sort() %>%
+     expect_equal(man_vars)
 })

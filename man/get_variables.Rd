@@ -4,12 +4,14 @@
 \alias{get_variables}
 \title{Internal functions to get variables from a dataset list}
 \usage{
-get_variables(x, ds_list)
+get_variables(x, ds_list, keep)
 }
 \arguments{
 \item{x}{Dataset with the old and new variable name and dataset name}
 
 \item{ds_list}{List of datasets}
+
+\item{keep}{boolean if old columns should be kept}
 }
 \value{
 datasets
