@@ -12,6 +12,7 @@
 #' @export
 #'
 #' @examples
+#' library(magirttr)
 #' mtcars %>%
 #'   add_labels(
 #'     mpg = "Miles Per Gallon",
@@ -97,7 +98,3 @@ set_variable_labels <- function(data, metacore, dataset_name = NULL) {
    do.call(add_labels, args)
 
 }
-
-dm2 <- dm %>%
-   mutate(hello = TRUE)
-
