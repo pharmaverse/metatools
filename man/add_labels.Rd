@@ -18,8 +18,8 @@ data with variable labels applied
 This function allows a user to apply several labels to a dataframe at once.
 }
 \examples{
-mtcars \%>\%
-  add_labels(
+add_labels(
+    mtcars,
     mpg = "Miles Per Gallon",
     cyl = "Cylinders"
   )
