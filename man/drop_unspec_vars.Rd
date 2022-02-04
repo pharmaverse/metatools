@@ -26,9 +26,9 @@ dataset does not contain all expected variables.
 library(metacore)
 library(haven)
 library(dplyr)
-metacore <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) \%>\%
-  select_dataset("ADSL")
+load(metacore_example("pilot_ADaM.rda"))
+spec <- metacore \%>\% select_dataset("ADSL")
 data <- read_xpt(metatools_example("adsl.xpt")) \%>\%
   mutate(foo = "Hello")
-drop_unspec_vars(data, metacore)
+drop_unspec_vars(data, spec)
 }

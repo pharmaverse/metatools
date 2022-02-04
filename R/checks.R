@@ -22,8 +22,8 @@
 #' library(metacore)
 #' library(haven)
 #' library(magrittr)
-#' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
-#'   select_dataset("ADSL")
+#' load(metacore_example("pilot_ADaM.rda"))
+#' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_ct_col(data, spec, TRT01PN)
 #' check_ct_col(data, spec, "TRT01PN")
@@ -73,8 +73,8 @@ check_ct_col <- function(data, metacore, var, na_acceptable = FALSE) {
 #' library(haven)
 #' library(metacore)
 #' library(magrittr)
-#' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
-#'   select_dataset("ADSL")
+#' load(metacore_example("pilot_ADaM.rda"))
+#' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_ct_data(data, spec, TRUE)
 check_ct_data <- function(data, metacore, na_acceptable = FALSE) {
@@ -130,8 +130,8 @@ check_ct_data <- function(data, metacore, na_acceptable = FALSE) {
 #' library(haven)
 #' library(metacore)
 #' library(magrittr)
-#' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
-#'   select_dataset("ADSL")
+#' load(metacore_example("pilot_ADaM.rda"))
+#' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_variables(data, spec)
 check_variables <- function(data, metacore, dataset_name = NULL) {

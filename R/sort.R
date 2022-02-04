@@ -18,8 +18,8 @@
 #' library(metacore)
 #' library(haven)
 #' library(magrittr)
-#' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
-#'   select_dataset("ADSL")
+#' load(metacore_example("pilot_ADaM.rda"))
+#' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' order_cols(data, spec)
 order_cols <- function(data, metacore, dataset_name = NULL) {
@@ -52,8 +52,8 @@ order_cols <- function(data, metacore, dataset_name = NULL) {
 #' library(metacore)
 #' library(haven)
 #' library(magrittr)
-#' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
-#'   select_dataset("ADSL")
+#' load(metacore_example("pilot_ADaM.rda"))
+#' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' sort_by_key (data, spec)
 sort_by_key <- function(data, metacore, dataset_name = NULL) {

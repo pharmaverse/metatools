@@ -37,8 +37,8 @@ that is optional to specify.
 library(metacore)
 library(haven)
 library(magrittr)
-metacore <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) \%>\%
-  select_dataset("ADSL")
+load(metacore_example("pilot_ADaM.rda"))
+spec <- metacore \%>\% select_dataset("ADSL")
 ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
-build_from_derived(metacore, ds_list)
+build_from_derived(spec, ds_list)
 }

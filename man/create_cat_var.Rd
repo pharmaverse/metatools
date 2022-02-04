@@ -33,8 +33,8 @@ version of that categorical variable.
 library(metacore)
 library(haven)
 library(magrittr)
-spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) \%>\%
-  select_dataset("ADSL")
+load(metacore_example("pilot_ADaM.rda"))
+spec <- metacore \%>\% select_dataset("ADSL")
 dm <- read_xpt(metatools_example("dm.xpt"))
 # Grouping Column Only
 create_cat_var(dm, spec, AGE, AGEGR1)

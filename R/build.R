@@ -23,10 +23,10 @@
 #' library(metacore)
 #' library(haven)
 #' library(magrittr)
-#' metacore <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
-#'   select_dataset("ADSL")
+#' load(metacore_example("pilot_ADaM.rda"))
+#' spec <- metacore %>% select_dataset("ADSL")
 #' ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
-#' build_from_derived(metacore, ds_list)
+#' build_from_derived(spec, ds_list)
 build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
                                predecessor_only = FALSE) {
   metacore <- make_lone_dataset(metacore, dataset_name)
@@ -109,11 +109,11 @@ get_variables <- function(x, ds_list) {
 #' library(metacore)
 #' library(haven)
 #' library(dplyr)
-#' metacore <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
-#'   select_dataset("ADSL")
+#' load(metacore_example("pilot_ADaM.rda"))
+#' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt")) %>%
 #'   mutate(foo = "Hello")
-#' drop_unspec_vars(data, metacore)
+#' drop_unspec_vars(data, spec)
 drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL) {
   metacore <- make_lone_dataset(metacore, dataset_name)
   var_list <- metacore$ds_vars %>%

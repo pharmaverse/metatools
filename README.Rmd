@@ -47,12 +47,14 @@ Here is a basic example of some functions to build datasets and create new colum
 library(metatools)
 library(metacore)
 library(haven)
-library(magrittr)
-metacore <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
+library(dplyr)
+load(metacore_example("pilot_ADaM.rda"))
+metacore <- metacore %>%
   select_dataset("ADSL")
 ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
 
 build_from_derived(metacore, ds_list) %>% # To pull in columns from DM to be in ADSL
+   select(USUBJID, AGE, ETHNIC) %>% 
    create_cat_var(metacore, AGE, AGEGR1, AGEGR1N) %>% #Add an AGEGR1 and AGEGR1N column
    convert_var_to_fct(metacore, ETHNIC) # Change ETHNIC to as factor 
 ```
