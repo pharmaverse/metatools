@@ -8,7 +8,8 @@ build_from_derived(
   metacore,
   ds_list,
   dataset_name = NULL,
-  predecessor_only = FALSE
+  predecessor_only = FALSE,
+  keep = TRUE
 )
 }
 \arguments{
@@ -22,6 +23,11 @@ needed if the metacore object provided hasn't already been subsetted.}
 
 \item{predecessor_only}{By default `FALSE`, but if `TRUE` will only use
 derivations with the origin of 'Predecessor'}
+
+\item{keep}{Boolean to determine if the original columns should be kept. By
+default `TRUE`, so if any column gets renamed between SDTM and ADAM the
+original SDTM column and the renamed ADaM column are in the resulting
+datasets. If `FALSE`, only the ADaM columns are kept.}
 }
 \value{
 datset

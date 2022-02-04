@@ -12,11 +12,16 @@
 #'   needed if the metacore object provided hasn't already been subsetted.
 #' @param predecessor_only By default `FALSE`, but if `TRUE` will only use
 #'   derivations with the origin of 'Predecessor'
+#' @param keep Boolean to determine if the original columns should be kept. By
+#'   default `TRUE`, so if any column gets renamed between SDTM and ADAM the
+#'   original SDTM column and the renamed ADaM column are in the resulting
+#'   datasets. If `FALSE`, only the ADaM columns are kept.
 #'
 #' @return datset
 #' @export
 #' @importFrom stringr str_to_lower str_detect str_extract str_to_upper
-#' @importFrom dplyr filter pull mutate group_by group_split inner_join select full_join
+#' @importFrom dplyr filter pull mutate group_by group_split inner_join select
+#'   full_join
 #' @importFrom purrr map reduce
 #'
 #' @examples
@@ -28,7 +33,7 @@
 #' ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
 #' build_from_derived(metacore, ds_list)
 build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
-                               predecessor_only = FALSE) {
+                               predecessor_only = FALSE, keep = TRUE) {
   metacore <- make_lone_dataset(metacore, dataset_name)
   derirvations <- metacore$derivations
   if (predecessor_only) {
@@ -65,7 +70,7 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
     select(.data$variable, .data$ds, .data$col_name) %>%
     group_by(.data$ds) %>%
     group_split() %>%
-    map(get_variables, ds_list) %>%
+    map(get_variables, ds_list, keep) %>%
     reduce(full_join, by = join_by)
 }
 
@@ -78,16 +83,24 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
 #'
 #' @param x Dataset with the old and new variable name and dataset name
 #' @param ds_list List of datasets
+#' @param keep boolean if old columns should be kept
 #'
 #' @return datasets
 #' @noMd
-get_variables <- function(x, ds_list) {
+get_variables <- function(x, ds_list, keep) {
   ds_name <- unique(x$ds)
   data <- ds_list[[ds_name]]
   rename_vec <- set_names(x$col_name, x$variable)
-  data %>%
-    select(x$col_name) %>%
-    rename(rename_vec)
+  if(keep){
+     out <- data %>%
+        select(x$col_name) %>%
+        mutate(across(rename_vec))
+  } else {
+     out <- data %>%
+        select(x$col_name) %>%
+        rename(rename_vec)
+  }
+  out
 }
 
 
