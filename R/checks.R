@@ -44,7 +44,7 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
       stop("We currently don't have the ability to check against external libraries")
    }
    core <- metacore$ds_vars %>%
-      filter(variable == col_name_str) %>%
+      filter(.data$variable == col_name_str) %>%
       pull(core)
    attr(core, "label") <- NULL
    test <- ifelse(is.null(na_acceptable), !identical(core,"Required"), na_acceptable)
