@@ -2,5 +2,7 @@ globalVariables(c(
   ".",
   ".data",
   "code",
-  "decode"
+  "decode",
+  "variable",
+  "label"
 ))
