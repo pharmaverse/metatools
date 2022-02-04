@@ -1,3 +1,60 @@
+library(magrittr)
+
+# Mock up metacore data
+var_spec <- tibble(
+   variable = names(iris),
+   length = rep(1, 5),
+   label = c("Sepal Length", "Sepal Width", "Petal Length", "Petal Width", "Species"),
+   type = c("float", "float", "float", "float", "text"),
+   format = rep(NA_character_, 5),
+   common = rep(FALSE, 5)
+)
+
+ds_spec <- tibble(
+   dataset = "Iris",
+   structure = c(""),
+   label = "Iris"
+)
+
+ds_vars <- tibble(
+   dataset = rep("Iris", 5),
+   variable = names(iris),
+   order = 1:5,
+   keep = rep(TRUE, 5),
+   key_seq = 1:5,
+   core = rep(NA_character_, 5),
+   supp_flag = rep(FALSE, 5)
+)
+
+value_spec <- tibble(
+   dataset = character(0),
+   variable = character(0),
+   origin = character(0),
+   type = character(0),
+   code_id = character(0),
+   derivation_id = character(0),
+   where = character(0)
+)
+
+derivations <- tibble(
+   derivation_id = character(0),
+   derivation = character(0)
+)
+
+code_id <- tibble(
+   code_id = character(0),
+   name = character(0),
+   type = character(0),
+   codes = list()
+   )
+
+# This is loud and I don't want it - just need the metacore object
+mc <- suppressWarnings(
+   suppressMessages(
+      metacore(ds_spec, ds_vars, var_spec, value_spec, derivations, code_id)
+      )
+   )
+
 test_that("Check that add_labels applies labels properly", {
    x <- mtcars %>%
       add_labels(
@@ -33,4 +90,27 @@ test_that("set_variable_labels applies labels properly", {
    attr(labs, 'label') <- 'Variable Label' # This is labelled in the metacore object
 
    expect_equal(labs, mc$var_spec$label)
+})
+
+test_that("set_variable_labels raises warnings properly", {
+   # This is metadata for the Iris dataset
+   mc <- suppressWarnings(
+      suppressMessages(
+         metacore(ds_spec, ds_vars, var_spec, value_spec, derivations, code_id)
+      )
+   )
+
+   iris2 <- iris
+   iris2$new_var <- ""
+
+   expect_warning(set_variable_labels(iris2, mc))
+
+   mc <- suppressWarnings(
+      suppressMessages(
+         metacore(ds_spec, ds_vars, var_spec[1:4, ], value_spec, derivations, code_id)
+      )
+   )
+
+   expect_warning(set_variable_labels(iris, mc))
+
 })
