@@ -8,11 +8,11 @@
 #'   has different codelists for different datasets the metacore object will
 #'   need to be subsetted using `select_dataset` from the metacore package.
 #' @param var Name of variable to check
-#' @param na_acceptable Logical value, set to `NULL` by default, meaning the
-#'   acceptability of missing values if based on if they are "Required" core
-#'   variables in the `metacore` object. If set to `TRUE` then will pass check
-#'   if values are in the control terminology or are missing. If set to
-#'   `FALSE`then NA will not be acceptable.
+#' @param na_acceptable Logical value, set to `NULL` by default, so the
+#'   acceptability of missing values is based on if the core for the variable is
+#'   "Required" in the `metacore` object. If set to `TRUE` then will
+#'   pass check if values are in the control terminology or are missing. If set
+#'   to `FALSE`then NA will not be acceptable.
 #'
 #' @importFrom metacore get_control_term
 #' @importFrom dplyr pull
@@ -68,9 +68,12 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
 #'   dataset of interest. If any variable has different codelists for different
 #'   datasets the metacore object will need to be subsetted using
 #'   `select_dataset` from the metacore package.
-#' @param na_acceptable Logical value, set to `FALSE` by default, meaning
-#'   missing values are not acceptable. If set to `TRUE` then will pass check if
-#'   values are in the control terminology or are missing
+#' @param na_acceptable Logical value, set to `NULL` by default, so the
+#'   acceptability of missing values is based on if the core for the variable is
+#'   "Required" in the `metacore` object. If set to `TRUE` then will
+#'   pass check if values are in the control terminology or are missing. If set
+#'   to `FALSE`then NA will not be acceptable.
+#'
 #' @importFrom purrr map_lgl
 #' @importFrom dplyr filter pull select inner_join
 #' @return Given data if all columns pass. It will error otherwise
@@ -127,7 +130,7 @@ check_ct_data <- function(data, metacore, na_acceptable = NULL) {
 #' @param dataset_name Optional string to specify the dataset. This is only
 #'   needed if the metacore object provided hasn't already been subsetted.
 #'
-#' @return message if the dataset matches the specification, and error otherwise
+#' @return message if the dataset matches the specification and the dataset, and error otherwise
 #' @export
 #' @importFrom metacore select_dataset
 #' @importFrom purrr discard
@@ -151,7 +154,7 @@ check_variables <- function(data, metacore, dataset_name = NULL) {
       discard(~ . %in% var_list)
    if (length(missing) == 0 & length(extra) == 0) {
       message("No missing or extra variables")
-      TRUE
+      data
    } else if (length(missing) > 0 & length(extra) > 0) {
       stop(paste0(
          "The following variables are missing:\n",
