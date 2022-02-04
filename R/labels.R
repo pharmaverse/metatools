@@ -12,9 +12,8 @@
 #' @export
 #'
 #' @examples
-#' library(magirttr)
-#' mtcars %>%
-#'   add_labels(
+#' add_labels(
+#'     mtcars,
 #'     mpg = "Miles Per Gallon",
 #'     cyl = "Cylinders"
 #'   )
@@ -53,9 +52,11 @@ add_labels <- function(data, ...) {
 #'
 #' @examples
 #'
-#' mc <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet=TRUE)
+#' mc <- metacore::spec_to_metacore(
+#'         metacore::metacore_example("p21_mock.xlsx"),
+#'         quiet=TRUE
+#'         )
 #' dm <- haven::read_xpt(metatools_example("dm.xpt"))
-#'
 #' set_variable_labels(dm, mc, dataset_name = "DM")
 set_variable_labels <- function(data, metacore, dataset_name = NULL) {
    metacore <- make_lone_dataset(metacore, dataset_name)
@@ -63,6 +64,7 @@ set_variable_labels <- function(data, metacore, dataset_name = NULL) {
    # Grab out the var names and labels
    var_spec <- metacore$var_spec %>%
       select(variable, label)
+
 
    ns <- var_spec$variable
    labs <- var_spec$label
