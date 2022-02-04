@@ -4,7 +4,7 @@
 \alias{check_ct_data}
 \title{Check Control Terminology for a Dataset}
 \usage{
-check_ct_data(data, metacore, na_acceptable = FALSE)
+check_ct_data(data, metacore, na_acceptable = NULL)
 }
 \arguments{
 \item{data}{Dataset to check}
@@ -19,7 +19,7 @@ missing values are not acceptable. If set to `TRUE` then will pass check if
 values are in the control terminology or are missing}
 }
 \value{
-`TRUE` if all columns pass. It will error otherwise
+Given data if all columns pass. It will error otherwise
 }
 \description{
 This function checks that all columns in the dataset only contains the
@@ -32,5 +32,5 @@ library(magrittr)
 load(metacore_example("pilot_ADaM.rda"))
 spec <- metacore \%>\% select_dataset("ADSL")
 data <- read_xpt(metatools_example("adsl.xpt"))
-check_ct_data(data, spec, TRUE)
+check_ct_data(data, spec)
 }
