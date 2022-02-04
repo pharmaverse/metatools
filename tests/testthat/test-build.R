@@ -9,7 +9,7 @@ test_that("drop_unspec_vars", {
 
   man_vars <- metacore$ds_vars %>%
     filter(dataset == "ADSL") %>%
-    pull(variable)
+    pull(.data$variable)
   man_dat <- data %>%
     select(man_vars)
   drop_unspec_vars(data, metacore) %>%

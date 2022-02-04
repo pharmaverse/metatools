@@ -15,11 +15,11 @@ need to be subsetted using `select_dataset` from the metacore package.}
 
 \item{var}{Name of variable to check}
 
-\item{na_acceptable}{Logical value, set to `NULL` by default, meaning the
-acceptability of missing values if based on if they are "Required" core
-variables in the `metacore` object. If set to `TRUE` then will pass check
-if values are in the control terminology or are missing. If set to
-`FALSE`then NA will not be acceptable.}
+\item{na_acceptable}{Logical value, set to `NULL` by default, so the
+acceptability of missing values is based on if the core for the variable is
+"Required" in the `metacore` object. If set to `TRUE` then will
+pass check if values are in the control terminology or are missing. If set
+to `FALSE`then NA will not be acceptable.}
 }
 \value{
 logical value, `TRUE` if it passes and `FALSE` if it fails

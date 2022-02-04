@@ -152,10 +152,11 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var,
 #' @examples
 #' library(metacore)
 #' library(haven)
-#' library(magrittr)
+#' library(dplyr)
 #' load(metacore_example("pilot_ADaM.rda"))
 #' spec <- metacore %>% select_dataset("ADSL")
-#' dm <- read_xpt(metatools_example("dm.xpt"))
+#' dm <- read_xpt(metatools_example("dm.xpt")) %>%
+#'   select(USUBJID, AGE)
 #' # Grouping Column Only
 #' create_cat_var(dm, spec, AGE, AGEGR1)
 #' # Grouping Column and Numeric Decode
@@ -202,10 +203,11 @@ create_cat_var <- function(data, metacore, ref_var, grp_var,
 #' @examples
 #' library(metacore)
 #' library(haven)
-#' library(magrittr)
+#' library(dplyr)
 #' load(metacore_example("pilot_ADaM.rda"))
 #' spec <- metacore %>% select_dataset("ADSL")
-#' dm <- read_xpt(metatools_example("dm.xpt"))
+#' dm <- read_xpt(metatools_example("dm.xpt")) %>%
+#'   select(USUBJID, SEX, ARM)
 #' # Variable with codelist control terms
 #' convert_var_to_fct(dm, spec, SEX)
 #' # Variable with permitted value control terms

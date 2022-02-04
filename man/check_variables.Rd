@@ -16,7 +16,7 @@ dataset of interest.}
 needed if the metacore object provided hasn't already been subsetted.}
 }
 \value{
-message if the dataset matches the specification, and error otherwise
+message if the dataset matches the specification and the dataset, and error otherwise
 }
 \description{
 This function checks the variables in the dataset against the variables

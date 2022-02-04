@@ -61,7 +61,7 @@ test_that("check_ct_data works correctly", {
 })
 
 test_that("variable_check works correctly", {
-  expect_equal(check_variables(data, spec), TRUE)
+  expect_equal(check_variables(data, spec), data)
   data_miss <- data %>% select(-1)
   expect_error(check_variables(data_miss, spec))
   data_extra <- data %>% mutate(foo = "hello")

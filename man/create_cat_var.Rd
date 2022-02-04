@@ -32,10 +32,11 @@ version of that categorical variable.
 \examples{
 library(metacore)
 library(haven)
-library(magrittr)
+library(dplyr)
 load(metacore_example("pilot_ADaM.rda"))
 spec <- metacore \%>\% select_dataset("ADSL")
-dm <- read_xpt(metatools_example("dm.xpt"))
+dm <- read_xpt(metatools_example("dm.xpt")) \%>\%
+  select(USUBJID, AGE)
 # Grouping Column Only
 create_cat_var(dm, spec, AGE, AGEGR1)
 # Grouping Column and Numeric Decode

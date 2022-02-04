@@ -29,6 +29,7 @@ library(dplyr)
 load(metacore_example("pilot_ADaM.rda"))
 spec <- metacore \%>\% select_dataset("ADSL")
 data <- read_xpt(metatools_example("adsl.xpt")) \%>\%
+  select(USUBJID, SITEID) \%>\%
   mutate(foo = "Hello")
 drop_unspec_vars(data, spec)
 }

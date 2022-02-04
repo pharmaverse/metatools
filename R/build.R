@@ -80,7 +80,7 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
 #' @param ds_list List of datasets
 #'
 #' @return datasets
-#' @noMd
+#' @noRd
 get_variables <- function(x, ds_list) {
   ds_name <- unique(x$ds)
   data <- ds_list[[ds_name]]
@@ -112,6 +112,7 @@ get_variables <- function(x, ds_list) {
 #' load(metacore_example("pilot_ADaM.rda"))
 #' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt")) %>%
+#'   select(USUBJID, SITEID) %>%
 #'   mutate(foo = "Hello")
 #' drop_unspec_vars(data, spec)
 drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL) {
@@ -120,7 +121,7 @@ drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL) {
     pull(.data$variable)
   to_drop <- names(dataset) %>%
     discard(~ . %in% var_list)
-  if (length(to_drop) > 1) {
+  if (length(to_drop) > 0) {
     out <- dataset %>%
       select(-all_of(to_drop))
   } else {

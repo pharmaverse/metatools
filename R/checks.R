@@ -154,7 +154,6 @@ check_variables <- function(data, metacore, dataset_name = NULL) {
       discard(~ . %in% var_list)
    if (length(missing) == 0 & length(extra) == 0) {
       message("No missing or extra variables")
-      data
    } else if (length(missing) > 0 & length(extra) > 0) {
       stop(paste0(
          "The following variables are missing:\n",
@@ -173,4 +172,5 @@ check_variables <- function(data, metacore, dataset_name = NULL) {
          paste0(extra, collapse = "\n")
       ))
    }
+   data
 }
