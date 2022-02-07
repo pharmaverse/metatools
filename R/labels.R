@@ -20,7 +20,7 @@
 #'
 add_labels <- function(data, ...) {
    # Pull out ellipsis to list
-   args <- rlang::list2(...)
+   args <- list2(...)
 
    # Check params
    if (!inherits(data, 'data.frame')) stop("Labels must be applied to a data.frame or tibble")
@@ -31,7 +31,7 @@ add_labels <- function(data, ...) {
    if (!all(purrr::map_lgl(args, is.character))) stop("All labels must be character")
 
    # Iterate the args supplied and update the variable labels in place
-   purrr::walk2(names(args), args, ~ {attr(data[[.x]], "label") <<- .y})
+   walk2(names(args), args, ~ {attr(data[[.x]], "label") <<- .y})
 
    data
 }
@@ -63,7 +63,7 @@ set_variable_labels <- function(data, metacore, dataset_name = NULL) {
 
    # Grab out the var names and labels
    var_spec <- metacore$var_spec %>%
-      select(variable, label)
+      select(.data$variable, .data$label)
 
 
    ns <- var_spec$variable
