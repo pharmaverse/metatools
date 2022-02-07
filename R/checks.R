@@ -8,9 +8,11 @@
 #'   has different codelists for different datasets the metacore object will
 #'   need to be subsetted using `select_dataset` from the metacore package.
 #' @param var Name of variable to check
-#' @param na_acceptable Logical value, set to `FALSE` by default, meaning
-#'   missing values are not acceptable. If set to `TRUE` then will pass check if
-#'   values are in the control terminology or are missing
+#' @param na_acceptable Logical value, set to `NULL` by default, so the
+#'   acceptability of missing values is based on if the core for the variable is
+#'   "Required" in the `metacore` object. If set to `TRUE` then will
+#'   pass check if values are in the control terminology or are missing. If set
+#'   to `FALSE`then NA will not be acceptable.
 #'
 #' @importFrom metacore get_control_term
 #' @importFrom dplyr pull
@@ -22,12 +24,12 @@
 #' library(metacore)
 #' library(haven)
 #' library(magrittr)
-#' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
-#'   select_dataset("ADSL")
+#' load(metacore_example("pilot_ADaM.rda"))
+#' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_ct_col(data, spec, TRT01PN)
 #' check_ct_col(data, spec, "TRT01PN")
-check_ct_col <- function(data, metacore, var, na_acceptable = FALSE) {
+check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
   col_name_str <- as_label(enexpr(var)) %>%
     str_remove_all("\"")
   if (!col_name_str %in% names(data)) {
@@ -41,7 +43,12 @@ check_ct_col <- function(data, metacore, var, na_acceptable = FALSE) {
   } else {
     stop("We currently don't have the ability to check against external libraries")
   }
-  if (na_acceptable) {
+  core <- metacore$ds_vars %>%
+    filter(.data$variable == col_name_str) %>%
+    pull(core)
+  attr(core, "label") <- NULL
+  test <- ifelse(is.null(na_acceptable), !identical(core, "Required"), na_acceptable)
+  if (test) {
     if (all(is.character(check))) {
       check <- c(check, NA_character_, "")
     } else {
@@ -61,23 +68,26 @@ check_ct_col <- function(data, metacore, var, na_acceptable = FALSE) {
 #'   dataset of interest. If any variable has different codelists for different
 #'   datasets the metacore object will need to be subsetted using
 #'   `select_dataset` from the metacore package.
-#' @param na_acceptable Logical value, set to `FALSE` by default, meaning
-#'   missing values are not acceptable. If set to `TRUE` then will pass check if
-#'   values are in the control terminology or are missing
+#' @param na_acceptable Logical value, set to `NULL` by default, so the
+#'   acceptability of missing values is based on if the core for the variable is
+#'   "Required" in the `metacore` object. If set to `TRUE` then will
+#'   pass check if values are in the control terminology or are missing. If set
+#'   to `FALSE`then NA will not be acceptable.
+#'
 #' @importFrom purrr map_lgl
 #' @importFrom dplyr filter pull select inner_join
-#' @return `TRUE` if all columns pass. It will error otherwise
+#' @return Given data if all columns pass. It will error otherwise
 #' @export
 #'
 #' @examples
 #' library(haven)
 #' library(metacore)
 #' library(magrittr)
-#' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
-#'   select_dataset("ADSL")
+#' load(metacore_example("pilot_ADaM.rda"))
+#' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
-#' check_ct_data(data, spec, TRUE)
-check_ct_data <- function(data, metacore, na_acceptable = FALSE) {
+#' check_ct_data(data, spec)
+check_ct_data <- function(data, metacore, na_acceptable = NULL) {
   codes_in_data <- metacore$value_spec %>%
     filter(.data$variable %in% names(data), !is.na(.data$code_id)) %>%
     pull(.data$code_id) %>%
@@ -99,7 +109,7 @@ check_ct_data <- function(data, metacore, na_acceptable = FALSE) {
     })
   # Write out warning message
   if (all(results)) {
-    return(TRUE)
+    return(data)
   } else {
     message <- cols_to_check[!results] %>%
       paste0(collapse = "\n")
@@ -120,7 +130,7 @@ check_ct_data <- function(data, metacore, na_acceptable = FALSE) {
 #' @param dataset_name Optional string to specify the dataset. This is only
 #'   needed if the metacore object provided hasn't already been subsetted.
 #'
-#' @return message if the dataset matches the specification, and error otherwise
+#' @return message if the dataset matches the specification and the dataset, and error otherwise
 #' @export
 #' @importFrom metacore select_dataset
 #' @importFrom purrr discard
@@ -130,8 +140,8 @@ check_ct_data <- function(data, metacore, na_acceptable = FALSE) {
 #' library(haven)
 #' library(metacore)
 #' library(magrittr)
-#' spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
-#'   select_dataset("ADSL")
+#' load(metacore_example("pilot_ADaM.rda"))
+#' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_variables(data, spec)
 check_variables <- function(data, metacore, dataset_name = NULL) {
@@ -144,7 +154,6 @@ check_variables <- function(data, metacore, dataset_name = NULL) {
     discard(~ . %in% var_list)
   if (length(missing) == 0 & length(extra) == 0) {
     message("No missing or extra variables")
-    TRUE
   } else if (length(missing) > 0 & length(extra) > 0) {
     stop(paste0(
       "The following variables are missing:\n",
@@ -163,4 +172,5 @@ check_variables <- function(data, metacore, dataset_name = NULL) {
       paste0(extra, collapse = "\n")
     ))
   }
+  data
 }

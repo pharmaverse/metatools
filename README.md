@@ -42,32 +42,38 @@ new columns.
 library(metatools)
 library(metacore)
 library(haven)
-library(magrittr)
-metacore <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
-  select_dataset("ADSL")
+library(dplyr)
 #> 
-#>  Metadata successfully imported
-#> Loading in metacore object with suppressed warnings
+#> Attaching package: 'dplyr'
+#> The following objects are masked from 'package:stats':
+#> 
+#>     filter, lag
+#> The following objects are masked from 'package:base':
+#> 
+#>     intersect, setdiff, setequal, union
+load(metacore_example("pilot_ADaM.rda"))
+metacore <- metacore %>%
+  select_dataset("ADSL")
 ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
 
 build_from_derived(metacore, ds_list) %>% # To pull in columns from DM to be in ADSL
+   select(USUBJID, AGE, ETHNIC) %>% 
    create_cat_var(metacore, AGE, AGEGR1, AGEGR1N) %>% #Add an AGEGR1 and AGEGR1N column
    convert_var_to_fct(metacore, ETHNIC) # Change ETHNIC to as factor 
-#> # A tibble: 306 x 15
-#>    STUDYID     USUBJID SUBJID SITEID TRT01P   AGE AGEU  RACE  SEX   ETHNIC DTHFL
-#>    <chr>       <chr>   <chr>  <chr>  <chr>  <dbl> <chr> <chr> <chr> <fct>  <chr>
-#>  1 CDISCPILOT~ 01-701~ 1015   701    Place~    63 YEARS WHITE F     HISPA~ ""   
-#>  2 CDISCPILOT~ 01-701~ 1023   701    Place~    64 YEARS WHITE M     HISPA~ ""   
-#>  3 CDISCPILOT~ 01-701~ 1028   701    Xanom~    71 YEARS WHITE M     NOT H~ ""   
-#>  4 CDISCPILOT~ 01-701~ 1033   701    Xanom~    74 YEARS WHITE M     NOT H~ ""   
-#>  5 CDISCPILOT~ 01-701~ 1034   701    Xanom~    77 YEARS WHITE F     NOT H~ ""   
-#>  6 CDISCPILOT~ 01-701~ 1047   701    Place~    85 YEARS WHITE F     NOT H~ ""   
-#>  7 CDISCPILOT~ 01-701~ 1057   701    Scree~    59 YEARS WHITE F     HISPA~ ""   
-#>  8 CDISCPILOT~ 01-701~ 1097   701    Xanom~    68 YEARS WHITE M     NOT H~ ""   
-#>  9 CDISCPILOT~ 01-701~ 1111   701    Xanom~    81 YEARS WHITE F     NOT H~ ""   
-#> 10 CDISCPILOT~ 01-701~ 1115   701    Xanom~    84 YEARS WHITE M     NOT H~ ""   
-#> # ... with 296 more rows, and 4 more variables: RFSTDTC <chr>, RFENDTC <chr>,
-#> #   AGEGR1 <chr>, AGEGR1N <chr>
+#> # A tibble: 306 x 5
+#>    USUBJID       AGE ETHNIC                 AGEGR1 AGEGR1N
+#>    <chr>       <dbl> <fct>                  <chr>  <chr>  
+#>  1 01-701-1015    63 HISPANIC OR LATINO     <65    1      
+#>  2 01-701-1023    64 HISPANIC OR LATINO     <65    1      
+#>  3 01-701-1028    71 NOT HISPANIC OR LATINO 65-80  2      
+#>  4 01-701-1033    74 NOT HISPANIC OR LATINO 65-80  2      
+#>  5 01-701-1034    77 NOT HISPANIC OR LATINO 65-80  2      
+#>  6 01-701-1047    85 NOT HISPANIC OR LATINO >80    3      
+#>  7 01-701-1057    59 HISPANIC OR LATINO     <65    1      
+#>  8 01-701-1097    68 NOT HISPANIC OR LATINO 65-80  2      
+#>  9 01-701-1111    81 NOT HISPANIC OR LATINO >80    3      
+#> 10 01-701-1115    84 NOT HISPANIC OR LATINO >80    3      
+#> # ... with 296 more rows
 ```
 
 Metatools can also be used to run checks

@@ -13,9 +13,9 @@
 #' @param predecessor_only By default `FALSE`, but if `TRUE` will only use
 #'   derivations with the origin of 'Predecessor'
 #' @param keep Boolean to determine if the original columns should be kept. By
-#'   default `TRUE`, so if any column gets renamed between SDTM and ADAM the
-#'   original SDTM column and the renamed ADaM column are in the resulting
-#'   datasets. If `FALSE`, only the ADaM columns are kept.
+#'   default `FALSE`, so only the ADaM columns are kept. If `TRUE` the resulting
+#'   dataset will have all the ADaM columns as well as any SDTM column that were
+#'   renamed in the ADaM (i.e `ARM` and `TRT01P` will be in the resulting dataset)
 #'
 #' @return datset
 #' @export
@@ -28,12 +28,12 @@
 #' library(metacore)
 #' library(haven)
 #' library(magrittr)
-#' metacore <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
-#'   select_dataset("ADSL")
+#' load(metacore_example("pilot_ADaM.rda"))
+#' spec <- metacore %>% select_dataset("ADSL")
 #' ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
-#' build_from_derived(metacore, ds_list)
+#' build_from_derived(spec, ds_list, predecessor_only = FALSE)
 build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
-                               predecessor_only = FALSE, keep = TRUE) {
+                               predecessor_only = TRUE, keep = FALSE) {
   metacore <- make_lone_dataset(metacore, dataset_name)
   derirvations <- metacore$derivations
   if (predecessor_only) {
@@ -43,6 +43,9 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
 
     derirvations <- derirvations %>%
       filter(.data$derivation_id %in% limited_dev_ids)
+    if (nrow(derirvations) == 0) {
+      stop("No presecessor variables found please check your metacore object")
+    }
   }
   vars_to_pull_through <- derirvations %>%
     filter(str_detect(.data$derivation, "^\\w*\\.[a-zA-Z0-9]*$"))
@@ -86,19 +89,19 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
 #' @param keep boolean if old columns should be kept
 #'
 #' @return datasets
-#' @noMd
+#' @noRd
 get_variables <- function(x, ds_list, keep) {
   ds_name <- unique(x$ds)
   data <- ds_list[[ds_name]]
   rename_vec <- set_names(x$col_name, x$variable)
-  if(keep){
-     out <- data %>%
-        select(x$col_name) %>%
-        mutate(across(rename_vec))
+  if (keep) {
+    out <- data %>%
+      select(x$col_name) %>%
+      mutate(across(rename_vec))
   } else {
-     out <- data %>%
-        select(x$col_name) %>%
-        rename(rename_vec)
+    out <- data %>%
+      select(x$col_name) %>%
+      rename(all_of(rename_vec))
   }
   out
 }
@@ -122,18 +125,19 @@ get_variables <- function(x, ds_list, keep) {
 #' library(metacore)
 #' library(haven)
 #' library(dplyr)
-#' metacore <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) %>%
-#'   select_dataset("ADSL")
+#' load(metacore_example("pilot_ADaM.rda"))
+#' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt")) %>%
+#'   select(USUBJID, SITEID) %>%
 #'   mutate(foo = "Hello")
-#' drop_unspec_vars(data, metacore)
+#' drop_unspec_vars(data, spec)
 drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL) {
   metacore <- make_lone_dataset(metacore, dataset_name)
   var_list <- metacore$ds_vars %>%
     pull(.data$variable)
   to_drop <- names(dataset) %>%
     discard(~ . %in% var_list)
-  if (length(to_drop) > 1) {
+  if (length(to_drop) > 0) {
     out <- dataset %>%
       select(-all_of(to_drop))
   } else {

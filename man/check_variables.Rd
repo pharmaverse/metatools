@@ -16,7 +16,7 @@ dataset of interest.}
 needed if the metacore object provided hasn't already been subsetted.}
 }
 \value{
-message if the dataset matches the specification, and error otherwise
+message if the dataset matches the specification and the dataset, and error otherwise
 }
 \description{
 This function checks the variables in the dataset against the variables
@@ -28,8 +28,8 @@ are additional or missing variables and error will explain the discrepancies
 library(haven)
 library(metacore)
 library(magrittr)
-spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) \%>\%
-  select_dataset("ADSL")
+load(metacore_example("pilot_ADaM.rda"))
+spec <- metacore \%>\% select_dataset("ADSL")
 data <- read_xpt(metatools_example("adsl.xpt"))
 check_variables(data, spec)
 }

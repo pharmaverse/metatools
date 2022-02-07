@@ -8,8 +8,8 @@ build_from_derived(
   metacore,
   ds_list,
   dataset_name = NULL,
-  predecessor_only = FALSE,
-  keep = TRUE
+  predecessor_only = TRUE,
+  keep = FALSE
 )
 }
 \arguments{
@@ -25,9 +25,9 @@ needed if the metacore object provided hasn't already been subsetted.}
 derivations with the origin of 'Predecessor'}
 
 \item{keep}{Boolean to determine if the original columns should be kept. By
-default `TRUE`, so if any column gets renamed between SDTM and ADAM the
-original SDTM column and the renamed ADaM column are in the resulting
-datasets. If `FALSE`, only the ADaM columns are kept.}
+default `FALSE`, so only the ADaM columns are kept. If `TRUE` the resulting
+dataset will have all the ADaM columns as well as any SDTM column that were
+renamed in the ADaM (i.e `ARM` and `TRT01P` will be in the resulting dataset)}
 }
 \value{
 datset
@@ -43,8 +43,8 @@ that is optional to specify.
 library(metacore)
 library(haven)
 library(magrittr)
-metacore <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) \%>\%
-  select_dataset("ADSL")
+load(metacore_example("pilot_ADaM.rda"))
+spec <- metacore \%>\% select_dataset("ADSL")
 ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
-build_from_derived(metacore, ds_list)
+build_from_derived(spec, ds_list, predecessor_only = FALSE)
 }

@@ -4,7 +4,7 @@
 \alias{check_ct_data}
 \title{Check Control Terminology for a Dataset}
 \usage{
-check_ct_data(data, metacore, na_acceptable = FALSE)
+check_ct_data(data, metacore, na_acceptable = NULL)
 }
 \arguments{
 \item{data}{Dataset to check}
@@ -14,12 +14,14 @@ dataset of interest. If any variable has different codelists for different
 datasets the metacore object will need to be subsetted using
 `select_dataset` from the metacore package.}
 
-\item{na_acceptable}{Logical value, set to `FALSE` by default, meaning
-missing values are not acceptable. If set to `TRUE` then will pass check if
-values are in the control terminology or are missing}
+\item{na_acceptable}{Logical value, set to `NULL` by default, so the
+acceptability of missing values is based on if the core for the variable is
+"Required" in the `metacore` object. If set to `TRUE` then will
+pass check if values are in the control terminology or are missing. If set
+to `FALSE`then NA will not be acceptable.}
 }
 \value{
-`TRUE` if all columns pass. It will error otherwise
+Given data if all columns pass. It will error otherwise
 }
 \description{
 This function checks that all columns in the dataset only contains the
@@ -29,8 +31,8 @@ control terminology as defined by the metacore specification
 library(haven)
 library(metacore)
 library(magrittr)
-spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) \%>\%
-  select_dataset("ADSL")
+load(metacore_example("pilot_ADaM.rda"))
+spec <- metacore \%>\% select_dataset("ADSL")
 data <- read_xpt(metatools_example("adsl.xpt"))
-check_ct_data(data, spec, TRUE)
+check_ct_data(data, spec)
 }

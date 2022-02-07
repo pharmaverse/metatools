@@ -4,7 +4,7 @@
 \alias{check_ct_col}
 \title{Check Control Terminology for a Single Column}
 \usage{
-check_ct_col(data, metacore, var, na_acceptable = FALSE)
+check_ct_col(data, metacore, var, na_acceptable = NULL)
 }
 \arguments{
 \item{data}{Data to check}
@@ -15,9 +15,11 @@ need to be subsetted using `select_dataset` from the metacore package.}
 
 \item{var}{Name of variable to check}
 
-\item{na_acceptable}{Logical value, set to `FALSE` by default, meaning
-missing values are not acceptable. If set to `TRUE` then will pass check if
-values are in the control terminology or are missing}
+\item{na_acceptable}{Logical value, set to `NULL` by default, so the
+acceptability of missing values is based on if the core for the variable is
+"Required" in the `metacore` object. If set to `TRUE` then will
+pass check if values are in the control terminology or are missing. If set
+to `FALSE`then NA will not be acceptable.}
 }
 \value{
 logical value, `TRUE` if it passes and `FALSE` if it fails
@@ -30,8 +32,8 @@ terminology as defined by the metacore specification
 library(metacore)
 library(haven)
 library(magrittr)
-spec <- define_to_metacore(metacore_example("ADaM_define.xml"), quiet = TRUE) \%>\%
-  select_dataset("ADSL")
+load(metacore_example("pilot_ADaM.rda"))
+spec <- metacore \%>\% select_dataset("ADSL")
 data <- read_xpt(metatools_example("adsl.xpt"))
 check_ct_col(data, spec, TRT01PN)
 check_ct_col(data, spec, "TRT01PN")
