@@ -52,8 +52,12 @@ load(metacore_example("pilot_ADaM.rda"))
 metacore <- metacore %>%
   select_dataset("ADSL")
 ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
+# Pull in columns from DM to be in ADSL
+adsl <- build_from_derived(metacore, ds_list, predecessor_only = FALSE) 
+adsl 
 
-build_from_derived(metacore, ds_list) %>% # To pull in columns from DM to be in ADSL
+# Now we can make some new columns and converting columns into factors
+adsl %>%
    select(USUBJID, AGE, ETHNIC) %>% 
    create_cat_var(metacore, AGE, AGEGR1, AGEGR1N) %>% #Add an AGEGR1 and AGEGR1N column
    convert_var_to_fct(metacore, ETHNIC) # Change ETHNIC to as factor 
@@ -62,12 +66,12 @@ build_from_derived(metacore, ds_list) %>% # To pull in columns from DM to be in 
 Metatools can also be used to run checks 
 ```{r}
 data <- read_xpt(metatools_example("adsl.xpt"))
-#Checking all values are in the control terminology for just TRT01PN
-check_ct_col(data, metacore, TRT01PN)
-#Checking all values are in the control terminology for all variables 
-check_ct_data(data, metacore, TRUE)
-# Check all variables in the metadata are in the dataset and there aren't any extra columns 
-check_variables(data, metacore)
+
+# Checks can be run on a single column
+check_ct_col(data, metacore, TRT01PN) # Checks column only contains control terminology
+# Or across all the columns 
+check_ct_data(data, metacore) %>%  # Checks control terminology for all columns 
+check_variables(metacore) # Check all variables in the metadata are in the dataset and there aren't any extra columns 
 
 ```
 
