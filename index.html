@@ -89,8 +89,26 @@
 <span class="va">metacore</span> <span class="op">&lt;-</span> <span class="va">metacore</span> <span class="op"><a href="https://rdrr.io/pkg/metacore/man/pipe.html" class="external-link">%&gt;%</a></span>
   <span class="fu"><a href="https://rdrr.io/pkg/metacore/man/select_dataset.html" class="external-link">select_dataset</a></span><span class="op">(</span><span class="st">"ADSL"</span><span class="op">)</span>
 <span class="va">ds_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>DM <span class="op">=</span> <span class="fu"><a href="https://haven.tidyverse.org/reference/read_xpt.html" class="external-link">read_xpt</a></span><span class="op">(</span><span class="fu"><a href="reference/metatools_example.html">metatools_example</a></span><span class="op">(</span><span class="st">"dm.xpt"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="co"># Pull in columns from DM to be in ADSL</span>
+<span class="va">adsl</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/build_from_derived.html">build_from_derived</a></span><span class="op">(</span><span class="va">metacore</span>, <span class="va">ds_list</span>, predecessor_only <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> 
+<span class="va">adsl</span> 
+<span class="co">#&gt; # A tibble: 306 x 13</span>
+<span class="co">#&gt;    STUDYID     USUBJID SUBJID SITEID TRT01P   AGE AGEU  RACE  SEX   ETHNIC DTHFL</span>
+<span class="co">#&gt;    &lt;chr&gt;       &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;</span>
+<span class="co">#&gt;  1 CDISCPILOT~ 01-701~ 1015   701    Place~    63 YEARS WHITE F     HISPA~ ""   </span>
+<span class="co">#&gt;  2 CDISCPILOT~ 01-701~ 1023   701    Place~    64 YEARS WHITE M     HISPA~ ""   </span>
+<span class="co">#&gt;  3 CDISCPILOT~ 01-701~ 1028   701    Xanom~    71 YEARS WHITE M     NOT H~ ""   </span>
+<span class="co">#&gt;  4 CDISCPILOT~ 01-701~ 1033   701    Xanom~    74 YEARS WHITE M     NOT H~ ""   </span>
+<span class="co">#&gt;  5 CDISCPILOT~ 01-701~ 1034   701    Xanom~    77 YEARS WHITE F     NOT H~ ""   </span>
+<span class="co">#&gt;  6 CDISCPILOT~ 01-701~ 1047   701    Place~    85 YEARS WHITE F     NOT H~ ""   </span>
+<span class="co">#&gt;  7 CDISCPILOT~ 01-701~ 1057   701    Scree~    59 YEARS WHITE F     HISPA~ ""   </span>
+<span class="co">#&gt;  8 CDISCPILOT~ 01-701~ 1097   701    Xanom~    68 YEARS WHITE M     NOT H~ ""   </span>
+<span class="co">#&gt;  9 CDISCPILOT~ 01-701~ 1111   701    Xanom~    81 YEARS WHITE F     NOT H~ ""   </span>
+<span class="co">#&gt; 10 CDISCPILOT~ 01-701~ 1115   701    Xanom~    84 YEARS WHITE M     NOT H~ ""   </span>
+<span class="co">#&gt; # ... with 296 more rows, and 2 more variables: RFSTDTC &lt;chr&gt;, RFENDTC &lt;chr&gt;</span>
 
-<span class="fu"><a href="reference/build_from_derived.html">build_from_derived</a></span><span class="op">(</span><span class="va">metacore</span>, <span class="va">ds_list</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/metacore/man/pipe.html" class="external-link">%&gt;%</a></span> <span class="co"># To pull in columns from DM to be in ADSL</span>
+<span class="co"># Now we can make some new columns and converting columns into factors</span>
+<span class="va">adsl</span> <span class="op"><a href="https://rdrr.io/pkg/metacore/man/pipe.html" class="external-link">%&gt;%</a></span>
    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">USUBJID</span>, <span class="va">AGE</span>, <span class="va">ETHNIC</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/metacore/man/pipe.html" class="external-link">%&gt;%</a></span> 
    <span class="fu"><a href="reference/create_cat_var.html">create_cat_var</a></span><span class="op">(</span><span class="va">metacore</span>, <span class="va">AGE</span>, <span class="va">AGEGR1</span>, <span class="va">AGEGR1N</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/metacore/man/pipe.html" class="external-link">%&gt;%</a></span> <span class="co">#Add an AGEGR1 and AGEGR1N column</span>
    <span class="fu"><a href="reference/convert_var_to_fct.html">convert_var_to_fct</a></span><span class="op">(</span><span class="va">metacore</span>, <span class="va">ETHNIC</span><span class="op">)</span> <span class="co"># Change ETHNIC to as factor </span>
@@ -111,16 +129,34 @@
 <p>Metatools can also be used to run checks</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://haven.tidyverse.org/reference/read_xpt.html" class="external-link">read_xpt</a></span><span class="op">(</span><span class="fu"><a href="reference/metatools_example.html">metatools_example</a></span><span class="op">(</span><span class="st">"adsl.xpt"</span><span class="op">)</span><span class="op">)</span>
-<span class="co">#Checking all values are in the control terminology for just TRT01PN</span>
-<span class="fu"><a href="reference/check_ct_col.html">check_ct_col</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">metacore</span>, <span class="va">TRT01PN</span><span class="op">)</span>
+
+<span class="co"># Checks can be run on a single column</span>
+<span class="fu"><a href="reference/check_ct_col.html">check_ct_col</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">metacore</span>, <span class="va">TRT01PN</span><span class="op">)</span> <span class="co"># Checks column only contains control terminology</span>
 <span class="co">#&gt; [1] TRUE</span>
-<span class="co">#Checking all values are in the control terminology for all variables </span>
-<span class="fu"><a href="reference/check_ct_data.html">check_ct_data</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">metacore</span>, <span class="cn">TRUE</span><span class="op">)</span>
-<span class="co">#&gt; [1] TRUE</span>
-<span class="co"># Check all variables in the metadata are in the dataset and there aren't any extra columns </span>
-<span class="fu"><a href="reference/check_variables.html">check_variables</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">metacore</span><span class="op">)</span>
+<span class="co"># Or across all the columns </span>
+<span class="fu"><a href="reference/check_ct_data.html">check_ct_data</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">metacore</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/metacore/man/pipe.html" class="external-link">%&gt;%</a></span>  <span class="co"># Checks control terminology for all columns </span>
+<span class="fu"><a href="reference/check_variables.html">check_variables</a></span><span class="op">(</span><span class="va">metacore</span><span class="op">)</span> <span class="co"># Check all variables in the metadata are in the dataset and there aren't any extra columns </span>
 <span class="co">#&gt; No missing or extra variables</span>
-<span class="co">#&gt; [1] TRUE</span></code></pre></div>
+<span class="co">#&gt; # A tibble: 254 x 49</span>
+<span class="co">#&gt;    STUDYID     USUBJID SUBJID SITEID SITEGR1 ARM   TRT01P TRT01PN TRT01A TRT01AN</span>
+<span class="co">#&gt;    &lt;chr&gt;       &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt;    &lt;dbl&gt; &lt;chr&gt;    &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 CDISCPILOT~ 01-701~ 1015   701    701     Plac~ Place~       0 Place~       0</span>
+<span class="co">#&gt;  2 CDISCPILOT~ 01-701~ 1023   701    701     Plac~ Place~       0 Place~       0</span>
+<span class="co">#&gt;  3 CDISCPILOT~ 01-701~ 1028   701    701     Xano~ Xanom~      81 Xanom~      81</span>
+<span class="co">#&gt;  4 CDISCPILOT~ 01-701~ 1033   701    701     Xano~ Xanom~      54 Xanom~      54</span>
+<span class="co">#&gt;  5 CDISCPILOT~ 01-701~ 1034   701    701     Xano~ Xanom~      81 Xanom~      81</span>
+<span class="co">#&gt;  6 CDISCPILOT~ 01-701~ 1047   701    701     Plac~ Place~       0 Place~       0</span>
+<span class="co">#&gt;  7 CDISCPILOT~ 01-701~ 1097   701    701     Xano~ Xanom~      54 Xanom~      54</span>
+<span class="co">#&gt;  8 CDISCPILOT~ 01-701~ 1111   701    701     Xano~ Xanom~      54 Xanom~      54</span>
+<span class="co">#&gt;  9 CDISCPILOT~ 01-701~ 1115   701    701     Xano~ Xanom~      54 Xanom~      54</span>
+<span class="co">#&gt; 10 CDISCPILOT~ 01-701~ 1118   701    701     Plac~ Place~       0 Place~       0</span>
+<span class="co">#&gt; # ... with 244 more rows, and 39 more variables: TRTSDT &lt;date&gt;, TRTEDT &lt;date&gt;,</span>
+<span class="co">#&gt; #   TRTDURD &lt;dbl&gt;, AVGDD &lt;dbl&gt;, CUMDOSE &lt;dbl&gt;, AGE &lt;dbl&gt;, AGEGR1 &lt;chr&gt;,</span>
+<span class="co">#&gt; #   AGEGR1N &lt;dbl&gt;, AGEU &lt;chr&gt;, RACE &lt;chr&gt;, RACEN &lt;dbl&gt;, SEX &lt;chr&gt;,</span>
+<span class="co">#&gt; #   ETHNIC &lt;chr&gt;, SAFFL &lt;chr&gt;, ITTFL &lt;chr&gt;, EFFFL &lt;chr&gt;, COMP8FL &lt;chr&gt;,</span>
+<span class="co">#&gt; #   COMP16FL &lt;chr&gt;, COMP24FL &lt;chr&gt;, DISCONFL &lt;chr&gt;, DSRAEFL &lt;chr&gt;, DTHFL &lt;chr&gt;,</span>
+<span class="co">#&gt; #   BMIBL &lt;dbl&gt;, BMIBLGR1 &lt;chr&gt;, HEIGHTBL &lt;dbl&gt;, WEIGHTBL &lt;dbl&gt;, EDUCLVL &lt;dbl&gt;,</span>
+<span class="co">#&gt; #   DISONSDT &lt;date&gt;, DURDIS &lt;dbl&gt;, DURDSGR1 &lt;chr&gt;, VISIT1DT &lt;date&gt;, ...</span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="license">
