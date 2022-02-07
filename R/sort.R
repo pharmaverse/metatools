@@ -55,7 +55,7 @@ order_cols <- function(data, metacore, dataset_name = NULL) {
 #' load(metacore_example("pilot_ADaM.rda"))
 #' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
-#' sort_by_key (data, spec)
+#' sort_by_key(data, spec)
 sort_by_key <- function(data, metacore, dataset_name = NULL) {
   metacore <- make_lone_dataset(metacore, dataset_name)
   var_ord <- metacore$ds_vars %>%

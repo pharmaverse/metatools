@@ -30,33 +30,33 @@
 #' check_ct_col(data, spec, TRT01PN)
 #' check_ct_col(data, spec, "TRT01PN")
 check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
-   col_name_str <- as_label(enexpr(var)) %>%
-      str_remove_all("\"")
-   if (!col_name_str %in% names(data)) {
-      stop(paste(col_name_str, "not found in dataset. Please check and try again"))
-   }
-   ct <- get_control_term(metacore, {{ var }})
-   if (is.vector(ct)) {
-      check <- ct
-   } else if ("code" %in% names(ct)) {
-      check <- ct %>% pull(.data$code)
-   } else {
-      stop("We currently don't have the ability to check against external libraries")
-   }
-   core <- metacore$ds_vars %>%
-      filter(.data$variable == col_name_str) %>%
-      pull(core)
-   attr(core, "label") <- NULL
-   test <- ifelse(is.null(na_acceptable), !identical(core,"Required"), na_acceptable)
-   if (test ) {
-      if (all(is.character(check))) {
-         check <- c(check, NA_character_, "")
-      } else {
-         check <- c(check, NA)
-      }
-   }
-   test <- pull(data, {{ var }}) %in% check
-   all(test)
+  col_name_str <- as_label(enexpr(var)) %>%
+    str_remove_all("\"")
+  if (!col_name_str %in% names(data)) {
+    stop(paste(col_name_str, "not found in dataset. Please check and try again"))
+  }
+  ct <- get_control_term(metacore, {{ var }})
+  if (is.vector(ct)) {
+    check <- ct
+  } else if ("code" %in% names(ct)) {
+    check <- ct %>% pull(.data$code)
+  } else {
+    stop("We currently don't have the ability to check against external libraries")
+  }
+  core <- metacore$ds_vars %>%
+    filter(.data$variable == col_name_str) %>%
+    pull(core)
+  attr(core, "label") <- NULL
+  test <- ifelse(is.null(na_acceptable), !identical(core, "Required"), na_acceptable)
+  if (test) {
+    if (all(is.character(check))) {
+      check <- c(check, NA_character_, "")
+    } else {
+      check <- c(check, NA)
+    }
+  }
+  test <- pull(data, {{ var }}) %in% check
+  all(test)
 }
 
 #' Check Control Terminology for a Dataset
@@ -88,33 +88,33 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_ct_data(data, spec)
 check_ct_data <- function(data, metacore, na_acceptable = NULL) {
-   codes_in_data <- metacore$value_spec %>%
-      filter(.data$variable %in% names(data), !is.na(.data$code_id)) %>%
-      pull(.data$code_id) %>%
-      unique()
-   # Remove any codes that have external libraries
-   codes_to_check <- metacore$codelist %>%
-      filter(.data$type != "external_library", .data$code_id %in% codes_in_data) %>%
-      select(.data$code_id)
-   # convert list of codes to variables
-   cols_to_check <- metacore$value_spec %>%
-      inner_join(codes_to_check, by = "code_id") %>%
-      filter(.data$variable %in% names(data)) %>%
-      pull(.data$variable) %>%
-      unique()
-   # send all variables through check_ct_col
-   results <- cols_to_check %>%
-      map_lgl(function(x) {
-         check_ct_col(data, metacore, {{ x }}, na_acceptable)
-      })
-   # Write out warning message
-   if (all(results)) {
-      return(data)
-   } else {
-      message <- cols_to_check[!results] %>%
-         paste0(collapse = "\n")
-      stop(paste0("The following variables contained values not found in the control terminology:\n", message))
-   }
+  codes_in_data <- metacore$value_spec %>%
+    filter(.data$variable %in% names(data), !is.na(.data$code_id)) %>%
+    pull(.data$code_id) %>%
+    unique()
+  # Remove any codes that have external libraries
+  codes_to_check <- metacore$codelist %>%
+    filter(.data$type != "external_library", .data$code_id %in% codes_in_data) %>%
+    select(.data$code_id)
+  # convert list of codes to variables
+  cols_to_check <- metacore$value_spec %>%
+    inner_join(codes_to_check, by = "code_id") %>%
+    filter(.data$variable %in% names(data)) %>%
+    pull(.data$variable) %>%
+    unique()
+  # send all variables through check_ct_col
+  results <- cols_to_check %>%
+    map_lgl(function(x) {
+      check_ct_col(data, metacore, {{ x }}, na_acceptable)
+    })
+  # Write out warning message
+  if (all(results)) {
+    return(data)
+  } else {
+    message <- cols_to_check[!results] %>%
+      paste0(collapse = "\n")
+    stop(paste0("The following variables contained values not found in the control terminology:\n", message))
+  }
 }
 
 
@@ -145,32 +145,32 @@ check_ct_data <- function(data, metacore, na_acceptable = NULL) {
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_variables(data, spec)
 check_variables <- function(data, metacore, dataset_name = NULL) {
-   metacore <- make_lone_dataset(metacore, dataset_name)
-   var_list <- metacore$var_spec %>%
-      pull(.data$variable)
-   missing <- var_list %>%
-      discard(~ . %in% names(data))
-   extra <- names(data) %>%
-      discard(~ . %in% var_list)
-   if (length(missing) == 0 & length(extra) == 0) {
-      message("No missing or extra variables")
-   } else if (length(missing) > 0 & length(extra) > 0) {
-      stop(paste0(
-         "The following variables are missing:\n",
-         paste0(missing, collapse = "\n"),
-         "\nThe following variables do not belong:\n",
-         paste0(extra, collapse = "\n")
-      ))
-   } else if (length(missing) > 0) {
-      stop(paste0(
-         "The following variables are missing:\n",
-         paste0(missing, collapse = "\n")
-      ))
-   } else {
-      stop(paste0(
-         "The following variables do not belong:\n",
-         paste0(extra, collapse = "\n")
-      ))
-   }
-   data
+  metacore <- make_lone_dataset(metacore, dataset_name)
+  var_list <- metacore$var_spec %>%
+    pull(.data$variable)
+  missing <- var_list %>%
+    discard(~ . %in% names(data))
+  extra <- names(data) %>%
+    discard(~ . %in% var_list)
+  if (length(missing) == 0 & length(extra) == 0) {
+    message("No missing or extra variables")
+  } else if (length(missing) > 0 & length(extra) > 0) {
+    stop(paste0(
+      "The following variables are missing:\n",
+      paste0(missing, collapse = "\n"),
+      "\nThe following variables do not belong:\n",
+      paste0(extra, collapse = "\n")
+    ))
+  } else if (length(missing) > 0) {
+    stop(paste0(
+      "The following variables are missing:\n",
+      paste0(missing, collapse = "\n")
+    ))
+  } else {
+    stop(paste0(
+      "The following variables do not belong:\n",
+      paste0(extra, collapse = "\n")
+    ))
+  }
+  data
 }

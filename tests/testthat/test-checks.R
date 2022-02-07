@@ -8,9 +8,9 @@ load(metacore_example("pilot_ADaM.rda"))
 spec <- metacore %>% select_dataset("ADSL")
 data <- read_xpt(metatools_example("adsl.xpt"))
 mod_ds_vars <- spec$ds_vars %>%
-   mutate(core = if_else(variable %in% c("TRT01PN", "DISCONFL"), "Required", core))
+  mutate(core = if_else(variable %in% c("TRT01PN", "DISCONFL"), "Required", core))
 spec_mod <- metacore(spec$ds_spec, mod_ds_vars, spec$var_spec, spec$value_spec, spec$derivations, spec$codelist) %>%
-   suppressWarnings()
+  suppressWarnings()
 test_that("check_ct_col works correctly", {
   # Check it works with a character col
   expect_equal(check_ct_col(data, spec, ARM), TRUE)
@@ -40,10 +40,9 @@ test_that("check_ct_col works correctly", {
   ### Test with  a required column ###
   # Required without missing
   expect_equal(check_ct_col(data, spec_mod, TRT01PN), TRUE)
-  #Required with missing
+  # Required with missing
   expect_equal(check_ct_col(data, spec_mod, DISCONFL), FALSE)
   expect_equal(check_ct_col(data, spec_mod, DISCONFL, TRUE), TRUE)
-
 })
 
 test_that("check_ct_data works correctly", {

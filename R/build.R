@@ -43,6 +43,9 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
 
     derirvations <- derirvations %>%
       filter(.data$derivation_id %in% limited_dev_ids)
+    if (nrow(derirvations) == 0) {
+      stop("No presecessor variables found please check your metacore object")
+    }
   }
   vars_to_pull_through <- derirvations %>%
     filter(str_detect(.data$derivation, "^\\w*\\.[a-zA-Z0-9]*$"))
@@ -88,18 +91,17 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
 #' @return datasets
 #' @noRd
 get_variables <- function(x, ds_list, keep) {
-  main
   ds_name <- unique(x$ds)
   data <- ds_list[[ds_name]]
   rename_vec <- set_names(x$col_name, x$variable)
-  if(keep){
-     out <- data %>%
-        select(x$col_name) %>%
-        mutate(across(rename_vec))
+  if (keep) {
+    out <- data %>%
+      select(x$col_name) %>%
+      mutate(across(rename_vec))
   } else {
-     out <- data %>%
-        select(x$col_name) %>%
-        rename(rename_vec)
+    out <- data %>%
+      select(x$col_name) %>%
+      rename(all_of(rename_vec))
   }
   out
 }
