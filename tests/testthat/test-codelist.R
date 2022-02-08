@@ -17,6 +17,12 @@ test_that("create_subgrps", {
     create_subgrps(c(1:10), c("<2", "2-<5", ">=5")),
     c("<2", "2-<5", "2-<5", "2-<5", ">=5", ">=5", ">=5", ">=5", ">=5", ">=5")
   )
+
+
+  expect_equal(
+     create_subgrps(c(1:10, NA),  c("<2", "2-5", ">5")),
+     c("<2", "2-5", "2-5", "2-5", "2-5", ">5", ">5", ">5", ">5", ">5", NA)
+  )
 })
 
 test_that("create_var_from_codelist", {

@@ -22,8 +22,8 @@ need to be subsetted using `select_dataset` from the metacore package.}
 \item{input_var}{Name of the variable that will be translated for the new
 column}
 
-\item{out_var}{Name of the output variable. Note: the codelist will always be
-the codelist associates with `out_var`}
+\item{out_var}{Name of the output variable. Note: the grouping will always be
+from the code of the codelist associates with `out_var`}
 
 \item{decode_to_code}{Direction of the translation. By default assumes the
 `input_var` is the decode column of the codelist. Set to `FALSE` if the
