@@ -106,24 +106,34 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #' create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
 create_var_from_codelist <- function(data, metacore, input_var, out_var,
                                      decode_to_code = TRUE) {
-  code_translation <- get_control_term(metacore, {{ out_var }})
-  input_var_str <- as_label(enexpr(input_var)) %>%
-    str_remove_all("\"")
-  if (is.vector(code_translation) | !("decode" %in% names(code_translation))) {
-    stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
-  }
-  if (decode_to_code) {
-    data %>%
-      left_join(code_translation, by = set_names("decode", input_var_str)) %>%
-      rename({{ out_var }} := code)
-  } else if (!decode_to_code) {
-    data %>%
-      left_join(code_translation, by = set_names("code", input_var_str)) %>%
-      rename({{ out_var }} := decode)
-  } else {
-    stop("decode_to_code must be either TRUE or FALSE")
-  }
+   code_translation <- get_control_term(metacore, {{ out_var }})
+   input_var_str <- as_label(enexpr(input_var)) %>%
+      str_remove_all("\"")
+   if (is.vector(code_translation) | !("decode" %in% names(code_translation))) {
+      stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
+   }
+   if (decode_to_code) {
+      out <- data %>%
+         left_join(code_translation, by = set_names("decode", input_var_str)) %>%
+         rename({{ out_var }} := code)
+      if(all(str_detect(code_translation$code, "^\\d*$"))){
+         out <- out %>%
+            mutate({{ out_var }} := as.numeric({{ out_var }}))
+      }
+   } else if (!decode_to_code) {
+      out <- data %>%
+         left_join(code_translation, by = set_names("code", input_var_str)) %>%
+         rename({{ out_var }} := decode)
+      if(all(str_detect(code_translation$decode, "^\\d*$"))){
+         out <- out %>%
+            mutate({{ out_var }} := as.numeric({{ out_var }}))
+      }
+   } else {
+      stop("decode_to_code must be either TRUE or FALSE")
+   }
+   out
 }
+
 
 
 
