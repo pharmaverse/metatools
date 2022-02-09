@@ -29,5 +29,5 @@ library(magrittr)
 load(metacore_example("pilot_ADaM.rda"))
 spec <- metacore \%>\% select_dataset("ADSL")
 data <- read_xpt(metatools_example("adsl.xpt"))
-sort_by_key (data, spec)
+sort_by_key(data, spec)
 }

@@ -38,7 +38,6 @@ create_subgrps <- function(ref_vec, grp_defs) {
     stop("ref_vec must be numeric")
   }
 
-  # TODO add in error if codelist is in the wrong format
   equations <- case_when(
     str_detect(grp_defs, "-") ~ paste0("function(x){if_else(", dash_to_eq(grp_defs), ", '", grp_defs, "','')}"),
     str_detect(grp_defs, "^(<\\s?=|>\\s?=|<|>)\\s?\\d+") ~ paste0("function(x){if_else(x", grp_defs, ",'", grp_defs, "', '')}"),
@@ -52,11 +51,11 @@ create_subgrps <- function(ref_vec, grp_defs) {
       map(~ .(ref_vec)) %>%
       reduce(str_c)
   } else {
-    stop("Unable to deciver all groups please update and try again")
+    stop("Unable to decipher all groups please update and try again")
   }
   all_options <- str_c(grp_defs, collapse = "|")
   too_many_grps <- str_count(out, all_options) %>%
-    keep(~ . > 1)
+    keep(~ !is.na(.) && . > 1 )
   if (length(too_many_grps) > 0) {
     stop("Grouping is not exclusive. Please look at the groups and try again")
   }
@@ -76,8 +75,8 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #'   need to be subsetted using `select_dataset` from the metacore package.
 #' @param input_var Name of the variable that will be translated for the new
 #'   column
-#' @param out_var Name of the output variable. Note: the codelist will always be
-#'   the codelist associates with `out_var`
+#' @param out_var Name of the output variable. Note: the grouping will always be
+#'   from the code of the codelist associates with `out_var`
 #' @param decode_to_code Direction of the translation. By default assumes the
 #'   `input_var` is the decode column of the codelist. Set to `FALSE` if the
 #'   `input_var` is the code column of the codelist
@@ -178,7 +177,7 @@ create_cat_var <- function(data, metacore, ref_var, grp_var,
     stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
   }
   grp_defs <- ct %>%
-    pull(.data$decode)
+    pull(.data$code)
 
   out <- data %>%
     mutate({{ grp_var }} := create_subgrps({{ ref_var }}, grp_defs))
