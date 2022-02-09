@@ -52,7 +52,7 @@ test_that("create_var_from_codelist", {
     create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE),
     manual_data2
   )
-  # Test numerics
+  # Test numeric
   num_out <- dm %>%
      mutate(TRT01P = ARM) %>%
      select(TRT01P) %>%
@@ -87,7 +87,7 @@ test_that("create_cat_var", {
   grp_num_dat %>%
     pull(AGEGR1N) %>%
     unique() %>%
-    expect_equal(as.character(1:3))
+    expect_equal(c(1:3))
   # Test errors
   expect_error(create_cat_var(dm, spec, AGE, ARM))
 })
