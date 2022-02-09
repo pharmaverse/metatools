@@ -16,6 +16,9 @@
     <loc>https://pharmaverse.github.io/metatools/index.html</loc>
   </url>
   <url>
+    <loc>https://pharmaverse.github.io/metatools/reference/add_labels.html</loc>
+  </url>
+  <url>
     <loc>https://pharmaverse.github.io/metatools/reference/build_from_derived.html</loc>
   </url>
   <url>
@@ -50,6 +53,9 @@
   </url>
   <url>
     <loc>https://pharmaverse.github.io/metatools/reference/order_cols.html</loc>
+  </url>
+  <url>
+    <loc>https://pharmaverse.github.io/metatools/reference/set_variable_labels.html</loc>
   </url>
   <url>
     <loc>https://pharmaverse.github.io/metatools/reference/sort_by_key.html</loc>
