@@ -10,14 +10,15 @@
 #' @param var Name of variable to check
 #' @param na_acceptable Logical value, set to `NULL` by default, so the
 #'   acceptability of missing values is based on if the core for the variable is
-#'   "Required" in the `metacore` object. If set to `TRUE` then will
-#'   pass check if values are in the control terminology or are missing. If set
-#'   to `FALSE`then NA will not be acceptable.
+#'   "Required" in the `metacore` object. If set to `TRUE` then will pass check
+#'   if values are in the control terminology or are missing. If set to
+#'   `FALSE`then NA will not be acceptable.
 #'
 #' @importFrom metacore get_control_term
 #' @importFrom dplyr pull
 #' @importFrom stringr str_remove_all
-#' @return logical value, `TRUE` if it passes and `FALSE` if it fails
+#' @return Given data if column only contains control terms. If not, will error
+#'   given the values which should not be in the column
 #' @export
 #'
 #' @examples
@@ -56,7 +57,15 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
     }
   }
   test <- pull(data, {{ var }}) %in% check
-  all(test)
+  if(all(test)){
+     data
+  } else {
+     extra <- pull(data, {{ var }})[!test] %>%
+        unique() %>%
+        paste0("'", ., "'") %>%
+        paste0(collapse = ", ")
+     stop(paste("The following values should not be present:\n", extra))
+  }
 }
 
 #' Check Control Terminology for a Dataset
@@ -74,8 +83,9 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
 #'   pass check if values are in the control terminology or are missing. If set
 #'   to `FALSE`then NA will not be acceptable.
 #'
-#' @importFrom purrr map_lgl
+#' @importFrom purrr map_lgl map safely discard
 #' @importFrom dplyr filter pull select inner_join
+#' @importFrom stringr str_remove
 #' @return Given data if all columns pass. It will error otherwise
 #' @export
 #'
@@ -103,17 +113,29 @@ check_ct_data <- function(data, metacore, na_acceptable = NULL) {
     pull(.data$variable) %>%
     unique()
   # send all variables through check_ct_col
+  safe_chk <- safely(check_ct_col)
   results <- cols_to_check %>%
-    map_lgl(function(x) {
-      check_ct_col(data, metacore, {{ x }}, na_acceptable)
+    map(function(x) {
+       out <- safe_chk(data, metacore, {{ x }}, na_acceptable)
+       out$error
     })
   # Write out warning message
-  if (all(results)) {
+  test <- map_lgl(results, is.null)
+  if (all(test)) {
     return(data)
   } else {
-    message <- cols_to_check[!results] %>%
-      paste0(collapse = "\n")
-    stop(paste0("The following variables contained values not found in the control terminology:\n", message))
+     extras <- results %>%
+        discard(is.null) %>%
+        map(~.$message) %>%
+        unlist() %>%
+        str_remove("The following values should not be present:\n\\s")
+     message <- paste0(cols_to_check[!test], " (", extras, ")") %>%
+        paste0(collapse = "\n")
+    stop(paste0(
+       "The following variables contained values not found in the control terminology
+       Variable (Prohibited Value(s))\n",
+       message),
+         call. = FALSE)
   }
 }
 
