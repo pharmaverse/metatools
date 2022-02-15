@@ -17,12 +17,13 @@ need to be subsetted using `select_dataset` from the metacore package.}
 
 \item{na_acceptable}{Logical value, set to `NULL` by default, so the
 acceptability of missing values is based on if the core for the variable is
-"Required" in the `metacore` object. If set to `TRUE` then will
-pass check if values are in the control terminology or are missing. If set
-to `FALSE`then NA will not be acceptable.}
+"Required" in the `metacore` object. If set to `TRUE` then will pass check
+if values are in the control terminology or are missing. If set to
+`FALSE`then NA will not be acceptable.}
 }
 \value{
-logical value, `TRUE` if it passes and `FALSE` if it fails
+Given data if column only contains control terms. If not, will error
+  given the values which should not be in the column
 }
 \description{
 This function checks the column in the dataset only contains the control
