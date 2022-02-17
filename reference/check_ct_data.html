@@ -78,9 +78,26 @@ to `FALSE`then NA will not be acceptable.</p></dd>
 <span class="r-in"><span class="va">spec</span> <span class="op">&lt;-</span> <span class="va">metacore</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/pkg/metacore/man/select_dataset.html" class="external-link">select_dataset</a></span><span class="op">(</span><span class="st">"ADSL"</span><span class="op">)</span></span>
 <span class="r-in"><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://haven.tidyverse.org/reference/read_xpt.html" class="external-link">read_xpt</a></span><span class="op">(</span><span class="fu"><a href="metatools_example.html">metatools_example</a></span><span class="op">(</span><span class="st">"adsl.xpt"</span><span class="op">)</span><span class="op">)</span></span>
 <span class="r-in"><span class="fu">check_ct_data</span><span class="op">(</span><span class="va">data</span>, <span class="va">spec</span><span class="op">)</span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> The following variables contained values not found in the control terminology</span>
-<span class="r-err co"><span class="r-pr">#&gt;</span>        Variable (Prohibited Value(s))</span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> DCSREAS ('Adverse Event', 'Sponsor Decision', 'Death', 'Withdrew Consent', 'Physician Decision', 'Protocol Violation', 'Lost to Follow-up', 'I/E Not Met', 'Lack of Efficacy')</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 254 × 49</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    STUDYID     USUBJID SUBJID SITEID SITEGR1 ARM   TRT01P TRT01PN TRT01A TRT01AN</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> CDISCPILOT… 01-701… 1015   701    701     Plac… Place…       0 Place…       0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> CDISCPILOT… 01-701… 1023   701    701     Plac… Place…       0 Place…       0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> CDISCPILOT… 01-701… 1028   701    701     Xano… Xanom…      81 Xanom…      81</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> CDISCPILOT… 01-701… 1033   701    701     Xano… Xanom…      54 Xanom…      54</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> CDISCPILOT… 01-701… 1034   701    701     Xano… Xanom…      81 Xanom…      81</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> CDISCPILOT… 01-701… 1047   701    701     Plac… Place…       0 Place…       0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> CDISCPILOT… 01-701… 1097   701    701     Xano… Xanom…      54 Xanom…      54</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> CDISCPILOT… 01-701… 1111   701    701     Xano… Xanom…      54 Xanom…      54</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> CDISCPILOT… 01-701… 1115   701    701     Xano… Xanom…      54 Xanom…      54</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> CDISCPILOT… 01-701… 1118   701    701     Plac… Place…       0 Place…       0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># … with 244 more rows, and 39 more variables: TRTSDT &lt;date&gt;, TRTEDT &lt;date&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   TRTDURD &lt;dbl&gt;, AVGDD &lt;dbl&gt;, CUMDOSE &lt;dbl&gt;, AGE &lt;dbl&gt;, AGEGR1 &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   AGEGR1N &lt;dbl&gt;, AGEU &lt;chr&gt;, RACE &lt;chr&gt;, RACEN &lt;dbl&gt;, SEX &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   ETHNIC &lt;chr&gt;, SAFFL &lt;chr&gt;, ITTFL &lt;chr&gt;, EFFFL &lt;chr&gt;, COMP8FL &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   COMP16FL &lt;chr&gt;, COMP24FL &lt;chr&gt;, DISCONFL &lt;chr&gt;, DSRAEFL &lt;chr&gt;, DTHFL &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   BMIBL &lt;dbl&gt;, BMIBLGR1 &lt;chr&gt;, HEIGHTBL &lt;dbl&gt;, WEIGHTBL &lt;dbl&gt;, EDUCLVL &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   DISONSDT &lt;date&gt;, DURDIS &lt;dbl&gt;, DURDSGR1 &lt;chr&gt;, VISIT1DT &lt;date&gt;, …</span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
