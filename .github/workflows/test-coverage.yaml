@@ -31,3 +31,5 @@ jobs:
       - name: Test coverage
         run: covr::codecov()
         shell: Rscript {0}
+        comment:
+         require_changes: true
