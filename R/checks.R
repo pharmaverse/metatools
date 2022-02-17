@@ -129,6 +129,11 @@ check_ct_data <- function(data, metacore, na_acceptable = NULL) {
         map(~.$message) %>%
         unlist() %>%
         str_remove("The following values should not be present:\n\\s")
+     unique_test <- extras %>%
+        keep(~str_detect(., "does not have a unique control term"))
+     if(length(unique_test) > 0){
+        stop(paste0(unique_test, collapse = "\n"), call. = FALSE)
+     }
      message <- paste0(cols_to_check[!test], " (", extras, ")") %>%
         paste0(collapse = "\n")
     stop(paste0(
