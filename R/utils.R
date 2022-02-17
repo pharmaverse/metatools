@@ -28,7 +28,7 @@ metatools_example <- function(file = NULL) {
 #' @noRd
 make_lone_dataset <- function(metacore, dataset_name) {
   if (!(nrow(metacore$ds_spec) == 1 | !is.null(dataset_name))) {
-    stop("Requires either a subsetted metacore object or a dataset name")
+    stop("Requires either a subsetted metacore object or a dataset name", call. = FALSE)
   }
   if (!is.null(dataset_name)) {
     metacore <- select_dataset(metacore, dataset_name)
