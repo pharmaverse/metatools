@@ -174,6 +174,7 @@ check_ct_data <- function(data, metacore, na_acceptable = NULL) {
 check_variables <- function(data, metacore, dataset_name = NULL) {
   metacore <- make_lone_dataset(metacore, dataset_name)
   var_list <- metacore$var_spec %>%
+     filter(is.na(.data$supp_flag) | !(.data$supp_flag)) %>%
     pull(.data$variable)
   missing <- var_list %>%
     discard(~ . %in% names(data))
