@@ -7,11 +7,11 @@
 #' @param qeval QEVAL value to be populated for this QNAM
 #' @param qorig QORIG value to be populated for this QNAM
 #'
+#' @importFrom rlang sym
+#' @importFrom dplyr select rename filter mutate distinct
+#'
 #' @return Observations structured in SUPP format
 #' @export
-#'
-#' @examples
-#'
 #'
 #'
 build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
@@ -29,9 +29,9 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
    }
 
    dup_sup <- dataset %>%
-      select(STUDYID, RDOMAIN = DOMAIN, USUBJID, !!idvarval, !!qval) %>%
+      select(.data$STUDYID, RDOMAIN = .data$DOMAIN, .data$USUBJID, !!idvarval, !!qval) %>%
       rename(IDVARVAL = !!idvarval, QVAL = !!qval) %>%
-      filter(!is.na(QVAL)) %>%
+      filter(!is.na(.data$QVAL)) %>%
       mutate(
          IDVAR = idvar,
          QNAM = qnam,
@@ -41,7 +41,8 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
       )
 
    out <- dup_sup %>%
-      distinct(STUDYID, RDOMAIN, USUBJID, IDVARVAL, QNAM, .keep_all = TRUE)
+      distinct(.data$STUDYID, .data$RDOMAIN,
+               .data$USUBJID, .data$IDVARVAL, .data$QNAM, .keep_all = TRUE)
    test_out <- dup_sup %>%
       distinct()
    if(nrow(out) != nrow(test_out)){
@@ -60,12 +61,16 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
 #'   If not already subsetted then a `dataset_name` will need to be provided
 #' @param idvar The name if the ID variable. If not provided then the `IDVAR`
 #'   and `IDVARVAL` columns of the supplemental dataset will be blank.
-#' @param dataset_name
+#' @param dataset_name optional name of dataset
 #'
 #' @return a CDISC formatted SUPP dataset
 #' @export
 #'
-#' @examples
+#' @importFrom rlang as_label
+#' @importFrom stringr str_remove_all
+#' @importFrom dplyr filter if_else distinct
+#' @importFrom purrr pmap_dfr
+#'
 make_supp_qual <- function(dataset, metacore, idvar = NULL, dataset_name = NULL){
    # Convert id col to strings
    idvar_str <- as_label(enexpr(idvar)) %>%
@@ -76,22 +81,24 @@ make_supp_qual <- function(dataset, metacore, idvar = NULL, dataset_name = NULL)
    metacore <- make_lone_dataset(metacore, dataset_name)
 
    supp_vars <- metacore$ds_vars %>%
-      filter(supp_flag)
+      filter(.data$supp_flag)
    if(nrow(supp_vars) == 0){
       stop("No supplemental variables specified in metacore object. Please check your specifications",
            call. = FALSE)
    }
 
    supp_meta <- supp_vars %>%
-      select(dataset, variable) %>%
+      select(.data$dataset, .data$variable) %>%
       left_join(metacore$var_spec, by = "variable") %>%
       left_join(metacore$value_spec, by = c("dataset", "variable")) %>%
       left_join(metacore$derivations, by= "derivation_id") %>%
-      select(qnam = variable, qlabel = label, qorig = origin, qeval = derivation) %>%
-      mutate(idvar = idvar_str)
+      select(qnam = .data$variable, qlabel = .data$label,
+             qorig = .data$origin, qeval = .data$derivation) %>%
+      mutate(idvar = idvar_str) %>%
+      distinct() #Protection against bad specs
 
    pmap_dfr(supp_meta, build_qnam, dataset=dataset) %>%
-      arrange(USUBJID, QNAM, IDVARVAL)
+      arrange(.data$USUBJID, .data$QNAM, .data$IDVARVAL)
 }
 
 # make_supp_qual(ae, metacore)

@@ -1,6 +1,9 @@
 library(safetyData)
 library(dplyr)
 library(tidyr)
+library(metacore)
+library(stringr)
+library(purrr)
 
 test_that("build_qnam", {
    full_ae <- sdtm_suppae %>%
@@ -73,16 +76,18 @@ test_that("make_supp_qual", {
       ) %>%
       bind_rows(metacore_old$derivations, . )
 
-   metacore <- metacore(metacore_old$ds_spec, ds_vars, var_spec, value_spec, derivation, metacore_old$codelist)
+   metacore <- suppressWarnings(
+      metacore(metacore_old$ds_spec, ds_vars, var_spec, value_spec, derivation, metacore_old$codelist))
    spec<- metacore %>%
       select_dataset("AE")
 
    # Add some mock supp variables
    ae <- sdtm_ae %>%
       mutate(
-         SUPPVAR1 = words[1:nrow(ae)],
-         SUPPVAR2 = rep(letters, 36)[1:nrow(ae)]
-      )
+         SUPPVAR1 = words[1:nrow(sdtm_ae)],
+         SUPPVAR2 = rep(letters, 36)[1:nrow(sdtm_ae)]
+      ) %>%
+      as_tibble()
 
    metacore_supp <- make_supp_qual(ae, spec, AESEQ) %>%
       arrange(USUBJID, QNAM, IDVARVAL) %>%

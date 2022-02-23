@@ -34,7 +34,8 @@ Suggests:
     haven,
     magrittr,
     covr,
-    safetyData
+    safetyData,
+    tidyr
 Remotes: atorus-research/metacore
 Config/testthat/edition: 3
 URL: https://pharmaverse.github.io/metatools
