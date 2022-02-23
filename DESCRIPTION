@@ -33,7 +33,8 @@ Suggests:
     testthat (>= 3.0.0),
     haven,
     magrittr,
-    covr
+    covr,
+    safetyData
 Remotes: atorus-research/metacore
 Config/testthat/edition: 3
 URL: https://pharmaverse.github.io/metatools
