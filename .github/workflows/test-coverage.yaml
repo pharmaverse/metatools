@@ -25,6 +25,14 @@ jobs:
         with:
           extra-packages: covr
 
+      - name: Install dependencies
+        run: |
+          install.packages("remotes")
+          remotes::install_github("https://github.com/atorus-research/metacore", ref = "dev")
+          remotes::install_deps(dependencies = TRUE)
+          remotes::install_cran("covr")
+        shell: Rscript {0}
+
       - name: Test coverage
         run: covr::codecov()
         shell: Rscript {0}
