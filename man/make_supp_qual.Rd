@@ -4,16 +4,13 @@
 \alias{make_supp_qual}
 \title{Make Supplemntal Qualifier}
 \usage{
-make_supp_qual(dataset, metacore, idvar = NULL, dataset_name = NULL)
+make_supp_qual(dataset, metacore, dataset_name = NULL)
 }
 \arguments{
 \item{dataset}{dataset the supp will be pulled from}
 
 \item{metacore}{A subsetted metacore object to get the supp information from.
 If not already subsetted then a `dataset_name` will need to be provided}
-
-\item{idvar}{The name if the ID variable. If not provided then the `IDVAR`
-and `IDVARVAL` columns of the supplemental dataset will be blank.}
 
 \item{dataset_name}{optional name of dataset}
 }
@@ -22,4 +19,13 @@ a CDISC formatted SUPP dataset
 }
 \description{
 Make Supplemntal Qualifier
+}
+\examples{
+
+library(metacore)
+library(safetyData)
+load(metacore_example("pilot_SDTM.rda"))
+spec <- metacore \%>\% select_dataset("AE")
+ae <- combine_supp(sdtm_ae, sdtm_suppae)
+make_supp_qual(ae, spec)
 }
