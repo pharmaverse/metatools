@@ -114,3 +114,17 @@ test_that("set_variable_labels raises warnings properly", {
    expect_warning(set_variable_labels(iris, mc))
 
 })
+
+test_that("removal_labels works to remvoe all labels", {
+   data <- tibble(a = 1:5,
+          b = letters[1:5])
+   data_lab <- data %>%
+      map2_dfr(c("apple", "pear"), function(x, y ){
+         attr(x, "label") <- y
+         x
+      })
+   remove_labels(data_lab) %>%
+      expect_equal(., data)
+
+   expect_error(remove_labels(c(1:10)))
+})
