@@ -21,10 +21,6 @@ jobs:
         with:
           use-public-rspm: true
 
-      - uses: r-lib/actions/setup-r-dependencies@v1
-        with:
-          extra-packages: covr
-
       - name: Install dependencies
         run: |
           install.packages("remotes")
