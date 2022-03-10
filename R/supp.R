@@ -19,9 +19,9 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
    qval <- as.symbol(qnam)
 
    # DM won't have an IDVAR so handle that
-   if (idvar == '') {
+   if (is.na(idvar) || idvar == '') {
       dataset <- dataset %>%
-         mutate(IDVARVAL = '')
+         mutate(IDVARVAL = idvar)
       idvarval <- sym('IDVARVAL')
 
    } else {
@@ -59,8 +59,6 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
 #' @param dataset dataset the supp will be pulled from
 #' @param metacore A subsetted metacore object to get the supp information from.
 #'   If not already subsetted then a `dataset_name` will need to be provided
-#' @param idvar The name if the ID variable. If not provided then the `IDVAR`
-#'   and `IDVARVAL` columns of the supplemental dataset will be blank.
 #' @param dataset_name optional name of dataset
 #'
 #' @return a CDISC formatted SUPP dataset
@@ -71,12 +69,15 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
 #' @importFrom dplyr filter if_else distinct
 #' @importFrom purrr pmap_dfr
 #'
-make_supp_qual <- function(dataset, metacore, idvar = NULL, dataset_name = NULL){
-   # Convert id col to strings
-   idvar_str <- as_label(enexpr(idvar)) %>%
-      str_remove_all("\"") %>%
-      if_else(. == "NULL", "", .)
-
+#' @examples
+#'
+#' library(metacore)
+#' library(safetyData)
+#' load(metacore_example("pilot_SDTM.rda"))
+#' spec <- metacore %>% select_dataset("AE")
+#' ae <- combine_supp(sdtm_ae, sdtm_suppae)
+#' make_supp_qual(ae, spec)
+make_supp_qual <- function(dataset, metacore, dataset_name = NULL){
    #Get a single metacore object
    metacore <- make_lone_dataset(metacore, dataset_name)
 
@@ -91,10 +92,10 @@ make_supp_qual <- function(dataset, metacore, idvar = NULL, dataset_name = NULL)
       select(.data$dataset, .data$variable) %>%
       left_join(metacore$var_spec, by = "variable") %>%
       left_join(metacore$value_spec, by = c("dataset", "variable")) %>%
-      left_join(metacore$derivations, by= "derivation_id") %>%
+      left_join(metacore$supp,  by = c("dataset", "variable")) %>%
       select(qnam = .data$variable, qlabel = .data$label,
-             qorig = .data$origin, qeval = .data$derivation) %>%
-      mutate(idvar = idvar_str) %>%
+             qorig = .data$origin, qeval = .data$qeval,
+             idvar = .data$idvar)  %>%
       distinct() #Protection against bad specs
    #TODO Addin in checks/coerision for when combining cols of different types
    pmap_dfr(supp_meta, build_qnam, dataset=dataset) %>%

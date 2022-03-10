@@ -24,7 +24,7 @@ LazyData: true
 RoxygenNote: 7.1.2
 Imports: 
     dplyr,
-    metacore,
+    metacore (>= 0.0.4),
     purrr,
     rlang,
     stringr,

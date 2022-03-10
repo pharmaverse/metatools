@@ -44,63 +44,27 @@ test_that("build_qnam", {
 })
 
 test_that("make_supp_qual", {
-   metacore_old <- define_to_metacore(metacore_example("SDTM_define.xml"), quiet = TRUE)
+   load(metacore_example("pilot_SDTM.rda"))
 
-   ds_vars <- tribble(
-      ~dataset, ~variable ,   ~supp_flag,
-      "AE",      "SUPPVAR1",   TRUE,
-      "AE",      "SUPPVAR2",   TRUE
-   )
-
-   ds_vars <- metacore_old$ds_vars %>%
-      bind_rows(ds_vars)
-   var_spec <- tribble(
-      ~variable , ~label,
-      "SUPPVAR1", "Supp Test 1",
-      "SUPPVAR2","Supp Test 2",
-   ) %>%
-      bind_rows(metacore_old$var_spec, .)
-
-   value_spec <-
-      tribble(
-         ~dataset, ~variable ,   ~origin, ~derivation_id,
-         "AE",      "SUPPVAR1",   "CRF",  "AE.SUPP",
-         "AE",      "SUPPVAR2",   "CRF", "AE.SUPP"
-      ) %>%
-      bind_rows(metacore_old$value_spec, . )
-
-   derivation <-
-      tribble(
-         ~derivation_id, ~derivation,
-         "AE.SUPP",       "Investigator"
-      ) %>%
-      bind_rows(metacore_old$derivations, . )
-
-   metacore <- suppressWarnings(
-      metacore(metacore_old$ds_spec, ds_vars, var_spec, value_spec, derivation, metacore_old$codelist))
    spec<- metacore %>%
       select_dataset("AE")
 
-   # Add some mock supp variables
-   ae <- sdtm_ae %>%
-      mutate(
-         SUPPVAR1 = words[1:nrow(sdtm_ae)],
-         SUPPVAR2 = rep(letters, 36)[1:nrow(sdtm_ae)]
-      ) %>%
-      as_tibble()
+   # Add the mock supp variables
+   ae <- combine_supp(sdtm_ae, sdtm_suppae)
 
-   metacore_supp <- make_supp_qual(ae, spec, AESEQ) %>%
+   metacore_supp <- make_supp_qual(ae, spec) %>%
       arrange(USUBJID, QNAM, IDVARVAL) %>%
       select(STUDYID, RDOMAIN, USUBJID, IDVAR,
-             IDVARVAL, QNAM , QLABEL,QVAL,  QORIG, QEVAL)
+             IDVARVAL, QNAM , QLABEL,QVAL,  QORIG, QEVAL) %>%
+      as_tibble()
    man_supp <- ae %>%
-      select(STUDYID, USUBJID, RDOMAIN = DOMAIN, IDVARVAL = AESEQ, SUPPVAR1, SUPPVAR2) %>%
-      pivot_longer(starts_with("SUPP"), names_to = "QNAM", values_to = "QVAL") %>%
+      select(STUDYID, USUBJID, RDOMAIN = DOMAIN, IDVARVAL = AESEQ, AETRTEM) %>%
+      pivot_longer(AETRTEM, names_to = "QNAM", values_to = "QVAL") %>%
       filter(!is.na(QVAL)) %>%
       mutate(IDVAR = "AESEQ",
-             QORIG = "CRF",
-             QEVAL = "Investigator",
-             QLABEL = if_else(QNAM == "SUPPVAR1", "Supp Test 1", "Supp Test 2")) %>%
+             QORIG = "DERIVED",
+             QEVAL = "CLINICAL STUDY SPONSOR",
+             QLABEL = "TREATMENT EMERGENT FLAG") %>%
       arrange(USUBJID, QNAM, IDVARVAL) %>%
       select(STUDYID, RDOMAIN, USUBJID, IDVAR,
              IDVARVAL, QNAM , QLABEL,QVAL,  QORIG, QEVAL) %>%
@@ -112,17 +76,28 @@ test_that("make_supp_qual", {
    #Testing normal circumstances
    expect_equal(metacore_supp, man_supp)
 
-   #Testing with quotes
-   metacore_supp <- make_supp_qual(ae, spec, "AESEQ") %>%
+
+
+   # Add the supp without a idvar
+   dm <- combine_supp(sdtm_dm, sdtm_suppdm) %>%
+      as_tibble()
+   dm_supp <- make_supp_qual(dm, metacore, "DM")%>%
       arrange(USUBJID, QNAM, IDVARVAL) %>%
       select(STUDYID, RDOMAIN, USUBJID, IDVAR,
              IDVARVAL, QNAM , QLABEL,QVAL,  QORIG, QEVAL)
-   expect_equal(metacore_supp, man_supp)
+   man_dm_supp <- sdtm_suppdm %>%
+      as_tibble() %>%
+      mutate(IDVAR = as.character(IDVAR),
+             IDVARVAL = as.character(IDVARVAL))
+   expect_equal(dm_supp, man_dm_supp)
+
+
    # Testing with too many datasets
-   expect_error(make_supp_qual(ae, metacore_old, "AESEQ"),
+   expect_error(make_supp_qual(ae, metacore),
                 "Requires either a subsetted metacore object or a dataset name")
    #Testing without supp columns specified
-   expect_error(make_supp_qual(ae, metacore_old, "AESEQ", "AE"),
+   metacore_old <- spec_to_metacore(metacore_example("SDTM_spec_CDISC_pilot.xlsx"), quiet = TRUE)
+   expect_error(make_supp_qual(ae, metacore_old, "AE"),
                 "No supplemental variables specified in metacore object. Please check your specifications")
 
 })
