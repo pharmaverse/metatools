@@ -24,16 +24,18 @@ LazyData: true
 RoxygenNote: 7.1.2
 Imports: 
     dplyr,
-    metacore,
+    metacore (>= 0.0.4),
     purrr,
     rlang,
-    stringr
+    stringr,
+    tidyr
 Suggests: 
     tibble,
     testthat (>= 3.0.0),
     haven,
     magrittr,
-    covr
+    covr,
+    safetyData
 Remotes: atorus-research/metacore
 Config/testthat/edition: 3
 URL: https://pharmaverse.github.io/metatools
