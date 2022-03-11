@@ -19,7 +19,13 @@
     <loc>https://pharmaverse.github.io/metatools/reference/add_labels.html</loc>
   </url>
   <url>
+    <loc>https://pharmaverse.github.io/metatools/reference/add_variables.html</loc>
+  </url>
+  <url>
     <loc>https://pharmaverse.github.io/metatools/reference/build_from_derived.html</loc>
+  </url>
+  <url>
+    <loc>https://pharmaverse.github.io/metatools/reference/build_qnam.html</loc>
   </url>
   <url>
     <loc>https://pharmaverse.github.io/metatools/reference/check_ct_col.html</loc>
@@ -29,6 +35,9 @@
   </url>
   <url>
     <loc>https://pharmaverse.github.io/metatools/reference/check_variables.html</loc>
+  </url>
+  <url>
+    <loc>https://pharmaverse.github.io/metatools/reference/combine_supp.html</loc>
   </url>
   <url>
     <loc>https://pharmaverse.github.io/metatools/reference/convert_var_to_fct.html</loc>
@@ -49,10 +58,16 @@
     <loc>https://pharmaverse.github.io/metatools/reference/index.html</loc>
   </url>
   <url>
+    <loc>https://pharmaverse.github.io/metatools/reference/make_supp_qual.html</loc>
+  </url>
+  <url>
     <loc>https://pharmaverse.github.io/metatools/reference/metatools_example.html</loc>
   </url>
   <url>
     <loc>https://pharmaverse.github.io/metatools/reference/order_cols.html</loc>
+  </url>
+  <url>
+    <loc>https://pharmaverse.github.io/metatools/reference/remove_labels.html</loc>
   </url>
   <url>
     <loc>https://pharmaverse.github.io/metatools/reference/set_variable_labels.html</loc>
