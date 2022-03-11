@@ -28,12 +28,39 @@ add_labels <- function(data, ...) {
    if (!all(names(args) %in% names(data))) {
       stop("All variable names supplied to label must be variables in data")
    }
-   if (!all(purrr::map_lgl(args, is.character))) stop("All labels must be character")
+   if (!all(map_lgl(args, is.character))) stop("All labels must be character")
 
    # Iterate the args supplied and update the variable labels in place
    walk2(names(args), args, ~ {attr(data[[.x]], "label") <<- .y})
 
    data
+}
+
+
+#' Remove labels to multiple variables on a data frame
+#'
+#' This function allows a user to remova all labels to a dataframe at once.
+#'
+#' @param data A data.frame or tibble
+#'
+#' @return data with variable labels applied
+#'
+#' @importFrom purrr map_dfr
+#' @export
+#'
+#' @examples
+#' library(haven)
+#' data <- read_xpt(metatools_example("adsl.xpt"))
+#' remove_labels(data)
+#'
+remove_labels <- function(data) {
+   # Check data
+   if (!inherits(data, 'data.frame')) stop("Labels must be removed from a data.frame or tibble")
+
+   map_dfr(data, function(x){
+      attr(x, "label") <- NULL
+      x
+   })
 }
 
 #' Apply labels to a data frame using a metacore object
