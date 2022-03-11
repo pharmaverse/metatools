@@ -165,8 +165,8 @@ drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL) {
 #' @return The given dataset with any additional columns added
 #' @export
 #'
-#' @importFrom dplyr filter pull mutate tibble bind_cols
-#' @importFrom purrr discard map2_dfr
+#' @importFrom dplyr filter pull mutate bind_cols as_tibble
+#' @importFrom purrr discard map
 #' @importFrom rlang !! :=
 #'
 #'
@@ -188,12 +188,13 @@ add_variables <- function(dataset, metacore, dataset_name = NULL){
    to_add <- var_list %>%
       discard(~ . %in% names(dataset))
    if(length(to_add) > 0){
+      n <- nrow(dataset)
       typing <- metacore$var_spec %>%
-         filter(metacore$variable %in% to_add) %>%
-         mutate(type_fmt = str_to_lower(metacore$type),
+         filter(.data$variable %in% to_add) %>%
+         mutate(type_fmt = str_to_lower(.data$type),
                 out_type =
                    case_when(
-                      str_detect(str_to_lower(format), "date") ~ "date",
+                      str_detect(str_to_lower(.data$format), "date") ~ "date",
                       type_fmt == "integer" ~ "integer",
                       type_fmt == "numeric" ~ "double",
                       type_fmt == "text" ~ "character",
@@ -203,17 +204,18 @@ add_variables <- function(dataset, metacore, dataset_name = NULL){
                       TRUE ~ "unknown"
                    ))
 
-      new_cols <- map2_dfr(typing$variable, typing$out_type, function(var,typ){
+      new_cols <- map(typing$out_type, function(typ){
          out <- switch(typ,
-                       "character" = character(),
-                       "integer" = integer(),
-                       "double" = double(),
-                       "date" = as.Date(integer()),
-                       "logical" = logical(),
-                       "unknown" = logical()
+                       "character" = rep(NA_character_, n),
+                       "integer" = rep(NA_integer_, n),
+                       "double" = rep(NA_real_, n),
+                       "date" = as.Date(rep(NA_integer_, n)),
+                       "logical" = rep(NA, n),
+                       "unknown" = rep(NA, n)
          )
-         tibble(!!var := out)
       })
+      names(new_cols) <- typing$variable
+      new_cols <- as_tibble(new_cols)
 
       dataset <- bind_cols(dataset, new_cols)
    }

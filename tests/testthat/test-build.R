@@ -63,11 +63,13 @@ test_that("add_variables", {
    data_mis <- data %>%
       select(-TRTSDT, -TRT01P, -TRT01PN)
    #Check data when there is missing
-   fx_miss <- add_variables(data_mis, spec)
+   fx_miss <- add_variables(data_mis, spec) %>%
+      select(TRTSDT, TRT01P, TRT01PN)
    man_miss <- data %>%
       mutate(TRTSDT = as.Date(NA_integer_),
              TRT01P = NA_character_,
-             TRT01PN = NA_integer_)
+             TRT01PN = NA_integer_) %>%
+      select(TRTSDT, TRT01P, TRT01PN)
    expect_equal(fx_miss, man_miss)
    #Check data when there isn't any missing
    expect_equal(add_variables(data, spec),
