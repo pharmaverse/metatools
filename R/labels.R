@@ -45,7 +45,7 @@ add_labels <- function(data, ...) {
 #'
 #' @return data with variable labels applied
 #'
-#' @importFrom purrr map_lgl walk2
+#' @importFrom purrr map_dfr
 #' @export
 #'
 #' @examples

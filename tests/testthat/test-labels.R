@@ -1,4 +1,5 @@
 library(magrittr)
+library(purrr)
 
 # Mock up metacore data
 var_spec <- tibble(
