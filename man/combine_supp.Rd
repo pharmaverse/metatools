@@ -12,7 +12,7 @@ combine_supp(dataset, supp)
 \item{supp}{Supplemental Qualifier dataset}
 }
 \value{
-
+a dataset with the supp variables added to it
 }
 \description{
 Combine the Domain and Supplemental Qualifier

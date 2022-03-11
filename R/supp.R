@@ -107,7 +107,7 @@ make_supp_qual <- function(dataset, metacore, dataset_name = NULL){
 #' @param dataset Domain dataset
 #' @param supp Supplemental Qualifier dataset
 #'
-#' @return
+#' @return a dataset with the supp variables added to it
 #' @export
 #'
 #' @importFrom purrr discard map reduce

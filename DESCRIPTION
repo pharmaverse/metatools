@@ -36,6 +36,6 @@ Suggests:
     magrittr,
     covr,
     safetyData
-Remotes: atorus-research/metacore
+Remotes: github::atorus-research/metacore@dev
 Config/testthat/edition: 3
 URL: https://pharmaverse.github.io/metatools

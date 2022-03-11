@@ -21,13 +21,9 @@ jobs:
         with:
           use-public-rspm: true
 
-      - name: Install dependencies
-        run: |
-          install.packages("remotes")
-          remotes::install_deps(dependencies = TRUE)
-          remotes::install_github("https://github.com/atorus-research/metacore", ref = "dev")
-          remotes::install_cran("covr")
-        shell: Rscript {0}
+      - uses: r-lib/actions/setup-r-dependencies@v1
+        with:
+          extra-packages: covr
 
       - name: Test coverage
         run: covr::codecov()
