@@ -73,10 +73,11 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
 #'
 #' library(metacore)
 #' library(safetyData)
+#' library(tibble)
 #' load(metacore_example("pilot_SDTM.rda"))
 #' spec <- metacore %>% select_dataset("AE")
 #' ae <- combine_supp(sdtm_ae, sdtm_suppae)
-#' make_supp_qual(ae, spec)
+#' make_supp_qual(ae, spec) %>% as_tibble()
 make_supp_qual <- function(dataset, metacore, dataset_name = NULL){
    #Get a single metacore object
    metacore <- make_lone_dataset(metacore, dataset_name)
@@ -117,7 +118,8 @@ make_supp_qual <- function(dataset, metacore, dataset_name = NULL){
 #'
 #' @examples
 #' library(safetyData)
-#' combine_supp(sdtm_ae, sdtm_suppae)
+#' library(tibble)
+#' combine_supp(sdtm_ae, sdtm_suppae)  %>% as_tibble()
 combine_supp <- function(dataset, supp){
    if(!is.data.frame(dataset) | !is.data.frame(supp)){
       stop("You must supply a domain and supplemental dataset", call. = FALSE)
