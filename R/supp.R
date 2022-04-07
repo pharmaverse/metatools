@@ -42,12 +42,24 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
 
    out <- dup_sup %>%
       distinct(.data$STUDYID, .data$RDOMAIN,
-               .data$USUBJID, .data$IDVARVAL, .data$QNAM, .keep_all = TRUE)
+               .data$USUBJID, .data$IDVARVAL, .data$QNAM, .keep_all = TRUE) %>%
+      select(.data$STUDYID, .data$RDOMAIN, .data$USUBJID, .data$IDVAR,
+             .data$IDVARVAL, .data$QNAM, .data$QLABEL, .data$QVAL,
+             .data$QORIG, .data$QEVAL)
+
    test_out <- dup_sup %>%
       distinct()
    if(nrow(out) != nrow(test_out)){
       stop("The combination of STUDYID, RDOMAIN, USUBJID, IDVARVAL, QNAM is ambiguous. Consider modifying the IDVAR",
            call. = FALSE)
+   }
+
+   blank_test <- out %>%
+      pull(.data$QVAL)
+   if(any(blank_test == "")){
+      message(paste0("Empty QVAL rows removed for QNAM = ", unique(out$QNAM)))
+      out <- out %>%
+         filter(.data$QVAL != "")
    }
    out
 }

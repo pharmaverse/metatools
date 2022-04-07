@@ -1,7 +1,7 @@
 Package: metatools
 Type: Package
 Title: Enable the Use of Metacore to Help Create and Check Dataset
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
          person(given = "Christina",
              family = "Fillmore",
@@ -36,6 +36,5 @@ Suggests:
     magrittr,
     covr,
     safetyData
-Remotes: github::atorus-research/metacore@dev
 Config/testthat/edition: 3
 URL: https://pharmaverse.github.io/metatools
