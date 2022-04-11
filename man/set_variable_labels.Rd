@@ -9,7 +9,7 @@ set_variable_labels(data, metacore, dataset_name = NULL)
 \arguments{
 \item{data}{A dataframe or tibble upon which labels will be applied}
 
-\item{metacore}{Metacore object that contains the specifications for the
+\item{metacore}{metacore object that contains the specifications for the
 dataset of interest.}
 
 \item{dataset_name}{Optional string to specify the dataset. This is only

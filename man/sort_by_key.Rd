@@ -9,7 +9,7 @@ sort_by_key(data, metacore, dataset_name = NULL)
 \arguments{
 \item{data}{Dataset to sort}
 
-\item{metacore}{Metacore object that contains the specifications for the
+\item{metacore}{metacore object that contains the specifications for the
 dataset of interest.}
 
 \item{dataset_name}{Optional string to specify the dataset. This is only

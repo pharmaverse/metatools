@@ -13,7 +13,7 @@ build_from_derived(
 )
 }
 \arguments{
-\item{metacore}{Metacore object that contains the specifications for the
+\item{metacore}{metacore object that contains the specifications for the
 dataset of interest.}
 
 \item{ds_list}{Named list of datasets that are needed to build the from}

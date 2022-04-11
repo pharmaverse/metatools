@@ -5,7 +5,7 @@
 #' 'dataset.variable' will be pulled through to create the new dataset. These
 #' columns are often called 'Predecessors' in ADaM, but this is not universal so
 #' that is optional to specify.
-#' @param metacore Metacore object that contains the specifications for the
+#' @param metacore metacore object that contains the specifications for the
 #'   dataset of interest.
 #' @param ds_list Named list of datasets that are needed to build the from
 #' @param dataset_name Optional string to specify the dataset. This is only
@@ -112,7 +112,7 @@ get_variables <- function(x, ds_list, keep) {
 #' This function drops all unspecified variables. It will throw and error if the
 #' dataset does not contain all expected variables.
 #' @param dataset Dataset to change
-#' @param metacore Metacore object that only contains the specifications for the
+#' @param metacore metacore object that only contains the specifications for the
 #'   dataset of interest.
 #' @param dataset_name Optional string to specify the dataset. This is only
 #'   needed if the metacore object provided hasn't already been subsetted.
@@ -157,7 +157,7 @@ drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL) {
 #' a logical type.
 #' @param dataset Dataset to add columns to. If all variables are present no
 #'   columns will be added.
-#' @param metacore Metacore object that only contains the specifications for the
+#' @param metacore metacore object that only contains the specifications for the
 #'   dataset of interest.
 #' @param dataset_name Optional string to specify the dataset. This is only
 #'   needed if the metacore object provided hasn't already been subsetted.

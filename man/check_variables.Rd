@@ -9,7 +9,7 @@ check_variables(data, metacore, dataset_name = NULL)
 \arguments{
 \item{data}{Dataset to check}
 
-\item{metacore}{Metacore object that only contains the specifications for the
+\item{metacore}{metacore object that only contains the specifications for the
 dataset of interest.}
 
 \item{dataset_name}{Optional string to specify the dataset. This is only

@@ -4,7 +4,7 @@
 #' This function sorts the dataset according to the order found in the
 #' metacore object.
 #' @param data Dataset to sort
-#' @param metacore Metacore object that contains the specifications for the
+#' @param metacore metacore object that contains the specifications for the
 #'   dataset of interest.
 #' @param dataset_name Optional string to specify the dataset. This is only
 #'   needed if the metacore object provided hasn't already been subsetted.
@@ -38,7 +38,7 @@ order_cols <- function(data, metacore, dataset_name = NULL) {
 #' This function sorts the dataset according to the key sequence found in the
 #' metacore object.
 #' @param data Dataset to sort
-#' @param metacore Metacore object that contains the specifications for the
+#' @param metacore metacore object that contains the specifications for the
 #'   dataset of interest.
 #' @param dataset_name Optional string to specify the dataset. This is only
 #'   needed if the metacore object provided hasn't already been subsetted.

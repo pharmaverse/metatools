@@ -10,7 +10,7 @@ add_variables(dataset, metacore, dataset_name = NULL)
 \item{dataset}{Dataset to add columns to. If all variables are present no
 columns will be added.}
 
-\item{metacore}{Metacore object that only contains the specifications for the
+\item{metacore}{metacore object that only contains the specifications for the
 dataset of interest.}
 
 \item{dataset_name}{Optional string to specify the dataset. This is only

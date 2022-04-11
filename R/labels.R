@@ -69,7 +69,7 @@ remove_labels <- function(data) {
 #' labels to a data frame.
 #'
 #' @param data A dataframe or tibble upon which labels will be applied
-#' @param metacore Metacore object that contains the specifications for the
+#' @param metacore metacore object that contains the specifications for the
 #'   dataset of interest.
 #' @param dataset_name Optional string to specify the dataset. This is only
 #'   needed if the metacore object provided hasn't already been subsetted.
