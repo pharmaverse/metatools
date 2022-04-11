@@ -54,7 +54,7 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
 
 
 
-#' Make Supplemntal Qualifier
+#' Make Supplemental Qualifier
 #'
 #' @param dataset dataset the supp will be pulled from
 #' @param metacore A subsetted metacore object to get the supp information from.

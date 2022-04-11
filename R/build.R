@@ -17,7 +17,7 @@
 #'   dataset will have all the ADaM columns as well as any SDTM column that were
 #'   renamed in the ADaM (i.e `ARM` and `TRT01P` will be in the resulting dataset)
 #'
-#' @return datset
+#' @return dataset
 #' @export
 #' @importFrom stringr str_to_lower str_detect str_extract str_to_upper
 #' @importFrom dplyr filter pull mutate group_by group_split inner_join select
@@ -109,7 +109,7 @@ get_variables <- function(x, ds_list, keep) {
 
 #' Drop Unspecified Variables
 #'
-#' This function drops all unspcifed variables. It will throw and error if the
+#' This function drops all unspecified variables. It will throw and error if the
 #' dataset does not contain all expected variables.
 #' @param dataset Dataset to change
 #' @param metacore Metacore object that only contains the specifications for the

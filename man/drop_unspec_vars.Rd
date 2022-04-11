@@ -19,7 +19,7 @@ needed if the metacore object provided hasn't already been subsetted.}
 Dataset with only specified columns
 }
 \description{
-This function drops all unspcifed variables. It will throw and error if the
+This function drops all unspecified variables. It will throw and error if the
 dataset does not contain all expected variables.
 }
 \examples{

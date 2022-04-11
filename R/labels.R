@@ -39,7 +39,7 @@ add_labels <- function(data, ...) {
 
 #' Remove labels to multiple variables on a data frame
 #'
-#' This function allows a user to remova all labels to a dataframe at once.
+#' This function allows a user to removes all labels to a dataframe at once.
 #'
 #' @param data A data.frame or tibble
 #'

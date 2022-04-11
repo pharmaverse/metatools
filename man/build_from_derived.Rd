@@ -30,7 +30,7 @@ dataset will have all the ADaM columns as well as any SDTM column that were
 renamed in the ADaM (i.e `ARM` and `TRT01P` will be in the resulting dataset)}
 }
 \value{
-datset
+dataset
 }
 \description{
 This function builds a dataset out of the columns that just need to be pulled

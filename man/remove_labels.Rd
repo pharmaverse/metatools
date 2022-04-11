@@ -13,7 +13,7 @@ remove_labels(data)
 data with variable labels applied
 }
 \description{
-This function allows a user to remova all labels to a dataframe at once.
+This function allows a user to removes all labels to a dataframe at once.
 }
 \examples{
 library(haven)

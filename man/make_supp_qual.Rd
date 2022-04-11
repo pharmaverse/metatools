@@ -2,7 +2,7 @@
 % Please edit documentation in R/supp.R
 \name{make_supp_qual}
 \alias{make_supp_qual}
-\title{Make Supplemntal Qualifier}
+\title{Make Supplemental Qualifier}
 \usage{
 make_supp_qual(dataset, metacore, dataset_name = NULL)
 }
@@ -18,7 +18,7 @@ If not already subsetted then a `dataset_name` will need to be provided}
 a CDISC formatted SUPP dataset
 }
 \description{
-Make Supplemntal Qualifier
+Make Supplemental Qualifier
 }
 \examples{
 
