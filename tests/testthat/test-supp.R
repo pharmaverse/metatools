@@ -15,8 +15,7 @@ test_that("build_qnam", {
 
    supp_fx <- build_qnam(full_ae, "AETRTEM", "TREATMENT EMERGENT FLAG",
                          "AESEQ", "CLINICAL STUDY SPONSOR", "DERIVED") %>%
-      select(STUDYID, RDOMAIN, USUBJID, IDVAR,
-              IDVARVAL, QNAM , QLABEL,QVAL,  QORIG, QEVAL) %>%
+      select(STUDYID, RDOMAIN, USUBJID, IDVAR, IDVARVAL, QNAM, QLABEL, QVAL, QORIG, QEVAL)%>%
       arrange(USUBJID, IDVARVAL)
    ex_supp <- arrange(sdtm_suppae, USUBJID, IDVARVAL)
    # Test standard example
@@ -32,8 +31,7 @@ test_that("build_qnam", {
       slice(1) %>%
       build_qnam("AETRTEM", "TREATMENT EMERGENT FLAG",
                  "", "CLINICAL STUDY SPONSOR", "DERIVED") %>%
-      select(STUDYID, RDOMAIN, USUBJID, IDVAR,
-             IDVARVAL, QNAM , QLABEL,QVAL,  QORIG, QEVAL) %>%
+      select(STUDYID, RDOMAIN, USUBJID, IDVAR, IDVARVAL, QNAM, QLABEL, QVAL, QORIG, QEVAL) %>%
       arrange(USUBJID, IDVARVAL)
    ex_supp_sans_id <- arrange(sdtm_suppae, USUBJID, IDVARVAL) %>%
       group_by(USUBJID) %>%
@@ -54,9 +52,8 @@ test_that("make_supp_qual", {
 
    metacore_supp <- make_supp_qual(ae, spec) %>%
       arrange(USUBJID, QNAM, IDVARVAL) %>%
-      select(STUDYID, RDOMAIN, USUBJID, IDVAR,
-             IDVARVAL, QNAM , QLABEL,QVAL,  QORIG, QEVAL) %>%
       as_tibble()
+
    man_supp <- ae %>%
       select(STUDYID, USUBJID, RDOMAIN = DOMAIN, IDVARVAL = AESEQ, AETRTEM) %>%
       pivot_longer(AETRTEM, names_to = "QNAM", values_to = "QVAL") %>%
@@ -73,6 +70,9 @@ test_that("make_supp_qual", {
       attr(x, "label") <-NULL
       x
    })
+
+
+
    #Testing normal circumstances
    expect_equal(metacore_supp, man_supp)
 
@@ -81,15 +81,27 @@ test_that("make_supp_qual", {
    # Add the supp without a idvar
    dm <- combine_supp(sdtm_dm, sdtm_suppdm) %>%
       as_tibble()
-   dm_supp <- make_supp_qual(dm, metacore, "DM")%>%
-      arrange(USUBJID, QNAM, IDVARVAL) %>%
-      select(STUDYID, RDOMAIN, USUBJID, IDVAR,
-             IDVARVAL, QNAM , QLABEL,QVAL,  QORIG, QEVAL)
+   dm_supp <- make_supp_qual(dm, metacore, "DM")
    man_dm_supp <- sdtm_suppdm %>%
       as_tibble() %>%
       mutate(IDVAR = as.character(IDVAR),
-             IDVARVAL = as.character(IDVARVAL))
+             IDVARVAL = as.character(IDVARVAL)) %>%
+      select(STUDYID, RDOMAIN, USUBJID, IDVAR, IDVARVAL, QNAM, QLABEL, QVAL, QORIG, QEVAL)
    expect_equal(dm_supp, man_dm_supp)
+
+   #Testing with blank rows
+   supp_with_miss <- dm %>%
+      bind_rows(tibble(STUDYID = "CDISCPILOT01",
+                      DOMAIN = "DM",
+                      USUBJID = "01-701-9999",
+                      SUBJID = 9999,
+                      ITT = ""))
+   expect_message(make_supp_qual(supp_with_miss, metacore, "DM"),
+                  "Empty QVAL rows removed for QNAM = ITT")
+
+   suppressMessages(make_supp_qual(supp_with_miss, metacore, "DM")) %>%
+      expect_equal(man_dm_supp)
+
 
 
    # Testing with too many datasets
