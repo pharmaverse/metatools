@@ -117,17 +117,17 @@
    <span class="fu"><a href="reference/convert_var_to_fct.html">convert_var_to_fct</a></span><span class="op">(</span><span class="va">metacore</span>, <span class="va">ETHNIC</span><span class="op">)</span> <span class="co"># Change ETHNIC to as factor </span>
 <span class="co">#&gt; # A tibble: 306 x 5</span>
 <span class="co">#&gt;    USUBJID       AGE ETHNIC                 AGEGR1 AGEGR1N</span>
-<span class="co">#&gt;    &lt;chr&gt;       &lt;dbl&gt; &lt;fct&gt;                  &lt;chr&gt;  &lt;chr&gt;  </span>
-<span class="co">#&gt;  1 01-701-1015    63 HISPANIC OR LATINO     &lt;65    1      </span>
-<span class="co">#&gt;  2 01-701-1023    64 HISPANIC OR LATINO     &lt;65    1      </span>
-<span class="co">#&gt;  3 01-701-1028    71 NOT HISPANIC OR LATINO 65-80  2      </span>
-<span class="co">#&gt;  4 01-701-1033    74 NOT HISPANIC OR LATINO 65-80  2      </span>
-<span class="co">#&gt;  5 01-701-1034    77 NOT HISPANIC OR LATINO 65-80  2      </span>
-<span class="co">#&gt;  6 01-701-1047    85 NOT HISPANIC OR LATINO &gt;80    3      </span>
-<span class="co">#&gt;  7 01-701-1057    59 HISPANIC OR LATINO     &lt;65    1      </span>
-<span class="co">#&gt;  8 01-701-1097    68 NOT HISPANIC OR LATINO 65-80  2      </span>
-<span class="co">#&gt;  9 01-701-1111    81 NOT HISPANIC OR LATINO &gt;80    3      </span>
-<span class="co">#&gt; 10 01-701-1115    84 NOT HISPANIC OR LATINO &gt;80    3      </span>
+<span class="co">#&gt;    &lt;chr&gt;       &lt;dbl&gt; &lt;fct&gt;                  &lt;chr&gt;    &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 01-701-1015    63 HISPANIC OR LATINO     &lt;65          1</span>
+<span class="co">#&gt;  2 01-701-1023    64 HISPANIC OR LATINO     &lt;65          1</span>
+<span class="co">#&gt;  3 01-701-1028    71 NOT HISPANIC OR LATINO 65-80        2</span>
+<span class="co">#&gt;  4 01-701-1033    74 NOT HISPANIC OR LATINO 65-80        2</span>
+<span class="co">#&gt;  5 01-701-1034    77 NOT HISPANIC OR LATINO 65-80        2</span>
+<span class="co">#&gt;  6 01-701-1047    85 NOT HISPANIC OR LATINO &gt;80          3</span>
+<span class="co">#&gt;  7 01-701-1057    59 HISPANIC OR LATINO     &lt;65          1</span>
+<span class="co">#&gt;  8 01-701-1097    68 NOT HISPANIC OR LATINO 65-80        2</span>
+<span class="co">#&gt;  9 01-701-1111    81 NOT HISPANIC OR LATINO &gt;80          3</span>
+<span class="co">#&gt; 10 01-701-1115    84 NOT HISPANIC OR LATINO &gt;80          3</span>
 <span class="co">#&gt; # ... with 296 more rows</span></code></pre></div>
 <p>Metatools can also be used to run checks</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -135,7 +135,26 @@
 
 <span class="co"># Checks can be run on a single column</span>
 <span class="fu"><a href="reference/check_ct_col.html">check_ct_col</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">metacore</span>, <span class="va">TRT01PN</span><span class="op">)</span> <span class="co"># Checks column only contains control terminology</span>
-<span class="co">#&gt; [1] TRUE</span>
+<span class="co">#&gt; # A tibble: 254 x 49</span>
+<span class="co">#&gt;    STUDYID     USUBJID SUBJID SITEID SITEGR1 ARM   TRT01P TRT01PN TRT01A TRT01AN</span>
+<span class="co">#&gt;    &lt;chr&gt;       &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt;    &lt;dbl&gt; &lt;chr&gt;    &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 CDISCPILOT~ 01-701~ 1015   701    701     Plac~ Place~       0 Place~       0</span>
+<span class="co">#&gt;  2 CDISCPILOT~ 01-701~ 1023   701    701     Plac~ Place~       0 Place~       0</span>
+<span class="co">#&gt;  3 CDISCPILOT~ 01-701~ 1028   701    701     Xano~ Xanom~      81 Xanom~      81</span>
+<span class="co">#&gt;  4 CDISCPILOT~ 01-701~ 1033   701    701     Xano~ Xanom~      54 Xanom~      54</span>
+<span class="co">#&gt;  5 CDISCPILOT~ 01-701~ 1034   701    701     Xano~ Xanom~      81 Xanom~      81</span>
+<span class="co">#&gt;  6 CDISCPILOT~ 01-701~ 1047   701    701     Plac~ Place~       0 Place~       0</span>
+<span class="co">#&gt;  7 CDISCPILOT~ 01-701~ 1097   701    701     Xano~ Xanom~      54 Xanom~      54</span>
+<span class="co">#&gt;  8 CDISCPILOT~ 01-701~ 1111   701    701     Xano~ Xanom~      54 Xanom~      54</span>
+<span class="co">#&gt;  9 CDISCPILOT~ 01-701~ 1115   701    701     Xano~ Xanom~      54 Xanom~      54</span>
+<span class="co">#&gt; 10 CDISCPILOT~ 01-701~ 1118   701    701     Plac~ Place~       0 Place~       0</span>
+<span class="co">#&gt; # ... with 244 more rows, and 39 more variables: TRTSDT &lt;date&gt;, TRTEDT &lt;date&gt;,</span>
+<span class="co">#&gt; #   TRTDURD &lt;dbl&gt;, AVGDD &lt;dbl&gt;, CUMDOSE &lt;dbl&gt;, AGE &lt;dbl&gt;, AGEGR1 &lt;chr&gt;,</span>
+<span class="co">#&gt; #   AGEGR1N &lt;dbl&gt;, AGEU &lt;chr&gt;, RACE &lt;chr&gt;, RACEN &lt;dbl&gt;, SEX &lt;chr&gt;,</span>
+<span class="co">#&gt; #   ETHNIC &lt;chr&gt;, SAFFL &lt;chr&gt;, ITTFL &lt;chr&gt;, EFFFL &lt;chr&gt;, COMP8FL &lt;chr&gt;,</span>
+<span class="co">#&gt; #   COMP16FL &lt;chr&gt;, COMP24FL &lt;chr&gt;, DISCONFL &lt;chr&gt;, DSRAEFL &lt;chr&gt;, DTHFL &lt;chr&gt;,</span>
+<span class="co">#&gt; #   BMIBL &lt;dbl&gt;, BMIBLGR1 &lt;chr&gt;, HEIGHTBL &lt;dbl&gt;, WEIGHTBL &lt;dbl&gt;, EDUCLVL &lt;dbl&gt;,</span>
+<span class="co">#&gt; #   DISONSDT &lt;date&gt;, DURDIS &lt;dbl&gt;, DURDSGR1 &lt;chr&gt;, VISIT1DT &lt;date&gt;, ...</span>
 <span class="co"># Or across all the columns </span>
 <span class="fu"><a href="reference/check_ct_data.html">check_ct_data</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">metacore</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/metacore/man/pipe.html" class="external-link">%&gt;%</a></span>  <span class="co"># Checks control terminology for all columns </span>
 <span class="fu"><a href="reference/check_variables.html">check_variables</a></span><span class="op">(</span><span class="va">metacore</span><span class="op">)</span> <span class="co"># Check all variables in the metadata are in the dataset and there aren't any extra columns </span>
@@ -194,7 +213,7 @@
 <ul class="list-unstyled">
 <li><a href="https://pharmaverse.org" class="external-link"><img src="http://pharmaverse.org/shields/metatools.svg"></a></li>
 <li><a href="https://github.com/pharmaverse/metatools/actions" class="external-link"><img src="https://github.com/pharmaverse/metatools/workflows/R-CMD-check/badge.svg" alt="R-CMD-check"></a></li>
-<li><a href="https://codecov.io/gh/pharmaverse/metatools" class="external-link"><img src="https://codecov.io/gh/pharmaverse/metatools/branch/main/graph/badge.svg?token=55N5APFLPA" alt="codecov"></a></li>
+<li><a href="https://app.codecov.io/gh/pharmaverse/metatools" class="external-link"><img src="https://codecov.io/gh/pharmaverse/metatools/branch/main/graph/badge.svg?token=55N5APFLPA" alt="codecov"></a></li>
 <li><a href="https://github.com/pharmaverse/metatools/blob/main/LICENSE" class="external-link"><img src="https://img.shields.io/badge/License-MIT-blue.svg"></a></li>
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
 </ul>
