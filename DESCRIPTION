@@ -1,6 +1,6 @@
 Package: metatools
 Type: Package
-Title: Enable the Use of {metacore} to Help Create and Check Dataset
+Title: Enable the Use of 'metacore' to Help Create and Check Dataset
 Version: 0.1.1
 Authors@R: c(
          person(given = "Christina",
@@ -17,7 +17,7 @@ Authors@R: c(
          person("F. Hoffmann-La Roche AG", role = c("cph", "fnd")),
          person("Atorus Research LLC", role = c("cph", "fnd"))
              )
-Description: Uses the metadata information stored in metacore to check and build metadata associated columns, such as control terminology.
+Description: This package uses the metadata information stored in 'metacore' objects to check and build metadata associated columns.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
