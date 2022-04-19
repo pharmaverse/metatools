@@ -17,7 +17,7 @@ Authors@R: c(
          person("F. Hoffmann-La Roche AG", role = c("cph", "fnd")),
          person("Atorus Research LLC", role = c("cph", "fnd"))
              )
-Description: This package uses the metadata information stored in 'metacore' objects to check and build metadata associated columns.
+Description: Uses the metadata information stored in 'metacore' objects to check and build metadata associated columns.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
