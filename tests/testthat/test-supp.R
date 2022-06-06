@@ -4,6 +4,7 @@ library(tidyr)
 library(metacore)
 library(stringr)
 library(purrr)
+library(admiral.test)
 
 test_that("build_qnam", {
    full_ae <- sdtm_suppae %>%
@@ -189,4 +190,14 @@ test_that("combine_supp", {
    expect_equal(multi_out, TRUE)
 })
 
+test_that("combine_supp works with different IDVARVAL classes", {
+   expect_equal(
+      combine_supp(admiral_ae, admiral_suppae) %>%
+      pull(AESEQ),
+      admiral_ae %>% pull(AESEQ)
+   )
+})
 
+test_that("combine_supp works with without QEVAL", {
+   expect_silent(combine_supp(admiral_tr, admiral_supptr))
+})

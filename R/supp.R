@@ -124,7 +124,7 @@ make_supp_qual <- function(dataset, metacore, dataset_name = NULL){
 #' @export
 #'
 #' @importFrom purrr discard map reduce
-#' @importFrom dplyr if_else select group_by group_split pull rename left_join
+#' @importFrom dplyr if_else select group_by group_split pull rename left_join any_of
 #' @importFrom tidyr pivot_wider
 #' @importFrom rlang sym
 #'
@@ -137,8 +137,9 @@ combine_supp <- function(dataset, supp){
       stop("You must supply a domain and supplemental dataset", call. = FALSE)
    }
    supp_cols <- c("STUDYID", "RDOMAIN", "USUBJID", "IDVAR", "IDVARVAL",
-                  "QNAM", "QLABEL", "QVAL", "QORIG", "QEVAL")
-   ext_supp_col <- names(supp) %>%  discard(~. %in% supp_cols)
+                  "QNAM", "QLABEL", "QVAL", "QORIG")
+   maybe <- c("QEVAL")
+   ext_supp_col <- names(supp) %>%  discard(~. %in% c(supp_cols, maybe))
    mis_supp_col <- supp_cols %>%  discard(~. %in% names(supp))
    if(length(ext_supp_col) > 0 | length(mis_supp_col) > 0){
       mess <- "Supplemental datasets need to comply with CDISC standards\n"
@@ -156,8 +157,9 @@ combine_supp <- function(dataset, supp){
    # In order to prevent issues when there are multiple IDVARS we need to merge
    # each IDVAR into the domain seperately (otherwise there is problems when the
    # two IDVARS don't overlap)
+
    supp %>%
-      select(-.data$QLABEL, -.data$QORIG, -.data$QEVAL) %>% #Removing columns not for the main dataset
+      select(-any_of(c("QLABEL", "QORIG", "QEVAL"))) %>% #Removing columns not for the main dataset
       rename(DOMAIN = .data$RDOMAIN) %>%
       group_by(.data$IDVAR) %>% #For when there are multiple IDs
       group_split() %>%
@@ -166,13 +168,23 @@ combine_supp <- function(dataset, supp){
          id_var <- x %>%
             pull(.data$IDVAR) %>%
             unique()
+
          wide_x <- x %>%
             pivot_wider(
                names_from = .data$QNAM,
                values_from = .data$QVAL) %>%
             select(-.data$IDVAR)
+
+
          if(!is.na(id_var) && id_var  != ""){
+            # the type the new variable needs to be
+            type_convert <- dataset %>%
+               pull(all_of(id_var)) %>%
+               mode() %>%
+               paste0("as.", .) %>%
+               match.fun()
             wide_x <- wide_x %>%
+               mutate(IDVARVAL = type_convert(.data$IDVARVAL)) %>%
                rename(!!sym(id_var) := .data$IDVARVAL) #Given there is only one ID per df we can just rename
 
             by <- c("STUDYID", "DOMAIN", "USUBJID", id_var)
