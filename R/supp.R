@@ -124,7 +124,7 @@ make_supp_qual <- function(dataset, metacore, dataset_name = NULL){
 #' @export
 #'
 #' @importFrom purrr discard map reduce
-#' @importFrom dplyr if_else select group_by group_split pull rename left_join
+#' @importFrom dplyr if_else select group_by group_split pull rename left_join any_of
 #' @importFrom tidyr pivot_wider
 #' @importFrom rlang sym
 #'
@@ -184,7 +184,7 @@ combine_supp <- function(dataset, supp){
                paste0("as.", .) %>%
                match.fun()
             wide_x <- wide_x %>%
-               mutate(IDVARVAL = type_convert(IDVARVAL)) %>%
+               mutate(IDVARVAL = type_convert(.data$IDVARVAL)) %>%
                rename(!!sym(id_var) := .data$IDVARVAL) #Given there is only one ID per df we can just rename
 
             by <- c("STUDYID", "DOMAIN", "USUBJID", id_var)
