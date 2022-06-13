@@ -61,22 +61,31 @@ terminology as defined by the metacore specification</p>
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>data</dt>
 <dd><p>Data to check</p></dd>
+
+
 <dt>metacore</dt>
 <dd><p>A metacore object to get the codelist from. If the variable
 has different codelists for different datasets the metacore object will
 need to be subsetted using `select_dataset` from the metacore package.</p></dd>
+
+
 <dt>var</dt>
 <dd><p>Name of variable to check</p></dd>
+
+
 <dt>na_acceptable</dt>
 <dd><p>Logical value, set to `NULL` by default, so the
 acceptability of missing values is based on if the core for the variable is
 "Required" in the `metacore` object. If set to `TRUE` then will pass check
 if values are in the control terminology or are missing. If set to
 `FALSE`then NA will not be acceptable.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Given data if column only contains control terms. If not, will error
+    
+
+<p>Given data if column only contains control terms. If not, will error
   given the values which should not be in the column</p>
     </div>
 
@@ -141,7 +150,7 @@ if values are in the control terminology or are missing. If set to
 </div>
 
 <div class="pkgdown-footer-right">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
     </footer></div>

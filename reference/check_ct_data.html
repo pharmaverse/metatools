@@ -61,21 +61,28 @@ control terminology as defined by the metacore specification</p>
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>data</dt>
 <dd><p>Dataset to check</p></dd>
+
+
 <dt>metacore</dt>
 <dd><p>metacore object that contains the specifications for the
 dataset of interest. If any variable has different codelists for different
 datasets the metacore object will need to be subsetted using
 `select_dataset` from the metacore package.</p></dd>
+
+
 <dt>na_acceptable</dt>
 <dd><p>Logical value, set to `NULL` by default, so the
 acceptability of missing values is based on if the core for the variable is
 "Required" in the `metacore` object. If set to `TRUE` then will
 pass check if values are in the control terminology or are missing. If set
 to `FALSE`then NA will not be acceptable.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Given data if all columns pass. It will error otherwise</p>
+    
+
+<p>Given data if all columns pass. It will error otherwise</p>
     </div>
 
     <div class="section level2">
@@ -118,7 +125,7 @@ to `FALSE`then NA will not be acceptable.</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
     </footer></div>
