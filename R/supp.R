@@ -123,7 +123,7 @@ make_supp_qual <- function(dataset, metacore, dataset_name = NULL){
 #' @return a dataset with the supp variables added to it
 #' @export
 #'
-#' @importFrom purrr discard map reduce
+#' @importFrom purrr map reduce
 #' @importFrom dplyr if_else select group_by group_split pull rename left_join any_of
 #' @importFrom tidyr pivot_wider
 #' @importFrom rlang sym
@@ -139,8 +139,8 @@ combine_supp <- function(dataset, supp){
    supp_cols <- c("STUDYID", "RDOMAIN", "USUBJID", "IDVAR", "IDVARVAL",
                   "QNAM", "QLABEL", "QVAL", "QORIG")
    maybe <- c("QEVAL")
-   ext_supp_col <- names(supp) %>%  discard(~. %in% c(supp_cols, maybe))
-   mis_supp_col <- supp_cols %>%  discard(~. %in% names(supp))
+   ext_supp_col <- setdiff(names(supp), c(supp_cols, maybe))
+   mis_supp_col <- setdiff(supp_cols, names(supp))
    if(length(ext_supp_col) > 0 | length(mis_supp_col) > 0){
       mess <- "Supplemental datasets need to comply with CDISC standards\n"
       ext <- if_else(length(ext_supp_col) > 0,
@@ -151,55 +151,70 @@ combine_supp <- function(dataset, supp){
                      "")
       stop(paste0(mess, ext, mis))
    }
-   by <- names(dataset) %>%
-      discard(~ . %in% supp$QNAM) # Don't want any variables in our by statement
+   by <- setdiff(names(dataset), supp$QNAM) # Don't want any variables in our by statement
 
    # In order to prevent issues when there are multiple IDVARS we need to merge
    # each IDVAR into the domain seperately (otherwise there is problems when the
    # two IDVARS don't overlap)
 
-   supp %>%
-      select(-any_of(c("QLABEL", "QORIG", "QEVAL"))) %>% #Removing columns not for the main dataset
-      rename(DOMAIN = .data$RDOMAIN) %>%
-      group_by(.data$IDVAR) %>% #For when there are multiple IDs
-      group_split() %>%
-      map(function(x) {
-         # Get the IDVAR value to allow for renaming of IDVARVAL
-         id_var <- x %>%
-            pull(.data$IDVAR) %>%
-            unique()
-
-         wide_x <- x %>%
-            pivot_wider(
-               names_from = .data$QNAM,
-               values_from = .data$QVAL) %>%
-            select(-.data$IDVAR)
-
-
-         if(!is.na(id_var) && id_var  != ""){
-            # the type the new variable needs to be
-            type_convert <- dataset %>%
-               pull(all_of(id_var)) %>%
-               mode() %>%
-               paste0("as.", .) %>%
-               match.fun()
-            wide_x <- wide_x %>%
-               mutate(IDVARVAL = type_convert(.data$IDVARVAL)) %>%
-               rename(!!sym(id_var) := .data$IDVARVAL) #Given there is only one ID per df we can just rename
-
-            by <- c("STUDYID", "DOMAIN", "USUBJID", id_var)
-
-            out <- left_join(dataset, wide_x,
-                      by = by)
-         } else {
-            wide_x <- wide_x %>%
-               select(-.data$IDVARVAL)
-            out <- left_join(dataset, wide_x,
-                             by = c("STUDYID", "DOMAIN", "USUBJID"))
-         }
-         out
-      }) %>%
-      reduce(full_join, by= by)
-
+   supp_prep <-
+     supp %>%
+     select(-any_of(c("QLABEL", "QORIG", "QEVAL"))) %>% #Removing columns not for the main dataset
+     rename(DOMAIN = .data$RDOMAIN) %>%
+     group_by(.data$IDVAR) %>% #For when there are multiple IDs
+     group_split()
+   
+   supp_prep %>%
+     map(combine_supp_helper, dataset = dataset) %>%
+     reduce(full_join, by = by)
 }
 
+combine_supp_helper <- function(x, dataset) {
+  # Get the IDVAR value to allow for renaming of IDVARVAL
+  id_var <- unique(x$IDVAR)
+  stopifnot(length(id_var) == 1)
+  
+  wide_x <- x %>%
+    pivot_wider(
+      names_from = .data$QNAM,
+      values_from = .data$QVAL) %>%
+    select(-.data$IDVAR)
+  
+  if(!is.na(id_var) && id_var  != ""){
+    # the type the new variable needs to be
+    fun_convert_id_var <-
+      match.fun(paste0(
+        "as.",
+        mode(dataset[[id_var]])
+      ))
+    wide_x <- wide_x %>%
+      mutate(IDVARVAL = fun_convert_id_var(.data$IDVARVAL)) %>%
+      rename_with(.fn=recode, IDVARVAL=id_var) #Given there is only one IDVAR per df we can just rename
+    
+    #Verify that every row in the SUPP data is merged into the final data
+    col_rowid <- paste0(max(c(names(dataset), names(wide_x))), "X")
+    wide_x[[col_rowid]] <- 1:nrow(wide_x)
+    
+    by <- c("STUDYID", "DOMAIN", "USUBJID", id_var)
+    
+    out <- left_join(dataset, wide_x, by = by)
+    missing_rows <- !(wide_x[[col_rowid]] %in% out[[col_rowid]])
+    if (sum(missing_rows) != 0) {
+      stop(
+        sprintf(
+          "%g rows with IDVAR %s did not merge from the supp data to the main data",
+          sum(missing_rows), id_var
+        ),
+        call. = FALSE
+      )
+    }
+    # The row counter is no longer needed
+    out[[col_rowid]] <- NULL
+  } else {
+    wide_x <- wide_x %>%
+      select(-.data$IDVARVAL)
+    out <- left_join(dataset, wide_x,
+                     by = c("STUDYID", "DOMAIN", "USUBJID"))
+  }
+  out
+} 

@@ -201,3 +201,13 @@ test_that("combine_supp works with different IDVARVAL classes", {
 test_that("combine_supp works with without QEVAL", {
    expect_silent(combine_supp(admiral_tr, admiral_supptr))
 })
+
+test_that("supp data that does not match the main data will raise an error", {
+  sdtm_suppae_extra <- sdtm_suppae
+  sdtm_suppae_extra$IDVARVAL[1] <- 99
+  expect_error(
+    combine_supp(sdtm_ae, sdtm_suppae_extra),
+    regexp="1 rows with IDVAR AESEQ did not merge from the supp data to the main data",
+    fixed=TRUE
+  )
+})
