@@ -26,7 +26,7 @@ You can install the released version of metatools from
 install.packages("metatools")
 ```
 
-And the development version from
+And the current development version from
 [GitHub](https://github.com/pharmaverse/metatools) with:
 
 ``` r

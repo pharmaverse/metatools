@@ -33,7 +33,7 @@ You can install the released version of metatools from [GitHub](https://github.c
 install.packages("metatools")
 ```
 
-And the development version from [GitHub](https://github.com/pharmaverse/metatools) with:
+And the current development version from [GitHub](https://github.com/pharmaverse/metatools) with:
 
 ``` r
 # install.packages("devtools")
