@@ -181,21 +181,20 @@ combine_supp_helper <- function(x, dataset) {
     select(-.data$IDVAR)
   
   if(!is.na(id_var) && id_var  != ""){
-    # the type the new variable needs to be
-    fun_convert_id_var <-
-      match.fun(paste0(
-        "as.",
-        mode(dataset[[id_var]])
-      ))
-    wide_x <- wide_x %>%
-      mutate(IDVARVAL = fun_convert_id_var(.data$IDVARVAL)) %>%
-      dplyr::rename_with(.fn=dplyr::recode, IDVARVAL=id_var) #Given there is only one IDVAR per df we can just rename
+    #Convert the main dataset IDVARVAL column to character to prevent floating
+    #point issues (see Issue #33)
+    dataset$IDVARVAL <- as.character(dataset[[id_var]])
+
+    #By the SDTM standard (version 2.0), the supp IDVARVAL column should be
+    #character.  Users may not input it that way, so convert it, just to be
+    #sure.
+    wide_x$IDVARVAL <- as.character(wide_x$IDVARVAL)
     
     #Verify that every row in the SUPP data is merged into the final data
     col_rowid <- paste0(max(c(names(dataset), names(wide_x))), "X")
     wide_x[[col_rowid]] <- 1:nrow(wide_x)
     
-    by <- c("STUDYID", "DOMAIN", "USUBJID", id_var)
+    by <- c("STUDYID", "DOMAIN", "USUBJID", "IDVARVAL")
     
     out <- left_join(dataset, wide_x, by = by)
     missing_rows <- !(wide_x[[col_rowid]] %in% out[[col_rowid]])
@@ -210,6 +209,8 @@ combine_supp_helper <- function(x, dataset) {
     }
     # The row counter is no longer needed
     out[[col_rowid]] <- NULL
+    # The IDVARVAL column is no longer needed
+    out$IDVARVAL <- NULL
   } else {
     wide_x <- wide_x %>%
       select(-.data$IDVARVAL)
