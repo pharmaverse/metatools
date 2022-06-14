@@ -189,7 +189,7 @@ combine_supp_helper <- function(x, dataset) {
       ))
     wide_x <- wide_x %>%
       mutate(IDVARVAL = fun_convert_id_var(.data$IDVARVAL)) %>%
-      rename_with(.fn=recode, IDVARVAL=id_var) #Given there is only one IDVAR per df we can just rename
+      dplyr::rename_with(.fn=dplyr::recode, IDVARVAL=id_var) #Given there is only one IDVAR per df we can just rename
     
     #Verify that every row in the SUPP data is merged into the final data
     col_rowid <- paste0(max(c(names(dataset), names(wide_x))), "X")
