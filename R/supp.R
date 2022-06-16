@@ -119,12 +119,16 @@ make_supp_qual <- function(dataset, metacore, dataset_name = NULL){
 #'
 #' @param dataset Domain dataset
 #' @param supp Supplemental Qualifier dataset
+#' @param floating_pt_correction By default this is `FALSE`, but can be set to
+#'   `TRUE` if the IDVAR is a double and `supp_combine` is not merging correctly
+#'   due to floating point.
 #'
 #' @return a dataset with the supp variables added to it
 #' @export
 #'
 #' @importFrom purrr discard map reduce
-#' @importFrom dplyr if_else select group_by group_split pull rename left_join any_of
+#' @importFrom dplyr if_else select group_by group_split pull rename left_join
+#'   any_of
 #' @importFrom tidyr pivot_wider
 #' @importFrom rlang sym
 #'
@@ -132,7 +136,7 @@ make_supp_qual <- function(dataset, metacore, dataset_name = NULL){
 #' library(safetyData)
 #' library(tibble)
 #' combine_supp(sdtm_ae, sdtm_suppae)  %>% as_tibble()
-combine_supp <- function(dataset, supp){
+combine_supp <- function(dataset, supp, floating_pt_correction = FALSE){
    if(!is.data.frame(dataset) | !is.data.frame(supp)){
       stop("You must supply a domain and supplemental dataset", call. = FALSE)
    }
@@ -163,43 +167,84 @@ combine_supp <- function(dataset, supp){
       rename(DOMAIN = .data$RDOMAIN) %>%
       group_by(.data$IDVAR) %>% #For when there are multiple IDs
       group_split() %>%
-      map(function(x) {
-         # Get the IDVAR value to allow for renaming of IDVARVAL
-         id_var <- x %>%
-            pull(.data$IDVAR) %>%
-            unique()
-
-         wide_x <- x %>%
-            pivot_wider(
-               names_from = .data$QNAM,
-               values_from = .data$QVAL) %>%
-            select(-.data$IDVAR)
-
-
-         if(!is.na(id_var) && id_var  != ""){
-            # the type the new variable needs to be
-            type_convert <- dataset %>%
-               pull(all_of(id_var)) %>%
-               mode() %>%
-               paste0("as.", .) %>%
-               match.fun()
-            wide_x <- wide_x %>%
-               mutate(IDVARVAL = type_convert(.data$IDVARVAL)) %>%
-               rename(!!sym(id_var) := .data$IDVARVAL) #Given there is only one ID per df we can just rename
-
-            by <- c("STUDYID", "DOMAIN", "USUBJID", id_var)
-
-            out <- left_join(dataset, wide_x,
-                      by = by)
-         } else {
-            wide_x <- wide_x %>%
-               select(-.data$IDVARVAL)
-            out <- left_join(dataset, wide_x,
-                             by = c("STUDYID", "DOMAIN", "USUBJID"))
-         }
-         out
-      }) %>%
+      map(~combine_supp_by_idvar(dataset, ., floating_pt_correction)) %>%
       reduce(full_join, by= by)
+}
+
+
+#' Handles the combining of datasets and supps for a single IDVAR
+#'
+#' @param dataset Domain dataset
+#' @param supp Supplemental Qualifier dataset with a single IDVAR
+#' @param floating_pt_correction By default this is `FALSE`, but can be set to
+#'   `TRUE` if the IDVAR is a double and `supp_combine` is not merging correctly
+#'   due to floating point.
+#'
+#' @return list of datasets
+#' @noRd
+#' @importFrom dplyr anti_join
+#' @importFrom utils capture.output
+combine_supp_by_idvar <- function(dataset, supp, floating_pt_correction){
+   # Get the IDVAR value to allow for renaming of IDVARVAL
+   id_var <- supp %>%
+      pull(.data$IDVAR) %>%
+      unique()
+
+   wide_x <- supp %>%
+      pivot_wider(
+         names_from = .data$QNAM,
+         values_from = .data$QVAL) %>%
+      select(-.data$IDVAR)
+
+
+   if(!is.na(id_var) && id_var  != ""){
+      id_var_sym <- sym(id_var)
+      # the type the new variable needs to be
+      type_convert <- dataset %>%
+         pull(all_of(id_var)) %>%
+         mode() %>%
+         paste0("as.", .) %>%
+         match.fun()
+
+      by <- c("STUDYID", "DOMAIN", "USUBJID", id_var)
+      if(floating_pt_correction){
+         wide_x <- wide_x %>%
+            mutate(IDVARVAL = as.character(.data$IDVARVAL)) %>%
+            rename(!!id_var_sym := .data$IDVARVAL) #Given there is only one ID per df we can just rename
+         dataset_chr <- dataset %>%
+            mutate(!!id_var_sym := as.character(!!id_var_sym))
+
+         out <- left_join(dataset_chr, wide_x,
+                          by = by) %>%
+            mutate(!!id_var_sym := type_convert(!!id_var_sym))
+         missing<- anti_join(dataset_chr, wide_x, by = by)
+      } else {
+         wide_x <- wide_x %>%
+            mutate(IDVARVAL = type_convert(.data$IDVARVAL)) %>%
+            rename(!!id_var_sym := .data$IDVARVAL) #Given there is only one ID per df we can just rename
+
+         out <- left_join(dataset, wide_x,
+                          by = by)
+         missing<- anti_join(dataset, wide_x, by = by)
+      }
+
+      # Add message for when there are rows in the supp that didn't get merged
+      if(nrow(missing) > 0){
+         missing_txt <- capture.output(missing %>%
+            select(.data$USUBJID, !!sym(id_var)) %>%
+            print()) %>%
+            paste0(collapse = "\n")
+         warning(paste0("Not all rows of the Supp were merged. The following rows are missing:\n",
+                        missing_txt))
+      }
+
+   } else {
+      wide_x <- wide_x %>%
+         select(-.data$IDVARVAL)
+      out <- left_join(dataset, wide_x,
+                       by = c("STUDYID", "DOMAIN", "USUBJID"))
+   }
+   out
 
 }
 

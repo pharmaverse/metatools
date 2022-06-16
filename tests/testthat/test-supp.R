@@ -201,3 +201,31 @@ test_that("combine_supp works with different IDVARVAL classes", {
 test_that("combine_supp works with without QEVAL", {
    expect_silent(combine_supp(admiral_tr, admiral_supptr))
 })
+
+test_that("supp data that does not match the main data will raise a warning", {
+   sdtm_suppae_extra <- sdtm_suppae
+   sdtm_suppae_extra$IDVARVAL[1] <- 99
+   expect_warning(
+      combine_supp(sdtm_ae, sdtm_suppae_extra)
+   )
+})
+
+test_that("Floating point correction works", {
+   fp1 = 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1
+   sdtm_ae_fp <- sdtm_ae %>%
+      mutate(AESEQ = case_when(AESEQ == 1 ~ fp1,
+                               TRUE ~ as.double(AESEQ)))
+   # Make sure a FP error is induced
+   expect_warning(combine_supp(sdtm_ae_fp, sdtm_suppae))
+   # correction
+   combo_ae <-combine_supp(sdtm_ae_fp, sdtm_suppae, TRUE) %>%
+      select(USUBJID, AESEQ, AETRTEM) %>%
+      distinct() %>%
+      arrange(USUBJID, AESEQ)
+   supp_check <- sdtm_suppae %>%
+      select(USUBJID, AESEQ = IDVARVAL, AETRTEM = QVAL) %>%
+      arrange(USUBJID, AESEQ)
+   expect_equal(combo_ae, supp_check)
+   })
+
+
