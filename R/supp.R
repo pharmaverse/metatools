@@ -217,7 +217,7 @@ combine_supp_by_idvar <- function(dataset, supp, floating_pt_correction){
          out <- left_join(dataset_chr, wide_x,
                           by = by) %>%
             mutate(!!id_var_sym := type_convert(!!id_var_sym))
-         missing<- anti_join(dataset_chr, wide_x, by = by)
+         missing<- anti_join(wide_x,dataset_chr, by = by)
       } else {
          wide_x <- wide_x %>%
             mutate(IDVARVAL = type_convert(.data$IDVARVAL)) %>%
@@ -225,7 +225,7 @@ combine_supp_by_idvar <- function(dataset, supp, floating_pt_correction){
 
          out <- left_join(dataset, wide_x,
                           by = by)
-         missing<- anti_join(dataset, wide_x, by = by)
+         missing<- anti_join(wide_x, dataset, by = by)
       }
 
       # Add message for when there are rows in the supp that didn't get merged
@@ -235,7 +235,8 @@ combine_supp_by_idvar <- function(dataset, supp, floating_pt_correction){
             print()) %>%
             paste0(collapse = "\n")
          stop(paste0("Not all rows of the Supp were merged. The following rows are missing:\n",
-                        missing_txt))
+                        missing_txt),
+              call. = FALSE)
       }
 
    } else {

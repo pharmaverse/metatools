@@ -216,7 +216,7 @@ test_that("Floating point correction works", {
       mutate(AESEQ = case_when(AESEQ == 1 ~ fp1,
                                TRUE ~ as.double(AESEQ)))
    # Make sure a FP error is induced
-   expect_warning(combine_supp(sdtm_ae_fp, sdtm_suppae))
+   expect_error(combine_supp(sdtm_ae_fp, sdtm_suppae))
    # correction
    combo_ae <-combine_supp(sdtm_ae_fp, sdtm_suppae, TRUE) %>%
       select(USUBJID, AESEQ, AETRTEM) %>%
