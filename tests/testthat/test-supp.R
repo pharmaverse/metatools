@@ -205,7 +205,7 @@ test_that("combine_supp works with without QEVAL", {
 test_that("supp data that does not match the main data will raise a warning", {
    sdtm_suppae_extra <- sdtm_suppae
    sdtm_suppae_extra$IDVARVAL[1] <- 99
-   expect_warning(
+   expect_error(
       combine_supp(sdtm_ae, sdtm_suppae_extra)
    )
 })

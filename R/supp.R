@@ -234,7 +234,7 @@ combine_supp_by_idvar <- function(dataset, supp, floating_pt_correction){
             select(.data$USUBJID, !!sym(id_var)) %>%
             print()) %>%
             paste0(collapse = "\n")
-         warning(paste0("Not all rows of the Supp were merged. The following rows are missing:\n",
+         stop(paste0("Not all rows of the Supp were merged. The following rows are missing:\n",
                         missing_txt))
       }
 
