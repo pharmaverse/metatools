@@ -206,19 +206,20 @@ combine_supp_by_idvar <- function(dataset, supp, floating_pt_correction){
          paste0("as.", .) %>%
          match.fun()
 
-      by <- c("STUDYID", "DOMAIN", "USUBJID", id_var)
+
       if(floating_pt_correction){
+         by <- c("STUDYID", "DOMAIN", "USUBJID", "IDVARVAL")
          wide_x <- wide_x %>%
-            mutate(IDVARVAL = as.character(.data$IDVARVAL)) %>%
-            rename(!!id_var_sym := .data$IDVARVAL) #Given there is only one ID per df we can just rename
+            mutate(IDVARVAL = as.character(.data$IDVARVAL))
          dataset_chr <- dataset %>%
-            mutate(!!id_var_sym := as.character(!!id_var_sym))
+            mutate(IDVARVAL = as.character(!!id_var_sym))
 
          out <- left_join(dataset_chr, wide_x,
                           by = by) %>%
-            mutate(!!id_var_sym := type_convert(!!id_var_sym))
+            select(-IDVARVAL)
          missing<- anti_join(wide_x,dataset_chr, by = by)
       } else {
+         by <- c("STUDYID", "DOMAIN", "USUBJID", id_var)
          wide_x <- wide_x %>%
             mutate(IDVARVAL = type_convert(.data$IDVARVAL)) %>%
             rename(!!id_var_sym := .data$IDVARVAL) #Given there is only one ID per df we can just rename
