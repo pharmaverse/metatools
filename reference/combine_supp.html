@@ -51,7 +51,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">combine_supp</span><span class="op">(</span><span class="va">dataset</span>, <span class="va">supp</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">combine_supp</span><span class="op">(</span><span class="va">dataset</span>, <span class="va">supp</span>, floating_pt_correction <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -62,6 +62,12 @@
 
 <dt>supp</dt>
 <dd><p>Supplemental Qualifier dataset</p></dd>
+
+
+<dt>floating_pt_correction</dt>
+<dd><p>By default this is `FALSE`, but can be set to
+`TRUE` if the IDVAR is a double and `supp_combine` is not merging correctly
+due to floating point.</p></dd>
 
 </dl></div>
     <div class="section level2">
