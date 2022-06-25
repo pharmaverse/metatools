@@ -4,16 +4,12 @@
 \alias{combine_supp}
 \title{Combine the Domain and Supplemental Qualifier}
 \usage{
-combine_supp(dataset, supp, floating_pt_correction = FALSE)
+combine_supp(dataset, supp)
 }
 \arguments{
 \item{dataset}{Domain dataset}
 
 \item{supp}{Supplemental Qualifier dataset}
-
-\item{floating_pt_correction}{By default this is `FALSE`, but can be set to
-`TRUE` if the IDVAR is a double and `supp_combine` is not merging correctly
-due to floating point.}
 }
 \value{
 a dataset with the supp variables added to it
