@@ -1,8 +1,7 @@
-library(haven)
 
-load(metacore_example("pilot_ADaM.rda"))
+load(metacore::metacore_example("pilot_ADaM.rda"))
 spec <- metacore %>% select_dataset("ADSL")
-data <- read_xpt(metatools_example("adsl.xpt"))
+data <- haven::read_xpt(metatools_example("adsl.xpt"))
 test_that("sort_order", {
   data %>%
     select(AGE, SITEID, everything()) %>%
