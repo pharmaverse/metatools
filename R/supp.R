@@ -119,9 +119,6 @@ make_supp_qual <- function(dataset, metacore, dataset_name = NULL){
 #'
 #' @param dataset Domain dataset
 #' @param supp Supplemental Qualifier dataset
-#' @param floating_pt_correction By default this is `FALSE`, but can be set to
-#'   `TRUE` if the IDVAR is a double and `supp_combine` is not merging correctly
-#'   due to floating point.
 #'
 #' @return a dataset with the supp variables added to it
 #' @export
@@ -136,7 +133,7 @@ make_supp_qual <- function(dataset, metacore, dataset_name = NULL){
 #' library(safetyData)
 #' library(tibble)
 #' combine_supp(sdtm_ae, sdtm_suppae)  %>% as_tibble()
-combine_supp <- function(dataset, supp, floating_pt_correction = FALSE){
+combine_supp <- function(dataset, supp){
    if(!is.data.frame(dataset) | !is.data.frame(supp)){
       stop("You must supply a domain and supplemental dataset", call. = FALSE)
    }
@@ -167,7 +164,7 @@ combine_supp <- function(dataset, supp, floating_pt_correction = FALSE){
       rename(DOMAIN = .data$RDOMAIN) %>%
       group_by(.data$IDVAR) %>% #For when there are multiple IDs
       group_split() %>%
-      map(~combine_supp_by_idvar(dataset, ., floating_pt_correction)) %>%
+      map(~combine_supp_by_idvar(dataset, .)) %>%
       reduce(full_join, by= by)
 }
 
@@ -176,15 +173,12 @@ combine_supp <- function(dataset, supp, floating_pt_correction = FALSE){
 #'
 #' @param dataset Domain dataset
 #' @param supp Supplemental Qualifier dataset with a single IDVAR
-#' @param floating_pt_correction By default this is `FALSE`, but can be set to
-#'   `TRUE` if the IDVAR is a double and `supp_combine` is not merging correctly
-#'   due to floating point.
 #'
 #' @return list of datasets
 #' @noRd
 #' @importFrom dplyr anti_join
 #' @importFrom utils capture.output
-combine_supp_by_idvar <- function(dataset, supp, floating_pt_correction){
+combine_supp_by_idvar <- function(dataset, supp){
    # Get the IDVAR value to allow for renaming of IDVARVAL
    id_var <- supp %>%
       pull(.data$IDVAR) %>%
@@ -199,44 +193,27 @@ combine_supp_by_idvar <- function(dataset, supp, floating_pt_correction){
 
    if(!is.na(id_var) && id_var  != ""){
       id_var_sym <- sym(id_var)
-      # the type the new variable needs to be
-      type_convert <- dataset %>%
-         pull(all_of(id_var)) %>%
-         mode() %>%
-         paste0("as.", .) %>%
-         match.fun()
 
+      by <- c("STUDYID", "DOMAIN", "USUBJID", "IDVARVAL")
+      wide_x <- wide_x %>%
+         mutate(IDVARVAL = as.character(.data$IDVARVAL))
+      #  Make a dummy IDVARVAL variable to merge on, won't effect the dataset
+      dataset_chr <- dataset %>%
+         mutate(IDVARVAL = as.character(!!id_var_sym))
 
-      if(floating_pt_correction){
-         by <- c("STUDYID", "DOMAIN", "USUBJID", "IDVARVAL")
-         wide_x <- wide_x %>%
-            mutate(IDVARVAL = as.character(.data$IDVARVAL))
-         dataset_chr <- dataset %>%
-            mutate(IDVARVAL = as.character(!!id_var_sym))
-
-         out <- left_join(dataset_chr, wide_x,
-                          by = by) %>%
-            select(-IDVARVAL)
-         missing<- anti_join(wide_x,dataset_chr, by = by)
-      } else {
-         by <- c("STUDYID", "DOMAIN", "USUBJID", id_var)
-         wide_x <- wide_x %>%
-            mutate(IDVARVAL = type_convert(.data$IDVARVAL)) %>%
-            rename(!!id_var_sym := .data$IDVARVAL) #Given there is only one ID per df we can just rename
-
-         out <- left_join(dataset, wide_x,
-                          by = by)
-         missing<- anti_join(wide_x, dataset, by = by)
-      }
+      out <- left_join(dataset_chr, wide_x,
+                       by = by) %>%
+         select(-IDVARVAL)
+      missing<- anti_join(wide_x,dataset_chr, by = by)
 
       # Add message for when there are rows in the supp that didn't get merged
       if(nrow(missing) > 0){
          missing_txt <- capture.output(missing %>%
-            select(.data$USUBJID, !!sym(id_var)) %>%
-            print()) %>%
+                                          select(.data$USUBJID, !!sym(id_var)) %>%
+                                          print()) %>%
             paste0(collapse = "\n")
          stop(paste0("Not all rows of the Supp were merged. The following rows are missing:\n",
-                        missing_txt),
+                     missing_txt),
               call. = FALSE)
       }
 
@@ -247,6 +224,5 @@ combine_supp_by_idvar <- function(dataset, supp, floating_pt_correction){
                        by = c("STUDYID", "DOMAIN", "USUBJID"))
    }
    out
-
 }
 
