@@ -1,10 +1,8 @@
-library(haven)
-library(dplyr)
-library(stringr)
-load(metacore_example("pilot_ADaM.rda"))
+
+load(metacore::metacore_example("pilot_ADaM.rda"))
 spec <- metacore %>% select_dataset("ADSL")
 test_that("drop_unspec_vars", {
-  data <- read_xpt(metatools_example("adsl.xpt")) %>%
+  data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
     mutate(foo = "Hello", foo2 = "world")
 
   man_vars <- metacore$ds_vars %>%
@@ -18,7 +16,7 @@ test_that("drop_unspec_vars", {
 
 
 test_that("build_from_derived", {
-  ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
+  ds_list <- list(DM = haven::read_xpt(metatools_example("dm.xpt")))
 
   expect_error(build_from_derived(spec, ds_list, keep = FALSE))
   # Vars that should be brought through
@@ -57,9 +55,9 @@ test_that("build_from_derived", {
 
 
 test_that("add_variables", {
-   load(metacore_example("pilot_ADaM.rda"))
+   load(metacore::metacore_example("pilot_ADaM.rda"))
    spec <- metacore %>% select_dataset("ADSL")
-   data <- read_xpt(metatools_example("adsl.xpt"))
+   data <- haven::read_xpt(metatools_example("adsl.xpt"))
    data_mis <- data %>%
       select(-TRTSDT, -TRT01P, -TRT01PN)
    #Check data when there is missing
