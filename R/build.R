@@ -21,8 +21,10 @@
 #' @export
 #' @importFrom stringr str_to_lower str_detect str_extract str_to_upper
 #' @importFrom dplyr filter pull mutate group_by group_split inner_join select
-#'   full_join
+#'   full_join bind_rows
+#' @importFrom tidyr unnest
 #' @importFrom purrr map reduce
+#' @importFrom tibble tibble
 #'
 #' @examples
 #' library(metacore)
@@ -47,6 +49,7 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
          stop("No presecessor variables found please check your metacore object")
       }
    }
+
    vars_to_pull_through <- derirvations %>%
       filter(str_detect(.data$derivation, "^\\w*\\.[a-zA-Z0-9]*$"))
    # To lower so it is flexible about how people name their ds list
@@ -64,13 +67,29 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
          paste0(str_to_upper(ds_names), collapse = "\n")
       ))
    }
-   join_by <- metacore$ds_vars %>%
+
+   ds_keys <- metacore$ds_vars %>%
       filter(!is.na(.data$key_seq)) %>%
       pull(.data$variable)
-   vars_w_ds %>%
+
+   joining_vals_to_add <- ds_list %>%
+      map(function(x){
+         names(x) %>%
+            keep(~ . %in% ds_keys)
+         })
+
+   join_by = joining_vals_to_add %>%
+      reduce(intersect)
+   additional_vals <- tibble(ds = names(ds_list),
+          variable = joining_vals_to_add) %>%
+      unnest(variable) %>%
+      mutate(col_name = .data$variable)
+
+   foo <- vars_w_ds %>%
       mutate(col_name = str_extract(.data$derivation, "(?<=\\.).*")) %>%
       inner_join(metacore$value_spec, ., by = "derivation_id") %>%
       select(.data$variable, .data$ds, .data$col_name) %>%
+      bind_rows(additional_vals) %>%
       group_by(.data$ds) %>%
       group_split() %>%
       map(get_variables, ds_list, keep) %>%

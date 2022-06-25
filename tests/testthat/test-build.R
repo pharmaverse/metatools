@@ -50,6 +50,36 @@ test_that("build_from_derived", {
     names() %>%
     sort() %>%
     expect_equal(man_vars)
+
+  # Pulling through from more than one dataset
+  spec2 <- metacore %>% select_dataset("ADAE")
+  adae_auto <- build_from_derived(spec2,
+     ds_list = list("AE" = safetyData::sdtm_ae,
+                 "ADSL" = safetyData::adam_adsl),
+     predecessor_only = FALSE,
+     keep = FALSE
+  )
+  ae_part_vars <- spec2$derivations %>%
+     filter(str_detect(derivation,"AE\\.[[:alnum:]]*$")) %>%
+     pull(derivation) %>%
+     str_remove("^AE\\.") %>%
+     c("STUDYID", "USUBJID", .)
+
+  ae_part <- select(safetyData::sdtm_ae, all_of(ae_part_vars))
+
+  adsl_part_vars <- spec2$derivations %>%
+     filter(str_detect(derivation,"ADSL\\.[[:alnum:]]*$")) %>%
+     pull(derivation) %>%
+     str_remove("^ADSL\\.") %>%
+     c("STUDYID", "USUBJID", .)
+  adsl_part <-
+     select(safetyData::adam_adsl, all_of(adsl_part_vars))
+
+  adae_man <- full_join(adsl_part, ae_part, by = c("STUDYID", "USUBJID")) %>%
+     rename(TRTA = TRT01A, TRTAN = TRT01AN) %>%
+     select(all_of(names(adae_auto)), everything())
+  expect_equal(adae_auto,adae_man )
+
 })
 
 
