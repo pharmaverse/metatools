@@ -203,7 +203,7 @@ combine_supp_by_idvar <- function(dataset, supp){
 
       out <- left_join(dataset_chr, wide_x,
                        by = by) %>%
-         select(-IDVARVAL)
+         select(-.data$IDVARVAL)
       missing<- anti_join(wide_x,dataset_chr, by = by)
 
       # Add message for when there are rows in the supp that didn't get merged

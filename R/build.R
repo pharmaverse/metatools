@@ -82,10 +82,10 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
       reduce(intersect)
    additional_vals <- tibble(ds = names(ds_list),
           variable = joining_vals_to_add) %>%
-      unnest(variable) %>%
+      unnest(.data$variable) %>%
       mutate(col_name = .data$variable)
 
-   foo <- vars_w_ds %>%
+   vars_w_ds %>%
       mutate(col_name = str_extract(.data$derivation, "(?<=\\.).*")) %>%
       inner_join(metacore$value_spec, ., by = "derivation_id") %>%
       select(.data$variable, .data$ds, .data$col_name) %>%
