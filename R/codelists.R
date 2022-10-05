@@ -177,7 +177,7 @@ create_cat_var <- function(data, metacore, ref_var, grp_var,
     stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
   }
   grp_defs <- ct %>%
-    pull(.data$code)
+    pull(code)
 
   out <- data %>%
     mutate({{ grp_var }} := create_subgrps({{ ref_var }}, grp_defs))

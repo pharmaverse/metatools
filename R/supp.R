@@ -29,9 +29,9 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
    }
 
    dup_sup <- dataset %>%
-      select(.data$STUDYID, RDOMAIN = .data$DOMAIN, .data$USUBJID, !!idvarval, !!qval) %>%
+      select(STUDYID, RDOMAIN = DOMAIN, USUBJID, !!idvarval, !!qval) %>%
       rename(IDVARVAL = !!idvarval, QVAL = !!qval) %>%
-      filter(!is.na(.data$QVAL)) %>%
+      filter(!is.na(QVAL)) %>%
       mutate(
          IDVAR = idvar,
          QNAM = qnam,
@@ -41,11 +41,11 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
       )
 
    out <- dup_sup %>%
-      distinct(.data$STUDYID, .data$RDOMAIN,
-               .data$USUBJID, .data$IDVARVAL, .data$QNAM, .keep_all = TRUE) %>%
-      select(.data$STUDYID, .data$RDOMAIN, .data$USUBJID, .data$IDVAR,
-             .data$IDVARVAL, .data$QNAM, .data$QLABEL, .data$QVAL,
-             .data$QORIG, .data$QEVAL)
+      distinct(STUDYID, RDOMAIN,
+               USUBJID, IDVARVAL, QNAM, .keep_all = TRUE) %>%
+      select(STUDYID, RDOMAIN, USUBJID, IDVAR,
+             IDVARVAL, QNAM, QLABEL, QVAL,
+             QORIG, QEVAL)
 
    test_out <- dup_sup %>%
       distinct()
@@ -55,11 +55,11 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
    }
 
    blank_test <- out %>%
-      pull(.data$QVAL)
+      pull(QVAL)
    if(any(blank_test == "")){
       message(paste0("Empty QVAL rows removed for QNAM = ", unique(out$QNAM)))
       out <- out %>%
-         filter(.data$QVAL != "")
+         filter(QVAL != "")
    }
    out
 }
@@ -95,24 +95,24 @@ make_supp_qual <- function(dataset, metacore, dataset_name = NULL){
    metacore <- make_lone_dataset(metacore, dataset_name)
 
    supp_vars <- metacore$ds_vars %>%
-      filter(.data$supp_flag)
+      filter(supp_flag)
    if(nrow(supp_vars) == 0){
       stop("No supplemental variables specified in metacore object. Please check your specifications",
            call. = FALSE)
    }
 
    supp_meta <- supp_vars %>%
-      select(.data$dataset, .data$variable) %>%
+      select(dataset, variable) %>%
       left_join(metacore$var_spec, by = "variable") %>%
       left_join(metacore$value_spec, by = c("dataset", "variable")) %>%
       left_join(metacore$supp,  by = c("dataset", "variable")) %>%
-      select(qnam = .data$variable, qlabel = .data$label,
-             qorig = .data$origin, qeval = .data$qeval,
-             idvar = .data$idvar)  %>%
+      select(qnam = variable, qlabel = label,
+             qorig = origin, qeval = qeval,
+             idvar = idvar)  %>%
       distinct() #Protection against bad specs
    #TODO Addin in checks/coerision for when combining cols of different types
    pmap_dfr(supp_meta, build_qnam, dataset=dataset) %>%
-      arrange(.data$USUBJID, .data$QNAM, .data$IDVARVAL)
+      arrange(USUBJID, QNAM, IDVARVAL)
 }
 
 #' Combine the Domain and Supplemental Qualifier
@@ -161,8 +161,8 @@ combine_supp <- function(dataset, supp){
 
    supp %>%
       select(-any_of(c("QLABEL", "QORIG", "QEVAL"))) %>% #Removing columns not for the main dataset
-      rename(DOMAIN = .data$RDOMAIN) %>%
-      group_by(.data$IDVAR) %>% #For when there are multiple IDs
+      rename(DOMAIN = RDOMAIN) %>%
+      group_by(IDVAR) %>% #For when there are multiple IDs
       group_split() %>%
       map(~combine_supp_by_idvar(dataset, .)) %>%
       reduce(full_join, by= by)
@@ -181,14 +181,14 @@ combine_supp <- function(dataset, supp){
 combine_supp_by_idvar <- function(dataset, supp){
    # Get the IDVAR value to allow for renaming of IDVARVAL
    id_var <- supp %>%
-      pull(.data$IDVAR) %>%
+      pull(IDVAR) %>%
       unique()
 
    wide_x <- supp %>%
       pivot_wider(
-         names_from = .data$QNAM,
-         values_from = .data$QVAL) %>%
-      select(-.data$IDVAR)
+         names_from = QNAM,
+         values_from = QVAL) %>%
+      select(-IDVAR)
 
 
    if(!is.na(id_var) && id_var  != ""){
@@ -196,20 +196,20 @@ combine_supp_by_idvar <- function(dataset, supp){
 
       by <- c("STUDYID", "DOMAIN", "USUBJID", "IDVARVAL")
       wide_x <- wide_x %>%
-         mutate(IDVARVAL = as.character(.data$IDVARVAL))
+         mutate(IDVARVAL = as.character(IDVARVAL))
       #  Make a dummy IDVARVAL variable to merge on, won't effect the dataset
       dataset_chr <- dataset %>%
          mutate(IDVARVAL = as.character(!!id_var_sym))
 
       out <- left_join(dataset_chr, wide_x,
                        by = by) %>%
-         select(-.data$IDVARVAL)
+         select(-IDVARVAL)
       missing<- anti_join(wide_x,dataset_chr, by = by)
 
       # Add message for when there are rows in the supp that didn't get merged
       if(nrow(missing) > 0){
          missing_txt <- capture.output(missing %>%
-                                          select(.data$USUBJID, !!sym(id_var)) %>%
+                                          select(USUBJID, !!sym(id_var)) %>%
                                           print()) %>%
             paste0(collapse = "\n")
          stop(paste0("Not all rows of the Supp were merged. The following rows are missing:\n",
@@ -219,7 +219,7 @@ combine_supp_by_idvar <- function(dataset, supp){
 
    } else {
       wide_x <- wide_x %>%
-         select(-.data$IDVARVAL)
+         select(-IDVARVAL)
       out <- left_join(dataset, wide_x,
                        by = c("STUDYID", "DOMAIN", "USUBJID"))
    }

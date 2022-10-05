@@ -25,9 +25,9 @@
 order_cols <- function(data, metacore, dataset_name = NULL) {
   metacore <- make_lone_dataset(metacore, dataset_name)
   var_ord <- metacore$ds_vars %>%
-    filter(!is.na(.data$order)) %>%
-    arrange(.data$order) %>%
-    pull(.data$variable)
+    filter(!is.na(order)) %>%
+    arrange(order) %>%
+    pull(variable)
   data %>%
     select(all_of(var_ord), everything())
 }
@@ -59,9 +59,9 @@ order_cols <- function(data, metacore, dataset_name = NULL) {
 sort_by_key <- function(data, metacore, dataset_name = NULL) {
   metacore <- make_lone_dataset(metacore, dataset_name)
   var_ord <- metacore$ds_vars %>%
-    filter(!is.na(.data$key_seq)) %>%
-    arrange(.data$key_seq) %>%
-    pull(.data$variable)
+    filter(!is.na(key_seq)) %>%
+    arrange(key_seq) %>%
+    pull(variable)
 
   data %>%
     arrange(across(var_ord))
