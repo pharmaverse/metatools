@@ -12,6 +12,9 @@ test_that("drop_unspec_vars", {
     select(all_of(man_vars))
   drop_unspec_vars(data, spec) %>%
     expect_equal(man_dat)
+  expect_message(drop_unspec_vars(data, spec),
+                 label = "The following variable(s) were dropped:\n  foo\n  foo2")
+
 })
 
 

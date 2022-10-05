@@ -160,6 +160,8 @@ drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL) {
    if (length(to_drop) > 0) {
       out <- dataset %>%
          select(-all_of(to_drop))
+      message(paste0("The following variable(s) were dropped:\n  ",
+              paste0(to_drop, collapse = "\n  ")))
    } else {
       out <- dataset
    }
