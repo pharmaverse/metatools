@@ -90,7 +90,7 @@ set_variable_labels <- function(data, metacore, dataset_name = NULL) {
 
    # Grab out the var names and labels
    var_spec <- metacore$var_spec %>%
-      select(.data$variable, .data$label)
+      select(variable, label)
 
 
    ns <- var_spec$variable

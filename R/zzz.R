@@ -2,7 +2,31 @@ globalVariables(c(
   ".",
   ".data",
   "code",
-  "decode"
+  "decode",
+  "DOMAIN",
+  "IDVAR",
+  "IDVARVAL",
+  "QEVAL",
+  "QLABEL",
+  "QNAM",
+  "QORIG",
+  "QVAL",
+  "RDOMAIN",
+  "STUDYID",
+  "USUBJID",
+  "code_id",
+  "col_name",
+  "derivation",
+  "derivation_id",
+  "ds",
+  "idvar",
+  "key_seq",
+  "label",
+  "origin",
+  "qeval",
+  "supp_flag",
+  "type",
+  "variable"
 ))
 
 

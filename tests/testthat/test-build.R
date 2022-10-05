@@ -7,11 +7,14 @@ test_that("drop_unspec_vars", {
 
   man_vars <- metacore$ds_vars %>%
     filter(dataset == "ADSL") %>%
-    pull(.data$variable)
+    pull(variable)
   man_dat <- data %>%
     select(all_of(man_vars))
   drop_unspec_vars(data, spec) %>%
     expect_equal(man_dat)
+  expect_message(drop_unspec_vars(data, spec),
+                 label = "The following variable(s) were dropped:\n  foo\n  foo2")
+
 })
 
 
