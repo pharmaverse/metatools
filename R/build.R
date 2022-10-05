@@ -37,7 +37,9 @@
 build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
                                predecessor_only = TRUE, keep = FALSE) {
    metacore <- make_lone_dataset(metacore, dataset_name)
-   derirvations <- metacore$derivations
+   derirvations <- metacore$derivations %>%
+      mutate(derivation = trimws(derivation))
+
    if (predecessor_only) {
       limited_dev_ids <- metacore$value_spec %>%
          filter(str_detect(str_to_lower(origin), "predecessor")) %>%
