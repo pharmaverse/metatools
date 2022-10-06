@@ -2,6 +2,8 @@
 * correct bug with `build_from_derived()` that prevented multiple from being combined 
 * removed library calls from tests 
 * remove `floating_pt_correction` from `combine_supp()` as it is best to never change the type of the main dataset 
+* Add a message to `drop_unspec_vars` to explain which variables are dropped 
+* Correct bug in `order_cols`, so it will still work when not all columns are present 
 
 # metatools 0.1.2
 * correct bug with `combine_supp()` when the data and the supp have different classes for the IDVARVAL

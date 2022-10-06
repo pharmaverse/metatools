@@ -2,20 +2,23 @@
 #'
 #' This function builds a dataset out of the columns that just need to be pulled
 #' through. So any variable that has a derivation in the format of
-#' 'dataset.variable' will be pulled through to create the new dataset. These
-#' columns are often called 'Predecessors' in ADaM, but this is not universal so
-#' that is optional to specify.
+#' 'dataset.variable' will be pulled through to create the new dataset. When
+#' there are multiple datasets present, they will be joined by the shared
+#' `key_seq` variables. These columns are often called 'Predecessors' in ADaM,
+#' but this is not universal so that is optional to specify.
 #' @param metacore metacore object that contains the specifications for the
 #'   dataset of interest.
 #' @param ds_list Named list of datasets that are needed to build the from
-#' @param dataset_name Optional string to specify the dataset. This is only
-#'   needed if the metacore object provided hasn't already been subsetted.
+#' @param dataset_name Optional string to specify the dataset that is being
+#'   built. This is only needed if the metacore object provided hasn't already
+#'   been subsetted.
 #' @param predecessor_only By default `FALSE`, but if `TRUE` will only use
 #'   derivations with the origin of 'Predecessor'
 #' @param keep Boolean to determine if the original columns should be kept. By
 #'   default `FALSE`, so only the ADaM columns are kept. If `TRUE` the resulting
 #'   dataset will have all the ADaM columns as well as any SDTM column that were
-#'   renamed in the ADaM (i.e `ARM` and `TRT01P` will be in the resulting dataset)
+#'   renamed in the ADaM (i.e `ARM` and `TRT01P` will be in the resulting
+#'   dataset)
 #'
 #' @return dataset
 #' @export
