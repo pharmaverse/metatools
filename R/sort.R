@@ -23,13 +23,16 @@
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' order_cols(data, spec)
 order_cols <- function(data, metacore, dataset_name = NULL) {
-  metacore <- make_lone_dataset(metacore, dataset_name)
-  var_ord <- metacore$ds_vars %>%
-    filter(!is.na(.data$order)) %>%
-    arrange(.data$order) %>%
-    pull(.data$variable)
-  data %>%
-    select(all_of(var_ord), everything())
+   metacore <- make_lone_dataset(metacore, dataset_name)
+
+   var_ord <- metacore$ds_vars %>%
+      filter(!is.na(order)) %>%
+      arrange(order) %>%
+      pull(variable) %>%
+      keep(~. %in% names(data))
+
+   data %>%
+      select(all_of(var_ord), everything())
 }
 
 
@@ -57,12 +60,12 @@ order_cols <- function(data, metacore, dataset_name = NULL) {
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' sort_by_key(data, spec)
 sort_by_key <- function(data, metacore, dataset_name = NULL) {
-  metacore <- make_lone_dataset(metacore, dataset_name)
-  var_ord <- metacore$ds_vars %>%
-    filter(!is.na(.data$key_seq)) %>%
-    arrange(.data$key_seq) %>%
-    pull(.data$variable)
+   metacore <- make_lone_dataset(metacore, dataset_name)
+   var_ord <- metacore$ds_vars %>%
+      filter(!is.na(key_seq)) %>%
+      arrange(key_seq) %>%
+      pull(variable)
 
-  data %>%
-    arrange(across(var_ord))
+   data %>%
+      arrange(across(var_ord))
 }

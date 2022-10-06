@@ -1,13 +1,8 @@
-library(haven)
-library(tibble)
-library(dplyr)
 
-
-
-spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
-load(metacore_example("pilot_ADaM.rda"))
+spec <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet = TRUE)
+load(metacore::metacore_example("pilot_ADaM.rda"))
 spec2 <- metacore %>% select_dataset("ADSL")
-dm <- read_xpt(metatools_example("dm.xpt"))
+dm <- haven::read_xpt(metatools_example("dm.xpt"))
 
 
 test_that("create_subgrps", {
@@ -34,7 +29,7 @@ test_that("create_subgrps", {
 })
 
 test_that("create_var_from_codelist", {
-  data <- tribble(
+  data <- tibble::tribble(
     ~USUBJID, ~VAR1, ~VAR2,
     1, "M", "Male",
     2, "F", "Female",
@@ -67,7 +62,7 @@ test_that("create_var_from_codelist", {
 
 test_that("create_cat_var", {
   # Create manual dataset to check against
-  man_dat <- tribble(
+  man_dat <- tibble::tribble(
     ~AGEGR1,     ~n,
     "65-80",    172,
     "<65",       42,
@@ -76,13 +71,13 @@ test_that("create_cat_var", {
   # Grouping col only
   auto_dat <- create_cat_var(dm, spec2, AGE, AGEGR1) %>%
     group_by(AGEGR1) %>%
-    summarise(n = n())
+    dplyr::summarise(n = dplyr::n())
   expect_equal(auto_dat, man_dat)
   # Grouping Column and Numeric Decode
   grp_num_dat <- create_cat_var(dm, spec2, AGE, AGEGR1, AGEGR1N)
   grp_num_dat %>%
     group_by(AGEGR1) %>%
-    summarise(n = n()) %>%
+    dplyr::summarise(n = dplyr::n()) %>%
     expect_equal(auto_dat)
   grp_num_dat %>%
     pull(AGEGR1N) %>%

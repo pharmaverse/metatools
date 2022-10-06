@@ -1,9 +1,6 @@
-library(magrittr)
-library(purrr
-        )
 
 # Mock up metacore data
-var_spec <- tibble(
+var_spec <- tibble::tibble(
    variable = names(iris),
    length = rep(1, 5),
    label = c("Sepal Length", "Sepal Width", "Petal Length", "Petal Width", "Species"),
@@ -12,13 +9,13 @@ var_spec <- tibble(
    common = rep(FALSE, 5)
 )
 
-ds_spec <- tibble(
+ds_spec <- tibble::tibble(
    dataset = "Iris",
    structure = c(""),
    label = "Iris"
 )
 
-ds_vars <- tibble(
+ds_vars <- tibble::tibble(
    dataset = rep("Iris", 5),
    variable = names(iris),
    order = 1:5,
@@ -28,7 +25,7 @@ ds_vars <- tibble(
    supp_flag = rep(FALSE, 5)
 )
 
-value_spec <- tibble(
+value_spec <- tibble::tibble(
    dataset = character(0),
    variable = character(0),
    origin = character(0),
@@ -38,12 +35,12 @@ value_spec <- tibble(
    where = character(0)
 )
 
-derivations <- tibble(
+derivations <- tibble::tibble(
    derivation_id = character(0),
    derivation = character(0)
 )
 
-code_id <- tibble(
+code_id <- tibble::tibble(
    code_id = character(0),
    name = character(0),
    type = character(0),
@@ -53,7 +50,7 @@ code_id <- tibble(
 # This is loud and I don't want it - just need the metacore object
 mc <- suppressWarnings(
    suppressMessages(
-      metacore(ds_spec, ds_vars, var_spec, value_spec, derivations, code_id)
+      metacore::metacore(ds_spec, ds_vars, var_spec, value_spec, derivations, code_id)
       )
    )
 
@@ -98,7 +95,7 @@ test_that("set_variable_labels raises warnings properly", {
    # This is metadata for the Iris dataset
    mc <- suppressWarnings(
       suppressMessages(
-         metacore(ds_spec, ds_vars, var_spec, value_spec, derivations, code_id)
+         metacore::metacore(ds_spec, ds_vars, var_spec, value_spec, derivations, code_id)
       )
    )
 
@@ -109,7 +106,7 @@ test_that("set_variable_labels raises warnings properly", {
 
    mc <- suppressWarnings(
       suppressMessages(
-         metacore(ds_spec, ds_vars, var_spec[1:4, ], value_spec, derivations, code_id)
+         metacore::metacore(ds_spec, ds_vars, var_spec[1:4, ], value_spec, derivations, code_id)
       )
    )
 
@@ -118,10 +115,10 @@ test_that("set_variable_labels raises warnings properly", {
 })
 
 test_that("removal_labels works to remvoe all labels", {
-   data <- tibble(a = 1:5,
+   data <- tibble::tibble(a = 1:5,
           b = letters[1:5])
    data_lab <- data %>%
-      map2_dfr(c("apple", "pear"), function(x, y ){
+      purrr::map2_dfr(c("apple", "pear"), function(x, y ){
          attr(x, "label") <- y
          x
       })

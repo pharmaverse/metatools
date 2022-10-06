@@ -1,24 +1,25 @@
-library(haven)
-library(dplyr)
-library(stringr)
-load(metacore_example("pilot_ADaM.rda"))
+
+load(metacore::metacore_example("pilot_ADaM.rda"))
 spec <- metacore %>% select_dataset("ADSL")
 test_that("drop_unspec_vars", {
-  data <- read_xpt(metatools_example("adsl.xpt")) %>%
+  data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
     mutate(foo = "Hello", foo2 = "world")
 
   man_vars <- metacore$ds_vars %>%
     filter(dataset == "ADSL") %>%
-    pull(.data$variable)
+    pull(variable)
   man_dat <- data %>%
     select(all_of(man_vars))
   drop_unspec_vars(data, spec) %>%
     expect_equal(man_dat)
+  expect_message(drop_unspec_vars(data, spec),
+                 label = "The following variable(s) were dropped:\n  foo\n  foo2")
+
 })
 
 
 test_that("build_from_derived", {
-  ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
+  ds_list <- list(DM = haven::read_xpt(metatools_example("dm.xpt")))
 
   expect_error(build_from_derived(spec, ds_list, keep = FALSE))
   # Vars that should be brought through
@@ -52,14 +53,44 @@ test_that("build_from_derived", {
     names() %>%
     sort() %>%
     expect_equal(man_vars)
+
+  # Pulling through from more than one dataset
+  spec2 <- metacore %>% select_dataset("ADAE")
+  adae_auto <- build_from_derived(spec2,
+     ds_list = list("AE" = safetyData::sdtm_ae,
+                 "ADSL" = safetyData::adam_adsl),
+     predecessor_only = FALSE,
+     keep = FALSE
+  )
+  ae_part_vars <- spec2$derivations %>%
+     filter(str_detect(derivation,"AE\\.[[:alnum:]]*$")) %>%
+     pull(derivation) %>%
+     str_remove("^AE\\.") %>%
+     c("STUDYID", "USUBJID", .)
+
+  ae_part <- select(safetyData::sdtm_ae, all_of(ae_part_vars))
+
+  adsl_part_vars <- spec2$derivations %>%
+     filter(str_detect(derivation,"ADSL\\.[[:alnum:]]*$")) %>%
+     pull(derivation) %>%
+     str_remove("^ADSL\\.") %>%
+     c("STUDYID", "USUBJID", .)
+  adsl_part <-
+     select(safetyData::adam_adsl, all_of(adsl_part_vars))
+
+  adae_man <- full_join(adsl_part, ae_part, by = c("STUDYID", "USUBJID")) %>%
+     rename(TRTA = TRT01A, TRTAN = TRT01AN) %>%
+     select(all_of(names(adae_auto)), everything())
+  expect_equal(adae_auto,adae_man )
+
 })
 
 
 
 test_that("add_variables", {
-   load(metacore_example("pilot_ADaM.rda"))
+   load(metacore::metacore_example("pilot_ADaM.rda"))
    spec <- metacore %>% select_dataset("ADSL")
-   data <- read_xpt(metatools_example("adsl.xpt"))
+   data <- haven::read_xpt(metatools_example("adsl.xpt"))
    data_mis <- data %>%
       select(-TRTSDT, -TRT01P, -TRT01PN)
    #Check data when there is missing

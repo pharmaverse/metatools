@@ -40,12 +40,12 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
   if (is.vector(ct)) {
     check <- ct
   } else if ("code" %in% names(ct)) {
-    check <- ct %>% pull(.data$code)
+    check <- ct %>% pull(code)
   } else {
     stop("We currently don't have the ability to check against external libraries")
   }
   core <- metacore$ds_vars %>%
-    filter(.data$variable == col_name_str) %>%
+    filter(variable == col_name_str) %>%
     pull(core)
   attr(core, "label") <- NULL
   test <- ifelse(is.null(na_acceptable), !identical(core, "Required"), na_acceptable)
@@ -99,18 +99,18 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
 #' check_ct_data(data, spec)
 check_ct_data <- function(data, metacore, na_acceptable = NULL) {
   codes_in_data <- metacore$value_spec %>%
-    filter(.data$variable %in% names(data), !is.na(.data$code_id)) %>%
-    pull(.data$code_id) %>%
+    filter(variable %in% names(data), !is.na(code_id)) %>%
+    pull(code_id) %>%
     unique()
   # Remove any codes that have external libraries
   codes_to_check <- metacore$codelist %>%
-    filter(.data$type != "external_library", .data$code_id %in% codes_in_data) %>%
-    select(.data$code_id)
+    filter(type != "external_library", code_id %in% codes_in_data) %>%
+    select(code_id)
   # convert list of codes to variables
   cols_to_check <- metacore$value_spec %>%
     inner_join(codes_to_check, by = "code_id") %>%
-    filter(.data$variable %in% names(data)) %>%
-    pull(.data$variable) %>%
+    filter(variable %in% names(data)) %>%
+    pull(variable) %>%
     unique()
   # send all variables through check_ct_col
   safe_chk <- safely(check_ct_col)
@@ -174,8 +174,8 @@ check_ct_data <- function(data, metacore, na_acceptable = NULL) {
 check_variables <- function(data, metacore, dataset_name = NULL) {
   metacore <- make_lone_dataset(metacore, dataset_name)
   var_list <- metacore$ds_vars %>%
-     filter(is.na(.data$supp_flag) | !(.data$supp_flag)) %>%
-    pull(.data$variable)
+     filter(is.na(supp_flag) | !(supp_flag)) %>%
+    pull(variable)
   missing <- var_list %>%
     discard(~ . %in% names(data))
   extra <- names(data) %>%

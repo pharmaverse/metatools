@@ -1,24 +1,17 @@
-library(safetyData)
-library(dplyr)
-library(tidyr)
-library(metacore)
-library(stringr)
-library(purrr)
-library(admiral.test)
 
 test_that("build_qnam", {
-   full_ae <- sdtm_suppae %>%
+   full_ae <- safetyData::sdtm_suppae %>%
       select(-QORIG, -QEVAL, -QLABEL) %>%
       pivot_wider(names_from = QNAM, values_from = QVAL) %>%
       rename(AESEQ = IDVARVAL) %>%
       select(-IDVAR) %>%
-      left_join(sdtm_ae, . , by = c("STUDYID", "USUBJID", "AESEQ"))
+      left_join(safetyData::sdtm_ae, . , by = c("STUDYID", "USUBJID", "AESEQ"))
 
    supp_fx <- build_qnam(full_ae, "AETRTEM", "TREATMENT EMERGENT FLAG",
                          "AESEQ", "CLINICAL STUDY SPONSOR", "DERIVED") %>%
       select(STUDYID, RDOMAIN, USUBJID, IDVAR, IDVARVAL, QNAM, QLABEL, QVAL, QORIG, QEVAL)%>%
       arrange(USUBJID, IDVARVAL)
-   ex_supp <- arrange(sdtm_suppae, USUBJID, IDVARVAL)
+   ex_supp <- arrange(safetyData::sdtm_suppae, USUBJID, IDVARVAL)
    # Test standard example
    expect_equal(supp_fx, ex_supp)
    # Test without IDVAR making ambiguous output
@@ -29,27 +22,27 @@ test_that("build_qnam", {
    supp_sans_id <- full_ae %>%
       group_by(USUBJID) %>%
       arrange(AESEQ) %>%
-      slice(1) %>%
+      dplyr::slice(1) %>%
       build_qnam("AETRTEM", "TREATMENT EMERGENT FLAG",
                  "", "CLINICAL STUDY SPONSOR", "DERIVED") %>%
       select(STUDYID, RDOMAIN, USUBJID, IDVAR, IDVARVAL, QNAM, QLABEL, QVAL, QORIG, QEVAL) %>%
       arrange(USUBJID, IDVARVAL)
-   ex_supp_sans_id <- arrange(sdtm_suppae, USUBJID, IDVARVAL) %>%
+   ex_supp_sans_id <- arrange(safetyData::sdtm_suppae, USUBJID, IDVARVAL) %>%
       group_by(USUBJID) %>%
-      slice(1) %>%
+      dplyr::slice(1) %>%
       mutate(IDVAR = "", IDVARVAL = "")
    expect_equal(supp_sans_id, ex_supp_sans_id)
 
 })
 
 test_that("make_supp_qual", {
-   load(metacore_example("pilot_SDTM.rda"))
+   load(metacore::metacore_example("pilot_SDTM.rda"))
 
    spec<- metacore %>%
       select_dataset("AE")
 
    # Add the mock supp variables
-   ae <- combine_supp(sdtm_ae, sdtm_suppae)
+   ae <- combine_supp(safetyData::sdtm_ae, safetyData::sdtm_suppae)
 
    metacore_supp <- make_supp_qual(ae, spec) %>%
       arrange(USUBJID, QNAM, IDVARVAL) %>%
@@ -57,7 +50,7 @@ test_that("make_supp_qual", {
 
    man_supp <- ae %>%
       select(STUDYID, USUBJID, RDOMAIN = DOMAIN, IDVARVAL = AESEQ, AETRTEM) %>%
-      pivot_longer(AETRTEM, names_to = "QNAM", values_to = "QVAL") %>%
+      tidyr::pivot_longer(AETRTEM, names_to = "QNAM", values_to = "QVAL") %>%
       filter(!is.na(QVAL)) %>%
       mutate(IDVAR = "AESEQ",
              QORIG = "DERIVED",
@@ -67,7 +60,7 @@ test_that("make_supp_qual", {
       select(STUDYID, RDOMAIN, USUBJID, IDVAR,
              IDVARVAL, QNAM , QLABEL,QVAL,  QORIG, QEVAL) %>%
       distinct()
-   man_supp <- map_df(man_supp, function(x){
+   man_supp <- purrr::map_df(man_supp, function(x){
       attr(x, "label") <-NULL
       x
    })
@@ -80,10 +73,10 @@ test_that("make_supp_qual", {
 
 
    # Add the supp without a idvar
-   dm <- combine_supp(sdtm_dm, sdtm_suppdm) %>%
+   dm <- combine_supp(safetyData::sdtm_dm, safetyData::sdtm_suppdm) %>%
       as_tibble()
    dm_supp <- make_supp_qual(dm, metacore, "DM")
-   man_dm_supp <- sdtm_suppdm %>%
+   man_dm_supp <- safetyData::sdtm_suppdm %>%
       as_tibble() %>%
       mutate(IDVAR = as.character(IDVAR),
              IDVARVAL = as.character(IDVARVAL)) %>%
@@ -92,7 +85,7 @@ test_that("make_supp_qual", {
 
    #Testing with blank rows
    supp_with_miss <- dm %>%
-      bind_rows(tibble(STUDYID = "CDISCPILOT01",
+      dplyr::bind_rows(tibble::tibble(STUDYID = "CDISCPILOT01",
                       DOMAIN = "DM",
                       USUBJID = "01-701-9999",
                       SUBJID = 9999,
@@ -109,7 +102,7 @@ test_that("make_supp_qual", {
    expect_error(make_supp_qual(ae, metacore),
                 "Requires either a subsetted metacore object or a dataset name")
    #Testing without supp columns specified
-   metacore_old <- spec_to_metacore(metacore_example("SDTM_spec_CDISC_pilot.xlsx"), quiet = TRUE)
+   metacore_old <- metacore::spec_to_metacore(metacore::metacore_example("SDTM_spec_CDISC_pilot.xlsx"), quiet = TRUE)
    expect_error(make_supp_qual(ae, metacore_old, "AE"),
                 "No supplemental variables specified in metacore object. Please check your specifications")
 
@@ -118,36 +111,36 @@ test_that("make_supp_qual", {
 
 test_that("combine_supp", {
    ### 1 IDVAR and 1 QNAM
-   combo_ae <- combine_supp(sdtm_ae, sdtm_suppae) %>%
+   combo_ae <- combine_supp(safetyData::sdtm_ae, safetyData::sdtm_suppae) %>%
       select(USUBJID, AESEQ, AETRTEM) %>%
       distinct() %>%
       arrange(USUBJID, AESEQ)
-   supp_check <- sdtm_suppae %>%
+   supp_check <- safetyData::sdtm_suppae %>%
       select(USUBJID, AESEQ = IDVARVAL, AETRTEM = QVAL) %>%
       arrange(USUBJID, AESEQ)
    expect_equal(combo_ae, supp_check)
 
    ### No IDVAR and multiple QNAM
-   out_test <- sdtm_suppdm %>%
+   out_test <- safetyData::sdtm_suppdm %>%
       filter(USUBJID %in% c("01-701-1015")) %>%
       select(USUBJID, QNAM, QVAL) %>%
       pivot_wider(names_from = QNAM, values_from = QVAL) %>%
       as.data.frame()
 
-   full_dm <- combine_supp(sdtm_dm, sdtm_suppdm) %>%
+   full_dm <- combine_supp(safetyData::sdtm_dm, safetyData::sdtm_suppdm) %>%
       select(USUBJID, COMPLT16:SAFETY)
    expect_equal(filter(full_dm, USUBJID == "01-701-1015"), out_test)
    # Test SUBJID that wasn't in the SUPP that all supp values are NA
    full_dm %>%
       filter(USUBJID == "01-701-1057") %>%
       select(-USUBJID) %>%
-      pivot_longer(everything())%>%
-      summarise(test = all(is.na(value))) %>%
-      expect_equal(tibble(test = TRUE))
+      tidyr::pivot_longer(everything())%>%
+      dplyr::summarise(test = all(is.na(value))) %>%
+      expect_equal(tibble::tibble(test = TRUE))
 
    ### Where there are only value for a small number of subjects
-   mostly_miss <- combine_supp(sdtm_ds, sdtm_suppds)
-   original <- sdtm_suppds %>%
+   mostly_miss <- combine_supp(safetyData::sdtm_ds, safetyData::sdtm_suppds)
+   original <- safetyData::sdtm_suppds %>%
       arrange(USUBJID) %>%
       pull(QVAL)
    expect_equal(mostly_miss %>%
@@ -158,10 +151,10 @@ test_that("combine_supp", {
 
    ### Multiple IDVARS and multiple QNAMS
    # Add some mock supp variables
-   ae <- sdtm_ae %>%
+   ae <- safetyData::sdtm_ae %>%
       mutate(
-         SUPPVAR1 = words[1:nrow(sdtm_ae)],
-         SUPPVAR2 = rep(letters, 36)[1:nrow(sdtm_ae)],
+         SUPPVAR1 = letters[1:nrow(safetyData::sdtm_ae)],
+         SUPPVAR2 = rep(letters, 36)[1:nrow(safetyData::sdtm_ae)],
          SUPPVAR3 = USUBJID,
          IDVAR = as.numeric(str_extract(USUBJID, "\\d{3}$"))
       )
@@ -181,10 +174,10 @@ test_that("combine_supp", {
       select(-starts_with("SUPP"))
    supp = suppae
    multi_out <- combine_supp(ae, suppae) %>%
-      summarise(v1 = all(all.equal(SUPPVAR1.x, SUPPVAR1.y)), #Because there are NA rows
+      dplyr::summarise(v1 = all(all.equal(SUPPVAR1.x, SUPPVAR1.y)), #Because there are NA rows
                 v2 = all(all.equal(SUPPVAR2.x, SUPPVAR2.y)),
                 v3 = all(SUPPVAR3.x == SUPPVAR3.y)) %>%
-      pivot_longer(everything()) %>%
+      tidyr::pivot_longer(everything()) %>%
       pull(value) %>%
       all()
    expect_equal(multi_out, TRUE)
@@ -192,37 +185,35 @@ test_that("combine_supp", {
 
 test_that("combine_supp works with different IDVARVAL classes", {
    expect_equal(
-      combine_supp(admiral_ae, admiral_suppae) %>%
+      combine_supp(admiral.test::admiral_ae, admiral.test::admiral_suppae) %>%
       pull(AESEQ),
-      admiral_ae %>% pull(AESEQ)
+      admiral.test::admiral_ae %>% pull(AESEQ)
    )
 })
 
 test_that("combine_supp works with without QEVAL", {
-   expect_silent(combine_supp(admiral_tr, admiral_supptr))
+   expect_silent(combine_supp(admiral.test::admiral_tr, admiral.test::admiral_supptr))
 })
 
 test_that("supp data that does not match the main data will raise a warning", {
-   sdtm_suppae_extra <- sdtm_suppae
+   sdtm_suppae_extra <- safetyData::sdtm_suppae
    sdtm_suppae_extra$IDVARVAL[1] <- 99
    expect_error(
-      combine_supp(sdtm_ae, sdtm_suppae_extra)
+      combine_supp(safetyData::sdtm_ae, sdtm_suppae_extra)
    )
 })
 
 test_that("Floating point correction works", {
    fp1 = 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1
-   sdtm_ae_fp <- sdtm_ae %>%
+   sdtm_ae_fp <- safetyData::sdtm_ae %>%
       mutate(AESEQ = case_when(AESEQ == 1 ~ fp1,
                                TRUE ~ as.double(AESEQ)))
-   # Make sure a FP error is induced
-   expect_error(combine_supp(sdtm_ae_fp, sdtm_suppae))
    # correction
-   combo_ae <-combine_supp(sdtm_ae_fp, sdtm_suppae, TRUE) %>%
+   combo_ae <-combine_supp(sdtm_ae_fp, safetyData::sdtm_suppae) %>%
       select(USUBJID, AESEQ, AETRTEM) %>%
       distinct() %>%
       arrange(USUBJID, AESEQ)
-   supp_check <- sdtm_suppae %>%
+   supp_check <- safetyData::sdtm_suppae %>%
       select(USUBJID, AESEQ = IDVARVAL, AETRTEM = QVAL) %>%
       arrange(USUBJID, AESEQ)
    expect_equal(combo_ae, supp_check)
