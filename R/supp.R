@@ -110,7 +110,7 @@ make_supp_qual <- function(dataset, metacore, dataset_name = NULL){
              qorig = origin, qeval = qeval,
              idvar = idvar)  %>%
       distinct() #Protection against bad specs
-   #TODO Addin in checks/coerision for when combining cols of different types
+   #TODO Addin in checks/coercion for when combining cols of different types
    pmap_dfr(supp_meta, build_qnam, dataset=dataset) %>%
       arrange(USUBJID, QNAM, IDVARVAL)
 }
