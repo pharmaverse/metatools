@@ -51,7 +51,7 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
       derirvations <- derirvations %>%
          filter(derivation_id %in% limited_dev_ids)
       if (nrow(derirvations) == 0) {
-         stop("No presecessor variables found please check your metacore object")
+         stop("No predecessor variables found please check your metacore object")
       }
    }
 
