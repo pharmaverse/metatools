@@ -27,7 +27,7 @@ The goal of metatools is to enable the use of metacore objects. Metatools can be
 
 ## Installation
 
-You can install the released version of metatools from [GitHub](https://github.com/pharmaverse/metatools) with:
+You can install the released version of metatools from CRAN with:
 
 ``` r
 install.packages("metatools")
