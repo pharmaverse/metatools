@@ -11,6 +11,8 @@
 [<img src="https://img.shields.io/badge/License-MIT-blue.svg">](https://github.com/pharmaverse/metatools/blob/main/LICENSE)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/metatools)](https://CRAN.R-project.org/package=metatools)
 <!-- badges: end -->
 
 The goal of metatools is to enable the use of metacore objects.
@@ -19,8 +21,7 @@ datasets as well as checking datasets against the metadata in metacore.
 
 ## Installation
 
-You can install the released version of metatools from
-[GitHub](https://github.com/pharmaverse/metatools) with:
+You can install the released version of metatools from CRAN with:
 
 ``` r
 install.packages("metatools")
