@@ -11,7 +11,7 @@
 [<img src="https://img.shields.io/badge/License-MIT-blue.svg"/>](https://github.com/pharmaverse/metatools/blob/main/LICENSE)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-
+[![R-CMD-check](https://github.com/pharmaverse/metatools/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/pharmaverse/metatools/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The goal of metatools is to enable the use of metacore objects.

@@ -1,3 +1,7 @@
+# metatools 0.1.4
+* correct bug with `combine_supp()` when the data and the supp have white space. Now it will be trimmed before attempting to merge  
+* Updates made to work with the newest version of dplyr 
+
 # metatools 0.1.3
 * correct bug with `build_from_derived()` that prevented multiple from being combined 
 * removed library calls from tests 
