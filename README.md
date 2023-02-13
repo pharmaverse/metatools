@@ -5,12 +5,13 @@
 
 <!-- badges: start -->
 
-[<img src="http://pharmaverse.org/shields/metatools.svg">](https://pharmaverse.org)
+[<img src="http://pharmaverse.org/shields/metatools.svg"/>](https://pharmaverse.org)
 [![R-CMD-check](https://github.com/pharmaverse/metatools/workflows/R-CMD-check/badge.svg)](https://github.com/pharmaverse/metatools/actions)
 [![codecov](https://codecov.io/gh/pharmaverse/metatools/branch/main/graph/badge.svg?token=55N5APFLPA)](https://app.codecov.io/gh/pharmaverse/metatools)
-[<img src="https://img.shields.io/badge/License-MIT-blue.svg">](https://github.com/pharmaverse/metatools/blob/main/LICENSE)
+[<img src="https://img.shields.io/badge/License-MIT-blue.svg"/>](https://github.com/pharmaverse/metatools/blob/main/LICENSE)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+
 <!-- badges: end -->
 
 The goal of metatools is to enable the use of metacore objects.
@@ -19,8 +20,7 @@ datasets as well as checking datasets against the metadata in metacore.
 
 ## Installation
 
-You can install the released version of metatools from
-[GitHub](https://github.com/pharmaverse/metatools) with:
+You can install the latest released version of metatools from CRAN with:
 
 ``` r
 install.packages("metatools")
@@ -30,7 +30,6 @@ And the current development version from
 [GitHub](https://github.com/pharmaverse/metatools) with:
 
 ``` r
-# install.packages("devtools")
 devtools::install_github("pharmaverse/metatools")
 ```
 
