@@ -121,7 +121,7 @@ get_variables <- function(x, ds_list, keep) {
    if (keep) {
       out <- data %>%
          select(x$col_name) %>%
-         mutate(across(rename_vec))
+         mutate(across(all_of(rename_vec)))
    } else {
       out <- data %>%
          select(x$col_name) %>%

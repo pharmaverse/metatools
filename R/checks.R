@@ -108,7 +108,7 @@ check_ct_data <- function(data, metacore, na_acceptable = NULL) {
     select(code_id)
   # convert list of codes to variables
   cols_to_check <- metacore$value_spec %>%
-    inner_join(codes_to_check, by = "code_id") %>%
+    inner_join(codes_to_check, by = "code_id", multiple = "all") %>%
     filter(variable %in% names(data)) %>%
     pull(variable) %>%
     unique()

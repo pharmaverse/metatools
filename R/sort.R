@@ -67,5 +67,5 @@ sort_by_key <- function(data, metacore, dataset_name = NULL) {
       pull(variable)
 
    data %>%
-      arrange(across(var_ord))
+      arrange(across(all_of(var_ord)))
 }
