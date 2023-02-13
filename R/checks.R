@@ -31,42 +31,72 @@
 #' check_ct_col(data, spec, TRT01PN)
 #' check_ct_col(data, spec, "TRT01PN")
 check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
-  col_name_str <- as_label(enexpr(var)) %>%
-    str_remove_all("\"")
-  if (!col_name_str %in% names(data)) {
-    stop(paste(col_name_str, "not found in dataset. Please check and try again"))
-  }
-  ct <- get_control_term(metacore, {{ var }})
-  if (is.vector(ct)) {
-    check <- ct
-  } else if ("code" %in% names(ct)) {
-    check <- ct %>% pull(code)
-  } else {
-    stop("We currently don't have the ability to check against external libraries")
-  }
-  core <- metacore$ds_vars %>%
-    filter(variable == col_name_str) %>%
-    pull(core)
-  attr(core, "label") <- NULL
-  test <- ifelse(is.null(na_acceptable), !identical(core, "Required"), na_acceptable)
-  if (test) {
-    if (all(is.character(check))) {
-      check <- c(check, NA_character_, "")
-    } else {
-      check <- c(check, NA)
-    }
-  }
-  test <- pull(data, {{ var }}) %in% check
-  if(all(test)){
+   bad_vals <- get_bad_ct(data = data, metacore = metacore,
+                          var = {{var}}, na_acceptable = na_acceptable)
+  if(length(bad_vals) == 0){
      data
   } else {
-     extra <- pull(data, {{ var }})[!test] %>%
-        unique() %>%
+     extra <- bad_vals %>%
         paste0("'", ., "'") %>%
         paste0(collapse = ", ")
      stop(paste("The following values should not be present:\n", extra))
   }
 }
+
+#' Gets vector of control terminology which should be there
+#'
+#' This function checks the column in the dataset only contains the control
+#' terminology as defined by the metacore specification. It will return all
+#' values not found in the control terminology
+#'
+#' @param data Data to check
+#' @param metacore A metacore object to get the codelist from. If the variable
+#'   has different codelists for different datasets the metacore object will
+#'   need to be subsetted using `select_dataset` from the metacore package.
+#' @param var Name of variable to check
+#' @param na_acceptable Logical value, set to `NULL` by default, so the
+#'   acceptability of missing values is based on if the core for the variable is
+#'   "Required" in the `metacore` object. If set to `TRUE` then will pass check
+#'   if values are in the control terminology or are missing. If set to
+#'   `FALSE`then NA will not be acceptable.e
+#'
+#' @return vector
+#' @importFrom metacore get_control_term
+#' @importFrom dplyr pull
+#' @importFrom stringr str_remove_all
+#' @export
+get_bad_ct <- function(data, metacore, var, na_acceptable = NULL){
+   col_name_str <- as_label(enexpr(var)) %>%
+      str_remove_all("\"")
+   if (!col_name_str %in% names(data)) {
+      stop(paste(col_name_str, "not found in dataset. Please check and try again"), call. = FALSE)
+   }
+   ct <- get_control_term(metacore, {{ var }})
+   if (is.vector(ct)) {
+      check <- ct
+   } else if ("code" %in% names(ct)) {
+      check <- ct %>% pull(code)
+   } else {
+      stop("We currently don't have the ability to check against external libraries", call. = FALSE)
+   }
+   core <- metacore$ds_vars %>%
+      filter(variable == col_name_str) %>%
+      pull(core)
+   attr(core, "label") <- NULL
+   test <- ifelse(is.null(na_acceptable), !identical(core, "Required"), na_acceptable)
+   if (test) {
+      if (all(is.character(check))) {
+         check <- c(check, NA_character_, "")
+      } else {
+         check <- c(check, NA)
+      }
+   }
+   test <- pull(data, {{ var }}) %in% check
+   pull(data, {{ var }})[!test] %>%
+      unique()
+}
+
+
 
 #' Check Control Terminology for a Dataset
 #'

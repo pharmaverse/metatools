@@ -37,12 +37,14 @@ test_that("check_ct_col works correctly", {
    data_w_miss <- data %>%
       mutate(TRT01PN = if_else(dplyr::row_number() == 3, NA_real_, TRT01PN))
    expect_error(check_ct_col(data_w_miss, spec, TRT01PN, FALSE))
+   expect_equal(get_bad_ct(data_w_miss, spec, TRT01PN, FALSE), NA_real_)
    expect_equal(check_ct_col(data_w_miss, spec, TRT01PN, TRUE), data_w_miss)
    ### Test with  a required column ###
    # Required without missing
    expect_equal(check_ct_col(data, spec_mod, TRT01PN), data)
    # Required with missing
    expect_error(check_ct_col(data, spec_mod, DISCONFL))
+   expect_equal(get_bad_ct(data, spec_mod, DISCONFL), "")
    expect_equal(check_ct_col(data, spec_mod, DISCONFL, TRUE), data)
 })
 
