@@ -1,5 +1,6 @@
 ## R CMD check results
 There were no ERRORs or WARNINGs.
+This was archived because a dependency came off cran. That has now been corrected
 
 
 ## Downstream dependencies
