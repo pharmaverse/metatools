@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">metatools</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -87,19 +87,19 @@ If not already subsetted then a `dataset_name` will need to be provided</p></dd>
 <span class="r-in"><span><span class="va">ae</span> <span class="op">&lt;-</span> <span class="fu"><a href="combine_supp.html">combine_supp</a></span><span class="op">(</span><span class="va">sdtm_ae</span>, <span class="va">sdtm_suppae</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">make_supp_qual</span><span class="op">(</span><span class="va">ae</span>, <span class="va">spec</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1,191 × 10</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    STUDYID      RDOMAIN USUBJID     IDVAR IDVAR…¹ QNAM  QLABEL QVAL  QORIG QEVAL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> CDISCPILOT01 AE      01-701-1015 AESEQ       1 AETR… TREAT… Y     DERI… CLIN…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> CDISCPILOT01 AE      01-701-1015 AESEQ       2 AETR… TREAT… Y     DERI… CLIN…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> CDISCPILOT01 AE      01-701-1015 AESEQ       3 AETR… TREAT… Y     DERI… CLIN…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> CDISCPILOT01 AE      01-701-1023 AESEQ       1 AETR… TREAT… Y     DERI… CLIN…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> CDISCPILOT01 AE      01-701-1023 AESEQ       2 AETR… TREAT… Y     DERI… CLIN…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> CDISCPILOT01 AE      01-701-1023 AESEQ       3 AETR… TREAT… Y     DERI… CLIN…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> CDISCPILOT01 AE      01-701-1023 AESEQ       4 AETR… TREAT… Y     DERI… CLIN…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> CDISCPILOT01 AE      01-701-1028 AESEQ       1 AETR… TREAT… Y     DERI… CLIN…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> CDISCPILOT01 AE      01-701-1028 AESEQ       2 AETR… TREAT… Y     DERI… CLIN…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> CDISCPILOT01 AE      01-701-1034 AESEQ       1 AETR… TREAT… Y     DERI… CLIN…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># … with 1,181 more rows, and abbreviated variable name ¹​IDVARVAL</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    STUDYID      RDOMAIN USUBJID    IDVAR IDVARVAL QNAM  QLABEL QVAL  QORIG QEVAL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> CDISCPILOT01 AE      01-701-10… AESEQ        1 AETR… TREAT… Y     DERI… CLIN…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> CDISCPILOT01 AE      01-701-10… AESEQ        2 AETR… TREAT… Y     DERI… CLIN…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> CDISCPILOT01 AE      01-701-10… AESEQ        3 AETR… TREAT… Y     DERI… CLIN…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> CDISCPILOT01 AE      01-701-10… AESEQ        1 AETR… TREAT… Y     DERI… CLIN…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> CDISCPILOT01 AE      01-701-10… AESEQ        2 AETR… TREAT… Y     DERI… CLIN…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> CDISCPILOT01 AE      01-701-10… AESEQ        3 AETR… TREAT… Y     DERI… CLIN…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> CDISCPILOT01 AE      01-701-10… AESEQ        4 AETR… TREAT… Y     DERI… CLIN…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> CDISCPILOT01 AE      01-701-10… AESEQ        1 AETR… TREAT… Y     DERI… CLIN…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> CDISCPILOT01 AE      01-701-10… AESEQ        2 AETR… TREAT… Y     DERI… CLIN…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> CDISCPILOT01 AE      01-701-10… AESEQ        1 AETR… TREAT… Y     DERI… CLIN…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 1,181 more rows</span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
