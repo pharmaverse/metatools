@@ -156,8 +156,16 @@ combine_supp <- function(dataset, supp){
                      "")
       stop(paste0(mess, ext, mis))
    }
+   all_qnam <- unique(supp$QNAM)
+   existing_qnam <- intersect(all_qnam, names(dataset))
+   if (length(existing_qnam) > 0) {
+     stop(
+       "The following column(s) would be created by combine_supp(), but are already in the original dataset:\n  ",
+       paste(existing_qnam, sep = ", ")
+     )
+   }
+   by <- names(dataset)
 
-   by <- setdiff(names(dataset), supp$QNAM) # Don't want any variables in our by statement
 
    # In order to prevent issues when there are multiple IDVARS we need to merge
    # each IDVAR into the domain seperately (otherwise there is problems when the

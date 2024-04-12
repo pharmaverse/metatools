@@ -173,14 +173,11 @@ test_that("combine_supp", {
    dataset = ae %>%
       select(-starts_with("SUPP"))
    supp = suppae
-   multi_out <- combine_supp(ae, suppae) %>%
-      dplyr::summarise(v1 = all(all.equal(SUPPVAR1.x, SUPPVAR1.y)), #Because there are NA rows
-                v2 = all(all.equal(SUPPVAR2.x, SUPPVAR2.y)),
-                v3 = all(SUPPVAR3.x == SUPPVAR3.y)) %>%
-      tidyr::pivot_longer(everything()) %>%
-      pull(value) %>%
-      all()
-   expect_equal(multi_out, TRUE)
+
+   multi_out <- combine_supp(dataset, suppae)
+   expect_equal(multi_out$SUPPVAR1, ae$SUPPVAR1)
+   expect_equal(multi_out$SUPPVAR2, ae$SUPPVAR2)
+   expect_equal(multi_out$SUPPVAR3, ae$SUPPVAR3)
 })
 
 test_that("combine_supp works with different IDVARVAL classes", {

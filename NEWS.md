@@ -1,4 +1,5 @@
 # metatools 0.1.5.9000
+* Breaking change: `combine_supp()` requires that the QNAM columns are not in the source dataset (#64)
 * Allow supp data to be zero-row with `combine_supp()` (fix #45)
 
 # metatools 0.1.4
