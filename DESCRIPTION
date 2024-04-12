@@ -36,7 +36,9 @@ Suggests:
     haven,
     covr,
     safetyData,
-    admiral.test
+    admiral.test,
+    spelling
 Config/testthat/edition: 3
 URL: https://pharmaverse.github.io/metatools/
 BugReports: https://github.com/pharmaverse/metatools/issues
+Language: en-US
