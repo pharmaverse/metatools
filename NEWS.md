@@ -1,3 +1,6 @@
+# metatools 0.1.5.9000
+* Allow supp data to be zero-row with `combine_supp()` (fix #45)
+
 # metatools 0.1.4
 * correct bug with `combine_supp()` when the data and the supp have white space. Now it will be trimmed before attempting to merge  
 * Updates made to work with the newest version of dplyr 

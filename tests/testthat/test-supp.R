@@ -222,7 +222,7 @@ test_that("Floating point correction works", {
 test_that("zero-row supp returns data unchanged with a warning (#45)", {
   expect_warning(
     result <- combine_supp(safetyData::sdtm_ae, safetyData::sdtm_suppae[0,]),
-    regexp = "Zero rows in supp data, returning original data unchanged"
+    regexp = "Zero rows in supp, returning original dataset unchanged"
   )
   expect_equal(result, safetyData::sdtm_ae)
 })
