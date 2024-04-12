@@ -217,6 +217,12 @@ test_that("Floating point correction works", {
       select(USUBJID, AESEQ = IDVARVAL, AETRTEM = QVAL) %>%
       arrange(USUBJID, AESEQ)
    expect_equal(combo_ae, supp_check)
-   })
+})
 
-
+test_that("zero-row supp returns data unchanged with a warning (#45)", {
+  expect_warning(
+    result <- combine_supp(safetyData::sdtm_ae, safetyData::sdtm_suppae[0,]),
+    regexp = "Zero rows in supp data, returning original data unchanged"
+  )
+  expect_equal(result, safetyData::sdtm_ae)
+})
