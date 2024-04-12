@@ -226,3 +226,26 @@ test_that("zero-row supp returns data unchanged with a warning (#45)", {
   )
   expect_equal(result, safetyData::sdtm_ae)
 })
+
+test_that("multiple different IDVAR map to the same QNAM works", {
+  simple_ae <-
+    safetyData::sdtm_ae |>
+    filter(USUBJID %in% c("01-701-1015", "01-701-1023"))
+  simple_suppae <- safetyData::sdtm_suppae[c(1, 4), ]
+  simple_suppae$IDVAR[2] <- "AEDTC"
+  simple_suppae$IDVARVAL[2] <- "2012-09-02"
+  expect_equal(
+    combine_supp(simple_ae, supp = simple_suppae)$AETRTEM,
+    c("Y", NA, NA, NA, NA, NA, "Y")
+  )
+
+  # Replace the value in error
+  simple_suppae <- safetyData::sdtm_suppae[c(1, 4, 7), ]
+  simple_suppae$IDVAR[2] <- "AEDTC"
+  simple_suppae$IDVARVAL[2] <- "2012-09-02"
+
+  expect_error(
+    combine_supp(simple_ae, supp = simple_suppae)$AETRTEM,
+    c("Y", NA, NA, NA, NA, NA, "Y")
+  )
+})
