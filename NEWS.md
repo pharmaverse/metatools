@@ -1,6 +1,7 @@
 # metatools 0.1.5.9000
 * Breaking change: `combine_supp()` requires that the QNAM columns are not in the source dataset (#64)
-* Allow supp data to be zero-row with `combine_supp()` (fix #45)
+* `combine_supp()` now allows multiple `QNAM` values to go to the same `IDVAR` (#63)
+* Allow supp data to be zero-row with `combine_supp()` (#45)
 
 # metatools 0.1.4
 * correct bug with `combine_supp()` when the data and the supp have white space. Now it will be trimmed before attempting to merge  

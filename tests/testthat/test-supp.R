@@ -242,7 +242,7 @@ test_that("multiple different IDVAR map to the same QNAM works", {
   simple_suppae$IDVARVAL[2] <- "2012-09-02"
 
   expect_error(
-    combine_supp(simple_ae, supp = simple_suppae)$AETRTEM,
-    c("Y", NA, NA, NA, NA, NA, "Y")
+    combine_supp(simple_ae, supp = simple_suppae),
+    regexp = "An unexpected number of rows were replaced while merging QNAM AETRTEM and IDVAR AESEQ"
   )
 })

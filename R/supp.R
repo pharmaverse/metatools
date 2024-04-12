@@ -164,15 +164,11 @@ combine_supp <- function(dataset, supp){
        paste(existing_qnam, sep = ", ")
      )
    }
-   by <- names(dataset)
-
 
    # In order to prevent issues when there are multiple IDVARS we need to merge
    # each IDVAR into the domain seperately (otherwise there is problems when the
    # two IDVARS don't overlap)
 
-   browser()
-   stop()
    supp_wides_prep <-
      supp %>%
      select(-any_of(c("QLABEL", "QORIG", "QEVAL"))) %>% #Removing columns not for the main dataset
@@ -215,8 +211,6 @@ combine_supp_join <- function(dataset, supp) {
   stopifnot(length(current_idvar) == 1)
   stopifnot(length(current_qnam) == 1)
 
-  browser()
-  stop()
   by <- intersect(names(supp), c("STUDYID", "DOMAIN", "USUBJID", "IDVARVAL"))
   supp_prep <- supp %>% select(-QNAM, -IDVAR)
   new_column <- setdiff(names(supp_prep), by)
@@ -237,15 +231,15 @@ combine_supp_join <- function(dataset, supp) {
     # Patch the data
     mask_na_ret_before <- is.na(ret[[new_column]])
     ret_orig <- ret
-    browser()
-    stop()
     ret <- dplyr::rows_patch(x = ret, y = supp_prep, by = by)
     mask_na_ret_after <- is.na(ret[[new_column]])
 
-    expected_na_difference <- sum(!is.na(y[[new_column]]))
+    expected_na_difference <- sum(!is.na(supp_prep[[new_column]]))
     actual_na_difference <- sum(!mask_na_ret_after) - sum(!mask_na_ret_before)
     if (expected_na_difference != actual_na_difference) {
-      stop("An unexpected number of rows were replaced while merging QNAM ", current_qnam, " and IDVAR ", current_idvar)
+      stop(
+        "An unexpected number of rows were replaced while merging QNAM ", current_qnam, " and IDVAR ", current_idvar,
+        "\n  Please verify that your SUPP domain is valid SDTM with only one matched row per key column set")
     }
   } else {
     # Verify that nothing will be missed
@@ -266,7 +260,7 @@ combine_supp_join <- function(dataset, supp) {
     }
 
     # join the data
-    ret <- left_join(dataset, supp_prep, by = by)
+    ret <- left_join(ret, supp_prep, by = by)
   }
   ret
 }
@@ -326,36 +320,4 @@ combine_supp_by_idvar <- function(dataset, supp){
                        by = c("STUDYID", "DOMAIN", "USUBJID"))
    }
    out
-}
-
-# full_join should be used when there are only new columns, but rows_patch
-# should be used when there are existing columns.
-combine_supp_join_or_patch <- function(x, y, by) {
-  other_cols_x <- setdiff(names(y), by)
-  other_cols_y <- setdiff(names(y), by)
-  column_overlap <- intersect(other_cols_x, other_cols_y)
-  columns_unique_y <- setdiff(other_cols_y, column_overlap)
-  ret <- x
-  if (length(columns_unique_y) > 0) {
-    y_no_overlap <- y[, setdiff(names(y), column_overlap)]
-    ret <- dplyr::full_join(x = ret, y = y_no_overlap, by = by)
-  }
-  for (current_nm in column_overlap) {
-    # update columns one-by-one, verifying that only NA values are replaced
-    mask_na_ret_before <- is.na(ret[[current_nm]])
-    ret_orig <- ret
-    browser()
-    stop()
-    ret <- dplyr::rows_patch(x = ret, y = y[, c(by, current_nm)], by = by)
-    mask_na_ret_after <- is.na(ret[[current_nm]])
-
-    expected_na_difference <- sum(!is.na(y[[current_nm]]))
-    actual_na_difference <- sum(!mask_na_ret_after) - sum(!mask_na_ret_before)
-    if (expected_na_difference != actual_na_difference) {
-      # TODO: Try to give the specific location of the error, but this would be
-      # invalid SDTM, and there is not a simple trace to the row with the issue.
-      stop("An unexpected number of rows were replaced while patching the data in column ", current_nm)
-    }
-  }
-  ret
 }
