@@ -8,6 +8,22 @@ mod_ds_vars <- spec$ds_vars %>%
 spec_mod <- metacore::metacore(spec$ds_spec, mod_ds_vars, spec$var_spec, spec$value_spec, spec$derivations, spec$codelist) %>%
    suppressWarnings()
 
+test_that("get_bad_ct works correctly", {
+
+   # test na_acceptable
+   expect_equal(get_bad_ct(data, spec, "DISCONFL"), character(0))
+   expect_equal(get_bad_ct(data, spec, "DISCONFL", TRUE), character(0))
+   expect_equal(get_bad_ct(data, spec, "DISCONFL", FALSE), "")
+
+   expect_equal(get_bad_ct(data, spec_mod, "DISCONFL"), "")
+   expect_equal(get_bad_ct(data, spec_mod, "DISCONFL", TRUE), character(0))
+   expect_equal(get_bad_ct(data, spec_mod, "DISCONFL", FALSE), "")
+
+   data_na <- data %>%
+      mutate(DISCONFL = if_else(dplyr::row_number() == 1, NA_character_, DISCONFL))
+   expect_equal(get_bad_ct(data_na, spec_mod, "DISCONFL"), c(NA_character_, ""))
+
+})
 
 test_that("check_ct_col works correctly", {
    # Check it works with a character col
