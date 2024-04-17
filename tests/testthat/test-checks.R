@@ -80,6 +80,16 @@ test_that("check_ct_data works correctly", {
                 "DSRAEFL does not have a unique control term, consider spcificing a dataset")
    expect_error(check_ct_data(data, spec_mod))
    expect_equal(check_ct_data(data, spec_mod, TRUE), data)
+
+   # Check character vector input for na_acceptable:
+   expect_error(check_ct_data(data, spec, na_acceptable = c("DISCONFL", "DSRAEFL")))
+   expect_error(check_ct_data(data, spec, 1))
+
+   # Check omit_vars:
+   expect_error(check_ct_data(data, spec, omit_vars = c("A", "B")))
+   expect_error(check_ct_data(data, spec, FALSE, omit_vars = c("DISCONFL", "DSRAEFL")))
+   expect_equal(check_ct_data(data, spec_mod, na_acceptable = NULL, omit_vars = "DISCONFL"), data)
+
 })
 
 test_that("variable_check works correctly", {
