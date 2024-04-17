@@ -42,5 +42,6 @@ Suggests:
     safetyData,
     admiral.test
 Config/testthat/edition: 3
-URL: https://pharmaverse.github.io/metatools/
+URL: https://github.com/pharmaverse/metatools,
+     https://pharmaverse.github.io/metatools/
 BugReports: https://github.com/pharmaverse/metatools/issues
