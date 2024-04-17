@@ -118,13 +118,17 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL){
 #'   dataset of interest. If any variable has different codelists for different
 #'   datasets the metacore object will need to be subsetted using
 #'   `select_dataset` from the metacore package.
-#' @param na_acceptable Logical value, set to `NULL` by default, so the
-#'   acceptability of missing values is based on if the core for the variable is
-#'   "Required" in the `metacore` object. If set to `TRUE` then will
+#' @param na_acceptable `logical` value or `character` vector, set to `NULL` by default.
+#'   `NULL` sets the acceptability of missing values based on if the core for
+#'   the variable is "Required" in the `metacore` object. If set to `TRUE` then will
 #'   pass check if values are in the control terminology or are missing. If set
-#'   to `FALSE`then NA will not be acceptable.
+#'   to `FALSE` then NA will not be acceptable. If set to a `character` vector then
+#'   only the specified variables may contain NA values.
+#' @param omit_vars `character` vector indicating which variables should be skipped
+#'   when doing the controlled terminology checks. Internally, `omit_vars` is
+#'   evaluated before `na_acceptable`.
 #'
-#' @importFrom purrr map_lgl map safely discard
+#' @importFrom purrr map_lgl map map2 safely discard
 #' @importFrom dplyr filter pull select inner_join
 #' @importFrom stringr str_remove
 #' @return Given data if all columns pass. It will error otherwise
@@ -137,8 +141,13 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL){
 #' load(metacore_example("pilot_ADaM.rda"))
 #' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
+#'
 #' check_ct_data(data, spec)
-check_ct_data <- function(data, metacore, na_acceptable = NULL) {
+#' check_ct_data(data, spec, na_acceptable = FALSE)
+#' check_ct_data(data, spec, na_acceptable = FALSE, omit_vars = "DISCONFL")
+#' check_ct_data(data, spec, na_acceptable = c("DSRAEFL", "DCSREAS"), omit_vars = "DISCONFL")
+#'
+check_ct_data <- function(data, metacore, na_acceptable = NULL, omit_vars = NULL) {
   codes_in_data <- metacore$value_spec %>%
     filter(variable %in% names(data), !is.na(code_id)) %>%
     pull(code_id) %>%
@@ -153,13 +162,38 @@ check_ct_data <- function(data, metacore, na_acceptable = NULL) {
     filter(variable %in% names(data)) %>%
     pull(variable) %>%
     unique()
+
+  # Subset cols_to_check by omit_vars
+  if (is.character(omit_vars)) {
+     check_vars_in_data(omit_vars, "omit_vars", data)
+     cols_to_check <- setdiff(cols_to_check, omit_vars)
+  }
+
   # send all variables through check_ct_col
   safe_chk <- safely(check_ct_col)
-  results <- cols_to_check %>%
-    map(function(x) {
-       out <- safe_chk(data, metacore, {{ x }}, na_acceptable)
-       out$error
-    })
+
+  if (is.character(na_acceptable)) {
+     check_vars_in_data(na_acceptable, "na_acceptable", data)
+     new_na_acceptable <- rep(FALSE, length(cols_to_check))
+     new_na_acceptable[match(na_acceptable, cols_to_check)] <- TRUE
+
+     results <- map2(cols_to_check, new_na_acceptable, function(x, naac) {
+        out <- safe_chk(data, metacore, {{ x }}, naac)
+        out$error
+     })
+
+  } else if(is.logical(na_acceptable) || is.null(na_acceptable)) {
+     results <- cols_to_check %>%
+        map(function(x) {
+           out <- safe_chk(data, metacore, {{ x }}, na_acceptable)
+           out$error
+        })
+
+  } else {
+     stop("na_acceptable is not NULL, logical or character.", call. = FALSE)
+  }
+
+
   # Write out warning message
   test <- map_lgl(results, is.null)
   if (all(test)) {
@@ -185,6 +219,17 @@ check_ct_data <- function(data, metacore, na_acceptable = NULL) {
   }
 }
 
+check_vars_in_data <- function(vars, vars_name, data) {
+   if (!all(vars %in% names(data))) {
+      stop(
+         paste0(
+            "Not all variables from ", vars_name, " are in the data: ",
+            paste0(setdiff(vars, names(data)), collapse = ",")
+         ),
+         call. = FALSE)
+   }
+   return(NULL)
+}
 
 #' Check Variable Names
 #'
