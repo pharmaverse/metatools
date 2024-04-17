@@ -1,3 +1,7 @@
+# metatools 0.1.5
+* Anhance `check_ct_data()` so that `na_acceptable` can now accept a vector of variables. Also add new argument `omit_vars` to control if any variables should
+be skipped when doing controlled terminology checks (#57).
+
 # metatools 0.1.4
 * correct bug with `combine_supp()` when the data and the supp have white space. Now it will be trimmed before attempting to merge  
 * Updates made to work with the newest version of dplyr 
