@@ -143,10 +143,12 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL){
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #'
 #' check_ct_data(data, spec)
+#' \dontrun{
+#' # These examples produce errors:
 #' check_ct_data(data, spec, na_acceptable = FALSE)
 #' check_ct_data(data, spec, na_acceptable = FALSE, omit_vars = "DISCONFL")
 #' check_ct_data(data, spec, na_acceptable = c("DSRAEFL", "DCSREAS"), omit_vars = "DISCONFL")
-#'
+#'}
 check_ct_data <- function(data, metacore, na_acceptable = NULL, omit_vars = NULL) {
   codes_in_data <- metacore$value_spec %>%
     filter(variable %in% names(data), !is.na(code_id)) %>%
