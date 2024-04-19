@@ -164,21 +164,106 @@ combine_supp <- function(dataset, supp){
        paste(existing_qnam, sep = ", ")
      )
    }
-   by <- names(dataset)
 
    # In order to prevent issues when there are multiple IDVARS we need to merge
    # each IDVAR into the domain seperately (otherwise there is problems when the
    # two IDVARS don't overlap)
 
-   supp %>%
-      select(-any_of(c("QLABEL", "QORIG", "QEVAL"))) %>% #Removing columns not for the main dataset
-      rename(DOMAIN = RDOMAIN) %>%
-      group_by(IDVAR) %>% #For when there are multiple IDs
-      group_split() %>%
-      map(~combine_supp_by_idvar(dataset, .)) %>%
-      reduce(full_join, by= by)
+   supp_wides_prep <-
+     supp %>%
+     select(-any_of(c("QLABEL", "QORIG", "QEVAL"))) %>% #Removing columns not for the main dataset
+     rename(DOMAIN = RDOMAIN) %>%
+     group_by(IDVAR, QNAM) %>% #For when there are multiple IDs
+     group_split()
+
+   supp_wides <- purrr::pmap(.l = list(supp = supp_wides_prep), .f = combine_supp_make_wide)
+   ret <- reduce(.x = append(list(dataset), supp_wides), .f = combine_supp_join)
+   ret
 }
 
+# Create a wide version of `supp` for merging into the source dataset.
+combine_supp_make_wide <- function(supp) {
+  stopifnot(length(unique(supp$IDVAR)) == 1)
+  stopifnot(length(unique(supp$QNAM)) == 1)
+  # Get the IDVAR value to allow for renaming of IDVARVAL
+  id_var <- unique(supp$IDVAR)
+
+  wide_x <-
+    supp %>%
+    pivot_wider(
+      names_from = QNAM,
+      values_from = QVAL
+    )
+  wide_x$QNAM <- unique(supp$QNAM)
+  if (!is.na(id_var) && id_var != "") {
+    wide_x <-
+      wide_x %>%
+      mutate(IDVARVAL = str_trim(as.character(IDVARVAL)))
+  } else {
+    wide_x$IDVARVAL <- NULL
+  }
+  wide_x
+}
+
+combine_supp_join <- function(dataset, supp) {
+  current_idvar <- unique(supp$IDVAR)
+  current_qnam <- unique(supp$QNAM)
+  stopifnot(length(current_idvar) == 1)
+  stopifnot(length(current_qnam) == 1)
+
+  by <- intersect(names(supp), c("STUDYID", "DOMAIN", "USUBJID", "IDVARVAL"))
+  supp_prep <- supp %>% select(-QNAM, -IDVAR)
+  new_column <- setdiff(names(supp_prep), by)
+  stopifnot(length(new_column) == 1)
+
+  # Prepare IDVARVAL
+  ret <- dataset
+  if ("IDVARVAL" %in% by) {
+    # Match the IDVARVAL column in supp
+    ret$IDVARVAL <- str_trim(as.character(ret[[current_idvar]]))
+  } else {
+    # A dummy column that can be removed later
+    ret$IDVARVAL <- FALSE
+  }
+
+  # Put the new data in
+  if (new_column %in% names(dataset)) {
+    # Patch the data
+    mask_na_ret_before <- is.na(ret[[new_column]])
+    ret_orig <- ret
+    ret <- dplyr::rows_patch(x = ret, y = supp_prep, by = by)
+    mask_na_ret_after <- is.na(ret[[new_column]])
+
+    expected_na_difference <- sum(!is.na(supp_prep[[new_column]]))
+    actual_na_difference <- sum(!mask_na_ret_after) - sum(!mask_na_ret_before)
+    if (expected_na_difference != actual_na_difference) {
+      stop(
+        "An unexpected number of rows were replaced while merging QNAM ", current_qnam, " and IDVAR ", current_idvar,
+        "\n  Please verify that your SUPP domain is valid SDTM with only one matched row per key column set")
+    }
+  } else {
+    # Verify that nothing will be missed
+    missing <- anti_join(supp_prep, ret, by = by)
+
+    # Add message for when there are rows in the supp that didn't get merged
+    if(nrow(missing) > 0) {
+      missing_txt <-
+        capture.output(
+          missing %>%
+            select(USUBJID, all_of(current_idvar)) %>%
+            print()
+        ) %>%
+        paste0(collapse = "\n")
+      stop(paste0("Not all rows of the Supp were merged. The following rows are missing:\n",
+                  missing_txt),
+           call. = FALSE)
+    }
+
+    # join the data
+    ret <- left_join(ret, supp_prep, by = by)
+  }
+  ret
+}
 
 #' Handles the combining of datasets and supps for a single IDVAR
 #'
@@ -192,9 +277,7 @@ combine_supp <- function(dataset, supp){
 #' @importFrom stringr str_trim
 combine_supp_by_idvar <- function(dataset, supp){
    # Get the IDVAR value to allow for renaming of IDVARVAL
-   id_var <- supp %>%
-      pull(IDVAR) %>%
-      unique()
+   id_var <- unique(supp$IDVAR)
 
    wide_x <- supp %>%
       pivot_wider(
@@ -202,8 +285,7 @@ combine_supp_by_idvar <- function(dataset, supp){
          values_from = QVAL) %>%
       select(-IDVAR)
 
-
-   if(!is.na(id_var) && id_var  != ""){
+   if(!is.na(id_var) && id_var != ""){
       id_var_sym <- sym(id_var)
 
       by <- c("STUDYID", "DOMAIN", "USUBJID", "IDVARVAL")
@@ -218,10 +300,10 @@ combine_supp_by_idvar <- function(dataset, supp){
       out <- left_join(dataset_chr, wide_x,
                        by = by) %>%
          select(-IDVARVAL)
-      missing<- anti_join(wide_x,dataset_chr, by = by)
+      missing <- anti_join(wide_x,dataset_chr, by = by)
 
       # Add message for when there are rows in the supp that didn't get merged
-      if(nrow(missing) > 0){
+      if(nrow(missing) > 0) {
          missing_txt <- capture.output(missing %>%
                                           select(USUBJID, !!sym(id_var)) %>%
                                           print()) %>%
@@ -239,4 +321,3 @@ combine_supp_by_idvar <- function(dataset, supp){
    }
    out
 }
-
