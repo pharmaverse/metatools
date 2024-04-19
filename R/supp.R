@@ -137,6 +137,10 @@ combine_supp <- function(dataset, supp){
    if(!is.data.frame(dataset) | !is.data.frame(supp)){
       stop("You must supply a domain and supplemental dataset", call. = FALSE)
    }
+  if (nrow(supp) == 0) {
+    warning("Zero rows in supp, returning original dataset unchanged")
+    return(dataset)
+  }
    supp_cols <- c("STUDYID", "RDOMAIN", "USUBJID", "IDVAR", "IDVARVAL",
                   "QNAM", "QLABEL", "QVAL", "QORIG")
    maybe <- c("QEVAL")
