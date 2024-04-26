@@ -13,6 +13,10 @@ Authors@R: c(
            role = c("aut"),
            email = "mike.stackhouse@atorusresearch.com",
            comment = c(ORCID = "0000-0001-6030-723X")),
+         person(given = "Jana",
+           family = "Stoilova",
+           role = c("aut"),
+           email = "jana.stoilova@roche.com"),
          person("GlaxoSmithKline LLC", role = c("cph", "fnd")),
          person("F. Hoffmann-La Roche AG", role = c("cph", "fnd")),
          person("Atorus Research LLC", role = c("cph", "fnd"))
@@ -39,6 +43,7 @@ Suggests:
     admiral.test,
     spelling
 Config/testthat/edition: 3
-URL: https://pharmaverse.github.io/metatools/
+URL: https://github.com/pharmaverse/metatools,
+     https://pharmaverse.github.io/metatools/
 BugReports: https://github.com/pharmaverse/metatools/issues
 Language: en-US

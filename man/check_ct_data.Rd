@@ -4,7 +4,7 @@
 \alias{check_ct_data}
 \title{Check Control Terminology for a Dataset}
 \usage{
-check_ct_data(data, metacore, na_acceptable = NULL)
+check_ct_data(data, metacore, na_acceptable = NULL, omit_vars = NULL)
 }
 \arguments{
 \item{data}{Dataset to check}
@@ -14,11 +14,16 @@ dataset of interest. If any variable has different codelists for different
 datasets the metacore object will need to be subsetted using
 `select_dataset` from the metacore package.}
 
-\item{na_acceptable}{Logical value, set to `NULL` by default, so the
-acceptability of missing values is based on if the core for the variable is
-"Required" in the `metacore` object. If set to `TRUE` then will
+\item{na_acceptable}{`logical` value or `character` vector, set to `NULL` by default.
+`NULL` sets the acceptability of missing values based on if the core for
+the variable is "Required" in the `metacore` object. If set to `TRUE` then will
 pass check if values are in the control terminology or are missing. If set
-to `FALSE`then NA will not be acceptable.}
+to `FALSE` then NA will not be acceptable. If set to a `character` vector then
+only the specified variables may contain NA values.}
+
+\item{omit_vars}{`character` vector indicating which variables should be skipped
+when doing the controlled terminology checks. Internally, `omit_vars` is
+evaluated before `na_acceptable`.}
 }
 \value{
 Given data if all columns pass. It will error otherwise
@@ -34,5 +39,12 @@ library(magrittr)
 load(metacore_example("pilot_ADaM.rda"))
 spec <- metacore \%>\% select_dataset("ADSL")
 data <- read_xpt(metatools_example("adsl.xpt"))
+
 check_ct_data(data, spec)
+\dontrun{
+# These examples produce errors:
+check_ct_data(data, spec, na_acceptable = FALSE)
+check_ct_data(data, spec, na_acceptable = FALSE, omit_vars = "DISCONFL")
+check_ct_data(data, spec, na_acceptable = c("DSRAEFL", "DCSREAS"), omit_vars = "DISCONFL")
+}
 }
