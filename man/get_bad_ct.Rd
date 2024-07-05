@@ -19,7 +19,7 @@ need to be subsetted using `select_dataset` from the metacore package.}
 acceptability of missing values is based on if the core for the variable is
 "Required" in the `metacore` object. If set to `TRUE` then will pass check
 if values are in the control terminology or are missing. If set to
-`FALSE`then NA will not be acceptable.e}
+`FALSE` then NA will not be acceptable.}
 }
 \value{
 vector

@@ -58,7 +58,7 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
 #'   acceptability of missing values is based on if the core for the variable is
 #'   "Required" in the `metacore` object. If set to `TRUE` then will pass check
 #'   if values are in the control terminology or are missing. If set to
-#'   `FALSE`then NA will not be acceptable.e
+#'   `FALSE` then NA will not be acceptable.
 #'
 #' @return vector
 #' @importFrom metacore get_control_term
@@ -237,8 +237,8 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #'
 #' This function checks the variables in the dataset against the variables
 #' defined in the metacore specifications. If everything matches the function
-#' will return `TRUE` and a message starting everything is as expected. If there
-#' are additional or missing variables and error will explain the discrepancies
+#' will print a message stating everything is as expected. If there
+#' are additional or missing variables an error will explain the discrepancies
 #' @param data Dataset to check
 #' @param metacore metacore object that only contains the specifications for the
 #'   dataset of interest.
@@ -287,6 +287,59 @@ check_variables <- function(data, metacore, dataset_name = NULL) {
       "The following variables do not belong:\n",
       paste0(extra, collapse = "\n")
     ))
+  }
+  data
+}
+
+#' Check Uniqueness of Records by Key
+#'
+#' This function checks the uniqueness of records in the dataset by key using
+#' `get_keys` from the metacore package. If the key uniquely identifies each
+#' record the function will print a message stating everything is as expected.
+#' If records are not uniquely identified an error will explain the duplicates.
+#' @param data Dataset to check
+#' @param metacore metacore object that only contains the specifications for the
+#'   dataset of interest.
+#' @param dataset_name Optional string to specify the dataset. This is only
+#'   needed if the metacore object provided hasn't already been subsetted.
+#'
+#' @return message if the key uniquely identifies each dataset record, and error otherwise
+#' @export
+#' @importFrom metacore get_keys
+#' @importFrom dplyr pull add_count
+#' @importFrom rlang expr
+#'
+#' @examples
+#' library(haven)
+#' library(metacore)
+#' library(magrittr)
+#' load(metacore_example("pilot_ADaM.rda"))
+#' spec <- metacore %>% select_dataset("ADSL")
+#' data <- read_xpt(metatools_example("adsl.xpt"))
+#' check_unique_keys(data, spec)
+check_unique_keys <- function(data, metacore, dataset_name = NULL) {
+  metacore <- make_lone_dataset(metacore, dataset_name)
+  keys <- get_keys(metacore,expr(!!metacore$ds_spec$dataset))
+  var_list <- keys %>%
+    pull(variable)
+  missing <- var_list %>%
+    discard(~ . %in% names(data))
+  if (length(missing) > 0) {
+    stop(paste0(
+      "The following variable keys are missing in the dataset:\n",
+      paste0(missing, collapse = "\n")
+    ))
+    }
+  grouped <- data %>%
+    group_by(pick(!!keys$variable)) %>%
+    add_count() %>%
+    filter(n != 1)
+  if (nrow(grouped) == 0) {
+    message("Keys uniquely identify records")
+  } else {
+    stop(paste0("Keys do not uniquely identify records\n",
+                "variable keys:\n",
+                paste0(var_list, collapse = "\n")))
   }
   data
 }
