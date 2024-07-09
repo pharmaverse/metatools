@@ -101,3 +101,21 @@ test_that("variable_check works correctly", {
    data_mis_ex <- data_extra %>% select(-1)
    expect_error(check_variables(data_mis_ex, spec))
 })
+
+test_that("check_unique_keys works as expected", {
+   #check requirement for subsetted metacore object or a dataset name
+   expect_error(check_unique_keys(data, metacore))
+   #check missing variable keys error
+   expect_error(check_unique_keys(data, metacore, dataset_name = "ADVS"))
+   #check works correctly when records are unique
+   expect_message(check_unique_keys(data, metacore, dataset_name = "ADSL"))
+   #check works correctly when records are not unique
+   test <- build_from_derived(metacore,
+                              dataset_name = "ADLBHY",
+                              ds_list = list("LB" = safetyData::sdtm_lb,
+                                              "ADSL" = safetyData::adam_adsl,
+                                              "ADLBC" = safetyData::adam_adlbc),
+                              predecessor_only = FALSE,
+                              keep = FALSE)
+   expect_error(check_unique_keys(test, metacore, dataset_name = "ADLBHY"))
+})

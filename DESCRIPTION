@@ -17,6 +17,10 @@ Authors@R: c(
            family = "Stoilova",
            role = c("aut"),
            email = "jana.stoilova@roche.com"),
+         person(given = "Tamara",
+           family = "Senior",
+           role = c("aut"),
+           email = "tamara.senior@roche.com"),
          person("GlaxoSmithKline LLC", role = c("cph", "fnd")),
          person("F. Hoffmann-La Roche AG", role = c("cph", "fnd")),
          person("Atorus Research LLC", role = c("cph", "fnd"))
@@ -40,7 +44,7 @@ Suggests:
     haven,
     covr,
     safetyData,
-    admiral.test,
+    pharmaversesdtm,
     spelling
 Config/testthat/edition: 3
 URL: https://github.com/pharmaverse/metatools,

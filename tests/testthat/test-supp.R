@@ -182,14 +182,14 @@ test_that("combine_supp", {
 
 test_that("combine_supp works with different IDVARVAL classes", {
    expect_equal(
-      combine_supp(admiral.test::admiral_ae, admiral.test::admiral_suppae) %>%
+      combine_supp(pharmaversesdtm::ae, pharmaversesdtm::suppae) %>%
       pull(AESEQ),
-      admiral.test::admiral_ae %>% pull(AESEQ)
+      pharmaversesdtm::ae %>% pull(AESEQ)
    )
 })
 
 test_that("combine_supp works with without QEVAL", {
-   expect_silent(combine_supp(admiral.test::admiral_tr, admiral.test::admiral_supptr))
+   expect_silent(combine_supp(pharmaversesdtm::tr_onco, pharmaversesdtm::supptr_onco))
 })
 
 test_that("supp data that does not match the main data will raise a warning", {
