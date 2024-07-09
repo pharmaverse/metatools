@@ -1,87 +1,32 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/404.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/index.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/news/index.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/add_labels.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/add_variables.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/build_from_derived.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/build_qnam.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/check_ct_col.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/check_ct_data.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/check_variables.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/combine_supp.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/convert_var_to_fct.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/create_cat_var.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/create_subgrps.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/create_var_from_codelist.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/drop_unspec_vars.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/get_bad_ct.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/make_supp_qual.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/metatools_example.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/order_cols.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/pipe.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/remove_labels.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/set_variable_labels.html</loc>
-  </url>
-  <url>
-    <loc>https://pharmaverse.github.io/metatools/reference/sort_by_key.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://pharmaverse.github.io/metatools/404.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/LICENSE-text.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/LICENSE.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/authors.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/index.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/news/index.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/add_labels.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/add_variables.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/build_from_derived.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/build_qnam.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/check_ct_col.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/check_ct_data.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/check_unique_keys.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/check_variables.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/combine_supp.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/convert_var_to_fct.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/create_cat_var.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/create_subgrps.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/create_var_from_codelist.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/drop_unspec_vars.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/get_bad_ct.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/index.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/make_supp_qual.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/metatools_example.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/order_cols.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/pipe.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/remove_labels.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/set_variable_labels.html</loc></url>
+<url><loc>https://pharmaverse.github.io/metatools/reference/sort_by_key.html</loc></url>
 </urlset>
+
