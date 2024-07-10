@@ -12,8 +12,9 @@
 #' @param dataset_name Optional string to specify the dataset that is being
 #'   built. This is only needed if the metacore object provided hasn't already
 #'   been subsetted.
-#' @param predecessor_only By default `FALSE`, but if `TRUE` will only use
-#'   derivations with the origin of 'Predecessor'
+#' @param predecessor_only By default `TRUE`, so only variables with the
+#'   origin of 'Predecessor' will be used. If `FALSE` any derivation matching the
+#'   dataset.variable will be used.
 #' @param keep Boolean to determine if the original columns should be kept. By
 #'   default `FALSE`, so only the ADaM columns are kept. If `TRUE` the resulting
 #'   dataset will have all the ADaM columns as well as any SDTM column that were
@@ -67,10 +68,16 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
    names(ds_list) <- names(ds_list) %>%
       str_to_lower()
    if (!all(ds_names %in% names(ds_list))) {
-      stop(paste0(
-         "Not all datasets provided. Please pass the following dataset(s):\n",
-         paste0(str_to_upper(ds_names), collapse = "\n")
+      message(paste0(
+         "Not all datasets provided. Only variables from ",
+         paste0(str_to_upper(names(ds_list)), collapse = ", "),
+         " will be gathered."
       ))
+
+      # Filter out any variable that come from datasets that aren't present
+      vars_w_ds <- vars_w_ds |>
+         filter(ds %in% names(ds_list))
+
    }
 
    ds_keys <- metacore$ds_vars %>%
