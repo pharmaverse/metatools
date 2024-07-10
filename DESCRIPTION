@@ -1,7 +1,7 @@
 Package: metatools
 Type: Package
 Title: Enable the Use of 'metacore' to Help Create and Check Dataset
-Version: 0.1.5.9000
+Version: 0.1.6
 Authors@R: c(
          person(given = "Christina",
              family = "Fillmore",
