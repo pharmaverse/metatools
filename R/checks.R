@@ -306,7 +306,7 @@ check_variables <- function(data, metacore, dataset_name = NULL) {
 #' @return message if the key uniquely identifies each dataset record, and error otherwise
 #' @export
 #' @importFrom metacore get_keys
-#' @importFrom dplyr pull add_count
+#' @importFrom dplyr pull add_count pick
 #' @importFrom rlang expr
 #'
 #' @examples
@@ -333,7 +333,7 @@ check_unique_keys <- function(data, metacore, dataset_name = NULL) {
   grouped <- data %>%
     group_by(pick(!!keys$variable)) %>%
     add_count() %>%
-    filter(n != 1)
+    filter(.data$n != 1)
   if (nrow(grouped) == 0) {
     message("Keys uniquely identify records")
   } else {
