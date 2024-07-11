@@ -22,8 +22,9 @@ dataset of interest.}
 built. This is only needed if the metacore object provided hasn't already
 been subsetted.}
 
-\item{predecessor_only}{By default `FALSE`, but if `TRUE` will only use
-derivations with the origin of 'Predecessor'}
+\item{predecessor_only}{By default `TRUE`, so only variables with the
+origin of 'Predecessor' will be used. If `FALSE` any derivation matching the
+dataset.variable will be used.}
 
 \item{keep}{Boolean to determine if the original columns should be kept. By
 default `FALSE`, so only the ADaM columns are kept. If `TRUE` the resulting

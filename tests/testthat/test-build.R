@@ -73,15 +73,25 @@ test_that("build_from_derived", {
   adsl_part_vars <- spec2$derivations %>%
      filter(str_detect(derivation,"ADSL\\.[[:alnum:]]*$")) %>%
      pull(derivation) %>%
-     str_remove("^ADSL\\.") %>%
-     c("STUDYID", "USUBJID", .)
+     str_remove("^ADSL\\.")
   adsl_part <-
-     select(safetyData::adam_adsl, all_of(adsl_part_vars))
+     select(safetyData::adam_adsl, all_of(adsl_part_vars)) |>
+     rename(TRTA = TRT01A, TRTAN = TRT01AN)
 
   adae_man <- full_join(adsl_part, ae_part, by = c("STUDYID", "USUBJID"), multiple = "all") %>%
-     rename(TRTA = TRT01A, TRTAN = TRT01AN) %>%
      select(all_of(names(adae_auto)), everything())
   expect_equal(adae_auto,adae_man )
+
+
+  # Pulling through from one dataset when spec has more than one
+  adae_auto_adsl_only <- build_from_derived(spec2,
+                                  ds_list = list("ADSL" = safetyData::adam_adsl),
+                                  predecessor_only = FALSE,
+                                  keep = FALSE
+  ) |>
+     order_cols(spec2)
+  adsl_man <- order_cols(adsl_part, spec2)
+  expect_equal(adae_auto_adsl_only, adsl_man)
 
 })
 
