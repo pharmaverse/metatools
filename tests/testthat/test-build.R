@@ -93,6 +93,22 @@ test_that("build_from_derived", {
   adsl_man <- order_cols(adsl_part, spec2)
   expect_equal(adae_auto_adsl_only, adsl_man)
 
+  adsl = safetyData::adam_adsl
+  ae = safetyData::sdtm_ae
+  adae_auto_unnamed <- build_from_derived(spec2,
+                                  ds_list = list(ae, adsl),
+                                  predecessor_only = FALSE,
+                                  keep = FALSE
+  )
+  expect_equal(adae_auto,adae_man)
+
+  expect_warning(build_from_derived(spec2,
+                                    ds_list = list(safetyData::sdtm_ae, adsl),
+                                    predecessor_only = FALSE,
+                                    keep = FALSE
+  ))
+
+
 })
 
 

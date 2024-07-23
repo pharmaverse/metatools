@@ -16,14 +16,15 @@ build_from_derived(
 \item{metacore}{metacore object that contains the specifications for the
 dataset of interest.}
 
-\item{ds_list}{Named list of datasets that are needed to build the from}
+\item{ds_list}{Named list of datasets that are needed to build the from. If
+the list is unnamed,then it will use the names of the objects.}
 
 \item{dataset_name}{Optional string to specify the dataset that is being
 built. This is only needed if the metacore object provided hasn't already
 been subsetted.}
 
-\item{predecessor_only}{By default `TRUE`, so only variables with the
-origin of 'Predecessor' will be used. If `FALSE` any derivation matching the
+\item{predecessor_only}{By default `TRUE`, so only variables with the origin
+of 'Predecessor' will be used. If `FALSE` any derivation matching the
 dataset.variable will be used.}
 
 \item{keep}{Boolean to determine if the original columns should be kept. By

@@ -8,12 +8,13 @@
 #' but this is not universal so that is optional to specify.
 #' @param metacore metacore object that contains the specifications for the
 #'   dataset of interest.
-#' @param ds_list Named list of datasets that are needed to build the from
+#' @param ds_list Named list of datasets that are needed to build the from. If
+#'   the list is unnamed,then it will use the names of the objects.
 #' @param dataset_name Optional string to specify the dataset that is being
 #'   built. This is only needed if the metacore object provided hasn't already
 #'   been subsetted.
-#' @param predecessor_only By default `TRUE`, so only variables with the
-#'   origin of 'Predecessor' will be used. If `FALSE` any derivation matching the
+#' @param predecessor_only By default `TRUE`, so only variables with the origin
+#'   of 'Predecessor' will be used. If `FALSE` any derivation matching the
 #'   dataset.variable will be used.
 #' @param keep Boolean to determine if the original columns should be kept. By
 #'   default `FALSE`, so only the ADaM columns are kept. If `TRUE` the resulting
@@ -24,6 +25,7 @@
 #' @return dataset
 #' @export
 #' @importFrom stringr str_to_lower str_detect str_extract str_to_upper
+#'   str_split
 #' @importFrom dplyr filter pull mutate group_by group_split inner_join select
 #'   full_join bind_rows
 #' @importFrom tidyr unnest
@@ -65,12 +67,29 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
    ds_names <- vars_w_ds %>%
       pull(ds) %>%
       unique()
+   if(is.null(names(ds_list))){
+      names(ds_list) <- deparse(substitute(ds_list)) |>
+         str_remove("list\\s?\\(") |>
+         str_remove("\\)s?$") |>
+         str_split(",\\s?") |>
+         unlist()
+   }
    names(ds_list) <- names(ds_list) %>%
       str_to_lower()
    if (!all(ds_names %in% names(ds_list))) {
+      unknown <- keep(names(ds_list), ~!.%in% ds_names)
+      if(length(unknown) > 0){
+         warning(paste0("The following dataset(s) have no predecessors and will be ignored:\n"),
+                 paste0(unknown, collapse = ", "),
+                 call. = FALSE)
+      }
+      ds_using <- discard(names(ds_list), ~. %in% unknown) |>
+         str_to_upper() |>
+         paste0(collapse = ", ")
+
       message(paste0(
          "Not all datasets provided. Only variables from ",
-         paste0(str_to_upper(names(ds_list)), collapse = ", "),
+         ds_using,
          " will be gathered."
       ))
 
