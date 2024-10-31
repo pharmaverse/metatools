@@ -42,6 +42,8 @@
 #' build_from_derived(spec, ds_list, predecessor_only = FALSE)
 build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
                                predecessor_only = TRUE, keep = FALSE) {
+   browser()
+   keep <- match.arg(as.character(keep), c("TRUE", "FALSE", "ALL", "UNUSED"))
    metacore <- make_lone_dataset(metacore, dataset_name)
    derirvations <- metacore$derivations %>%
       mutate(derivation = trimws(derivation))
@@ -60,6 +62,7 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
 
    vars_to_pull_through <- derirvations %>%
       filter(str_detect(derivation, "^\\w*\\.[a-zA-Z0-9]*$"))
+
    # To lower so it is flexible about how people name their ds list
    vars_w_ds <- vars_to_pull_through %>%
       mutate(ds = str_extract(derivation, "^\\w*(?=\\.)") %>%
@@ -144,14 +147,33 @@ get_variables <- function(x, ds_list, keep) {
    ds_name <- unique(x$ds)
    data <- ds_list[[ds_name]]
    rename_vec <- set_names(x$col_name, x$variable)
-   if (keep) {
+   if (keep == "TRUE") {
+      # Don't drop predecessor columns
       out <- data %>%
          select(x$col_name) %>%
          mutate(across(all_of(rename_vec)))
-   } else {
+   } else if (keep == "FALSE") {
+      # Drop predecessor columns
       out <- data %>%
          select(x$col_name) %>%
          rename(all_of(rename_vec))
+   } else if (keep == "ALL") {
+      # Keep all cols from original datasets
+      out <- data %>%
+         mutate(across(all_of(rename_vec)))
+   } else if (keep == "PREREQUISITE") {
+      # Keep all columns required for future derivations
+      vars_to_pull_through <- derirvations %>%
+         filter(str_detect(derivation, "^\\w*\\.[a-zA-Z0-9]*$"))
+   }
+   out
+}
+
+prepare_join <- function(x) {
+   if (length(x) < 2){
+      out <- x
+   } else {
+
    }
    out
 }
