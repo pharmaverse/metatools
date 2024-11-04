@@ -43,7 +43,7 @@
 build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
                                predecessor_only = TRUE, keep = FALSE) {
    browser()
-   keep <- match.arg(as.character(keep), c("TRUE", "FALSE", "ALL", "UNUSED"))
+   keep <- match.arg(as.character(keep), c("TRUE", "FALSE", "ALL", "PREREQUISITE"))
    metacore <- make_lone_dataset(metacore, dataset_name)
    derirvations <- metacore$derivations %>%
       mutate(derivation = trimws(derivation))
@@ -127,10 +127,9 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
       group_by(ds) %>%
       group_split() %>%
       map(get_variables, ds_list, keep) %>%
+      prepare_join(join_by) %>%
       reduce(full_join, by = join_by)
 }
-
-
 
 #' Internal functions to get variables from a dataset list
 #'
@@ -169,11 +168,19 @@ get_variables <- function(x, ds_list, keep) {
    out
 }
 
-prepare_join <- function(x) {
-   if (length(x) < 2){
-      out <- x
-   } else {
+prepare_join <- function(x, keys) {
+   browser()
+   out <- list(x[[1]])
 
+   if (length(x) > 1){
+      for (i in 2:length(x)){
+         # Drop non-key cols present in each previous dataset in order
+         for (j in 1:(i-1)){
+            out[[i]] <- x[[i]] %>%
+               select(-any_of(keep(names(x[[j]]),
+                                   function(col) !(col %in% keys))))
+         }
+      }
    }
    out
 }
