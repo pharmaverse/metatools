@@ -42,7 +42,13 @@
 #' build_from_derived(spec, ds_list, predecessor_only = FALSE)
 build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
                                predecessor_only = TRUE, keep = FALSE) {
+   # Deprecate KEEP = TRUE
    keep <- match.arg(as.character(keep), c("TRUE", "FALSE", "ALL", "PREREQUISITE"))
+   if (keep == "TRUE"){
+      warning("Setting 'keep' = TRUE has been superseded, and will be
+              unavailable in future releases. Please consider setting 'keep'
+              equal to 'ALL' or 'PREREQUISITE'.")
+   }
    metacore <- make_lone_dataset(metacore, dataset_name)
    derirvations <- metacore$derivations %>%
       mutate(derivation = trimws(derivation))
@@ -117,7 +123,7 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
           variable = joining_vals_to_add) %>%
       unnest(variable) %>%
       mutate(col_name = variable)
-
+   browser()
    vars_w_ds %>%
       mutate(col_name = str_extract(derivation, "(?<=\\.).*")) %>%
       inner_join(metacore$value_spec, ., by = "derivation_id") %>%
@@ -125,7 +131,7 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
       bind_rows(additional_vals) %>%
       group_by(ds) %>%
       group_split() %>%
-      map(get_variables, ds_list, keep) %>%
+      map(get_variables, ds_list, keep, derirvations) %>%
       prepare_join(join_by) %>%
       reduce(full_join, by = join_by)
 }
@@ -141,7 +147,8 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
 #'
 #' @return datasets
 #' @noRd
-get_variables <- function(x, ds_list, keep) {
+get_variables <- function(x, ds_list, keep, derivations) {
+   browser()
    ds_name <- unique(x$ds)
    data <- ds_list[[ds_name]]
    rename_vec <- set_names(x$col_name, x$variable)
@@ -161,12 +168,38 @@ get_variables <- function(x, ds_list, keep) {
          mutate(across(all_of(rename_vec)))
    } else if (keep == "PREREQUISITE") {
       # Keep all columns required for future derivations
-      vars_to_pull_through <- derirvations %>%
-         filter(str_detect(derivation, "^\\w*\\.[a-zA-Z0-9]*$"))
+      prereq_vector <- derivations$derivation %>%
+         str_match_all("([A-Z]+)\\.([A-Z0-9a-z]+)")
+
+      prereq_matrix <- do.call(rbind,prereq_vector) %>%
+         unique()
+
+      prereq_cols <- subset(prereq_matrix, tolower(prereq_matrix[,2]) == tolower(ds_name))[,3]
+
+      out <- data %>%
+         mutate(across(all_of(rename_vec))) %>%
+         select(c(prereq_cols,x$col_name))
    }
    out
 }
 
+select_required <- function(x, derivations, ds_name) {
+
+
+
+}
+
+#' Internal function to remove duplicated non-key variables prior to join
+#'
+#' This function is used with `build_from_derived` to drop columns that would
+#' cause a conflict on joining datasets, prioritising keeping columns in
+#' datasets earlier on in ds_list
+#'
+#' @param x List of datasets with all columns added
+#' @param keys List of key values to join on
+#'
+#' @return datasets
+#' @noRd
 prepare_join <- function(x, keys) {
    out <- list(x[[1]])
 
@@ -174,6 +207,7 @@ prepare_join <- function(x, keys) {
       for (i in 2:length(x)){
          # Drop non-key cols present in each previous dataset in order
          for (j in 1:(i-1)){
+            # WARNING
             out[[i]] <- x[[i]] %>%
                select(-any_of(keep(names(x[[j]]),
                                    function(col) !(col %in% keys))))
@@ -182,7 +216,6 @@ prepare_join <- function(x, keys) {
    }
    out
 }
-
 
 #' Drop Unspecified Variables
 #'
