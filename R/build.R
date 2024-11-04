@@ -42,7 +42,6 @@
 #' build_from_derived(spec, ds_list, predecessor_only = FALSE)
 build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
                                predecessor_only = TRUE, keep = FALSE) {
-   browser()
    keep <- match.arg(as.character(keep), c("TRUE", "FALSE", "ALL", "PREREQUISITE"))
    metacore <- make_lone_dataset(metacore, dataset_name)
    derirvations <- metacore$derivations %>%
@@ -169,7 +168,6 @@ get_variables <- function(x, ds_list, keep) {
 }
 
 prepare_join <- function(x, keys) {
-   browser()
    out <- list(x[[1]])
 
    if (length(x) > 1){
