@@ -123,7 +123,7 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
           variable = joining_vals_to_add) %>%
       unnest(variable) %>%
       mutate(col_name = variable)
-   browser()
+
    vars_w_ds %>%
       mutate(col_name = str_extract(derivation, "(?<=\\.).*")) %>%
       inner_join(metacore$value_spec, ., by = "derivation_id") %>%
@@ -148,7 +148,6 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
 #' @return datasets
 #' @noRd
 get_variables <- function(x, ds_list, keep, derivations) {
-   browser()
    ds_name <- unique(x$ds)
    data <- ds_list[[ds_name]]
    rename_vec <- set_names(x$col_name, x$variable)
@@ -168,25 +167,22 @@ get_variables <- function(x, ds_list, keep, derivations) {
          mutate(across(all_of(rename_vec)))
    } else if (keep == "PREREQUISITE") {
       # Keep all columns required for future derivations
+      # Find all "XX.XXXXX"
       prereq_vector <- derivations$derivation %>%
          str_match_all("([A-Z]+)\\.([A-Z0-9a-z]+)")
 
+      # Bind into matrix + remove dups
       prereq_matrix <- do.call(rbind,prereq_vector) %>%
          unique()
 
+      # Subset to those present in current dataset
       prereq_cols <- subset(prereq_matrix, tolower(prereq_matrix[,2]) == tolower(ds_name))[,3]
 
       out <- data %>%
          mutate(across(all_of(rename_vec))) %>%
-         select(c(prereq_cols,x$col_name))
+         select(c(x$col_name, prereq_cols))
    }
    out
-}
-
-select_required <- function(x, derivations, ds_name) {
-
-
-
 }
 
 #' Internal function to remove duplicated non-key variables prior to join
@@ -207,10 +203,13 @@ prepare_join <- function(x, keys) {
       for (i in 2:length(x)){
          # Drop non-key cols present in each previous dataset in order
          for (j in 1:(i-1)){
-            # WARNING
+            non_key <- keep(names(x[[j]]), function(col) !(col %in% keys))
             out[[i]] <- x[[i]] %>%
-               select(-any_of(keep(names(x[[j]]),
-                                   function(col) !(col %in% keys))))
+               select(-any_of(non_key))
+
+            if(length(intersect(non_key,colnames(x[[i]]))) > 0){
+               print(paste0())
+            }
          }
       }
    }
