@@ -25,7 +25,7 @@
 #' @return dataset
 #' @export
 #' @importFrom stringr str_to_lower str_detect str_extract str_to_upper
-#'   str_split
+#'   str_split str_match_all
 #' @importFrom dplyr filter pull mutate group_by group_split inner_join select
 #'   full_join bind_rows
 #' @importFrom tidyr unnest
@@ -45,9 +45,8 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
    # Deprecate KEEP = TRUE
    keep <- match.arg(as.character(keep), c("TRUE", "FALSE", "ALL", "PREREQUISITE"))
    if (keep == "TRUE"){
-      warning("Setting 'keep' = TRUE has been superseded, and will be
-              unavailable in future releases. Please consider setting 'keep'
-              equal to 'ALL' or 'PREREQUISITE'.")
+      warning("Setting 'keep' = TRUE has been superseded, and will be unavailable in future releases.
+   Please consider setting 'keep' equal to 'ALL' or 'PREREQUISITE'.")
    }
    metacore <- make_lone_dataset(metacore, dataset_name)
    derirvations <- metacore$derivations %>%
@@ -132,7 +131,7 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
       group_by(ds) %>%
       group_split() %>%
       map(get_variables, ds_list, keep, derirvations) %>%
-      prepare_join(join_by) %>%
+      prepare_join(join_by, names(ds_list)) %>%
       reduce(full_join, by = join_by)
 }
 
@@ -179,8 +178,9 @@ get_variables <- function(x, ds_list, keep, derivations) {
       prereq_cols <- subset(prereq_matrix, tolower(prereq_matrix[,2]) == tolower(ds_name))[,3]
 
       out <- data %>%
-         mutate(across(all_of(rename_vec))) %>%
-         select(c(x$col_name, prereq_cols))
+         select(c(x$col_name, prereq_cols)) %>%
+         mutate(across(all_of(rename_vec)))
+
    }
    out
 }
@@ -196,21 +196,26 @@ get_variables <- function(x, ds_list, keep, derivations) {
 #'
 #' @return datasets
 #' @noRd
-prepare_join <- function(x, keys) {
+prepare_join <- function(x, keys, ds_names) {
    out <- list(x[[1]])
 
    if (length(x) > 1){
       for (i in 2:length(x)){
          # Drop non-key cols present in each previous dataset in order
-         for (j in 1:(i-1)){
-            non_key <- keep(names(x[[j]]), function(col) !(col %in% keys))
-            out[[i]] <- x[[i]] %>%
-               select(-any_of(non_key))
+         drop_cols <- c()
 
-            if(length(intersect(non_key,colnames(x[[i]]))) > 0){
-               print(paste0())
+         for (j in 1:(i-1)){
+            conflicting_cols <- keep(names(x[[j]]), function(col) !(col %in% keys)) %>%
+               intersect(colnames(x[[i]]))
+            drop_cols <- c(drop_cols, conflicting_cols)
+
+            if(length(conflicting_cols) > 0){
+               message(paste0("Dropping column(s) from ", ds_names[[i]]," due to conflict with ",ds_names[[j]],": ", conflicting_cols,"."))
             }
          }
+
+         out[[i]] <- x[[i]] %>%
+            select(-any_of(drop_cols))
       }
    }
    out

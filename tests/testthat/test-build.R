@@ -46,13 +46,16 @@ test_that("build_from_derived", {
     unique() %>%
     c(., "TRT01P") %>%
     sort()
-  build_from_derived(spec, ds_list,
-    predecessor_only = FALSE,
-    keep = TRUE
-  ) %>%
-    names() %>%
-    sort() %>%
-    expect_equal(man_vars)
+
+  expect_warning(
+     build_from_derived(spec, ds_list,
+       predecessor_only = FALSE,
+       keep = TRUE
+     ) %>%
+       names() %>%
+       sort() %>%
+       expect_equal(man_vars)
+  )
 
   # Pulling through from more than one dataset
   spec2 <- metacore %>% select_dataset("ADAE")
@@ -108,6 +111,34 @@ test_that("build_from_derived", {
                                     keep = FALSE
   ))
 
+  # Pulling through all columns from original dataset
+  adae_full <- build_from_derived(spec2,
+                                  ds_list = list("AE" = safetyData::sdtm_ae,
+                                                 "ADSL" = safetyData::adam_adsl),
+                                  predecessor_only = FALSE,
+                                  keep = "ALL"
+  )
+
+  full_adsl_part <- safetyData::adam_adsl %>%
+     mutate(TRTA = TRT01A, TRTAN = TRT01AN)
+
+  adae_all_man <- full_join(full_adsl_part, safetyData::sdtm_ae, by = c("STUDYID", "USUBJID"), multiple = "all")
+
+  expect_equal(adae_full,adae_all_man)
+
+  # Pulling through columns required for future derivations
+  adae_prereq <- build_from_derived(spec2,
+                                  ds_list = list("AE" = safetyData::sdtm_ae,
+                                                 "ADSL" = safetyData::adam_adsl),
+                                  predecessor_only = FALSE,
+                                  keep = "PREREQUISITE"
+  )
+
+  adae_prereq_man <- adae_all_man %>%
+     select(c(names(adae_auto), TRT01A, TRT01AN, AEENDTC, AESTDTC)) %>%
+     select(all_of(names(adae_prereq)), everything())
+
+  expect_equal(adae_prereq, adae_prereq_man)
 
 })
 
