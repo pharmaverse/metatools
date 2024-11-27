@@ -28,7 +28,7 @@ test_that("build_from_derived", {
     pull(derivation) %>%
     str_remove("^DM\\.") %>%
     unique() %>%
-    ifelse(. == "ARM", "TRT01P", .) %>%
+    c("TRT01P") %>%
     sort()
   build_from_derived(spec, ds_list,
     predecessor_only = FALSE,
@@ -127,18 +127,34 @@ test_that("build_from_derived", {
   expect_equal(adae_full,adae_all_man)
 
   # Pulling through columns required for future derivations
-  adae_prereq <- build_from_derived(spec2,
-                                  ds_list = list("AE" = safetyData::sdtm_ae,
+  spec3 <- metacore %>% select_dataset("ADVS")
+
+  advs_prereq <- build_from_derived(spec3,
+                                  ds_list = list("VS" = safetyData::sdtm_vs,
                                                  "ADSL" = safetyData::adam_adsl),
                                   predecessor_only = FALSE,
                                   keep = "PREREQUISITE"
   )
 
-  adae_prereq_man <- adae_all_man %>%
-     select(c(names(adae_auto), TRT01A, TRT01AN, AEENDTC, AESTDTC)) %>%
-     select(all_of(names(adae_prereq)), everything())
+  advs_auto <- build_from_derived(spec3,
+                                    ds_list = list("VS" = safetyData::sdtm_vs,
+                                                   "ADSL" = safetyData::adam_adsl),
+                                    predecessor_only = FALSE,
+                                    keep = "PREREQUISITE"
+  )
 
-  expect_equal(adae_prereq, adae_prereq_man)
+
+  advs_all <- build_from_derived(spec3,
+                                 ds_list = list("VS" = safetyData::sdtm_vs,
+                                                "ADSL" = safetyData::adam_adsl),
+                                 predecessor_only = FALSE,
+                                 keep = "ALL"
+  )
+
+  advs_prereq_man <- advs_all %>%
+     select(c(names(advs_auto), VSDTC, VSSTRESN))
+
+  expect_equal(advs_prereq, advs_prereq_man)
 
 })
 
