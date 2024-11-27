@@ -159,7 +159,8 @@ get_variables <- function(x, ds_list, keep, derivations) {
       # Drop predecessor columns
       out <- data %>%
          select(x$col_name) %>%
-         rename(all_of(rename_vec))
+         mutate(across(all_of(rename_vec))) %>%
+         select(x$variable)
    } else if (keep == "ALL") {
       # Keep all cols from original datasets
       out <- data %>%
@@ -167,8 +168,11 @@ get_variables <- function(x, ds_list, keep, derivations) {
    } else if (keep == "PREREQUISITE") {
       # Keep all columns required for future derivations
       # Find all "XX.XXXXX"
-      prereq_vector <- derivations$derivation %>%
-         str_match_all("([A-Z]+)\\.([A-Z0-9a-z]+)")
+      future_derivations <- derivations %>%
+         select(derivation) %>%
+         filter(!str_detect(derivation,"^[A-Z]+\\.[A-Z0-9a-z]+$"))
+
+      prereq_vector <- str_match_all(future_derivations$derivation, "([A-Z]+)\\.([A-Z0-9a-z]+)")
 
       # Bind into matrix + remove dups
       prereq_matrix <- do.call(rbind,prereq_vector) %>%
@@ -179,8 +183,8 @@ get_variables <- function(x, ds_list, keep, derivations) {
 
       out <- data %>%
          select(c(x$col_name, prereq_cols)) %>%
-         mutate(across(all_of(rename_vec)))
-
+         mutate(across(all_of(rename_vec))) %>%
+         select(c(x$variable, prereq_cols))
    }
    out
 }
