@@ -16,11 +16,17 @@
 #' @param predecessor_only By default `TRUE`, so only variables with the origin
 #'   of 'Predecessor' will be used. If `FALSE` any derivation matching the
 #'   dataset.variable will be used.
-#' @param keep Boolean to determine if the original columns should be kept. By
-#'   default `FALSE`, so only the ADaM columns are kept. If `TRUE` the resulting
-#'   dataset will have all the ADaM columns as well as any SDTM column that were
-#'   renamed in the ADaM (i.e `ARM` and `TRT01P` will be in the resulting
-#'   dataset)
+#' @param keep String to determine which columns from the original datasets
+#'   should be kept
+#'   - "FALSE" (default):  only columns that are also present in the ADaM
+#'                            specification are kept in the output.
+#'   - "ALL":              all original columns are carried through to the
+#'                            ADaM, including those that have been renamed.
+#'   - "PREREQUISITE":     columns are kept if they are required for future
+#'                            derivations in the specification. For example, if
+#'                            a derivation references VSSTDTC despite this not
+#'                            being present in the ADaM specification, the column
+#'                            will be kept.
 #'
 #' @return dataset
 #' @export
@@ -40,6 +46,22 @@
 #' spec <- metacore %>% select_dataset("ADSL")
 #' ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
 #' build_from_derived(spec, ds_list, predecessor_only = FALSE)
+#'
+#' # Building an ADaM (ADVS) from multiple input datasets, keeping columns
+#' # needed for future transformations
+#' library(metacore)
+#' library(haven)
+#' library(magrittr)
+#' library(safetyData)
+#' load(metacore_example("pilot_ADaM.rda"))
+#' spec <- metacore %>% select_dataset("ADVS")
+#' ds_list <- list("VS" = safetyData::sdtm_vs,"ADSL" = safetyData::adam_adsl)
+#' build_from_derived(spec,
+#'                    ds_list,
+#'                    predecessor_only = FALSE,
+#'                    keep = "PREREQUISITE"
+#' )
+
 build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
                                predecessor_only = TRUE, keep = FALSE) {
    # Deprecate KEEP = TRUE
@@ -182,9 +204,9 @@ get_variables <- function(x, ds_list, keep, derivations) {
       prereq_cols <- subset(prereq_matrix, tolower(prereq_matrix[,2]) == tolower(ds_name))[,3]
 
       out <- data %>%
-         select(c(x$col_name, prereq_cols)) %>%
+         select(c(x$col_name, all_of(prereq_cols))) %>%
          mutate(across(all_of(rename_vec))) %>%
-         select(c(x$variable, prereq_cols))
+         select(c(x$variable, all_of(prereq_cols)))
    }
    out
 }
