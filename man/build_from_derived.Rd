@@ -27,11 +27,29 @@ been subsetted.}
 of 'Predecessor' will be used. If `FALSE` any derivation matching the
 dataset.variable will be used.}
 
-\item{keep}{Boolean to determine if the original columns should be kept. By
-default `FALSE`, so only the ADaM columns are kept. If `TRUE` the resulting
-dataset will have all the ADaM columns as well as any SDTM column that were
-renamed in the ADaM (i.e `ARM` and `TRT01P` will be in the resulting
-dataset)}
+\item{keep}{String to determine which columns from the original datasets
+  should be kept
+  - "FALSE" (default):  only columns that are also present in the ADaM
+                           specification are kept in the output.
+  - "ALL":              all original columns are carried through to the
+                           ADaM, including those that have been renamed.
+                           e.g. if DM.ARM is a predecessor to DM.TRT01P,
+                           both ARM and TRT01P will be present as columns
+                           in the ADaM output.
+  - "PREREQUISITE":     columns are retained if they are required for future
+                           derivations in the specification. Additional
+                           prerequisite columns are identified as columns
+                           that appear in the 'derivation' column of the
+                           metacore object, but not as direct predecessors.
+                           Predecessors are defined as columns where the
+                           derivation is a 1:1 copy of a column in a source
+                           dataset.
+
+                           e.g. derivation = "VS.VSTESTCD" is a predecessor,
+                           while derivation = "Value of VS.VSSTRESN where
+                           VS.VSTESTCD == 'Heart Rate'" contains both
+                           VS.VSTESTCD and VS.VSSTRESN as prerequisites, and
+                           these columns will be kept through to the ADaM.}
 }
 \value{
 dataset
@@ -52,4 +70,19 @@ load(metacore_example("pilot_ADaM.rda"))
 spec <- metacore \%>\% select_dataset("ADSL")
 ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
 build_from_derived(spec, ds_list, predecessor_only = FALSE)
+
+# Building an ADaM (ADVS) from multiple input datasets, keeping columns
+# needed for future transformations
+library(metacore)
+library(haven)
+library(magrittr)
+library(safetyData)
+load(metacore_example("pilot_ADaM.rda"))
+spec <- metacore \%>\% select_dataset("ADVS")
+ds_list <- list("VS" = safetyData::sdtm_vs,"ADSL" = safetyData::adam_adsl)
+build_from_derived(spec,
+                   ds_list,
+                   predecessor_only = FALSE,
+                   keep = "PREREQUISITE"
+)
 }

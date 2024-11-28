@@ -22,11 +22,23 @@
 #'                            specification are kept in the output.
 #'   - "ALL":              all original columns are carried through to the
 #'                            ADaM, including those that have been renamed.
-#'   - "PREREQUISITE":     columns are kept if they are required for future
-#'                            derivations in the specification. For example, if
-#'                            a derivation references VSSTDTC despite this not
-#'                            being present in the ADaM specification, the column
-#'                            will be kept.
+#'                            e.g. if DM.ARM is a predecessor to DM.TRT01P,
+#'                            both ARM and TRT01P will be present as columns
+#'                            in the ADaM output.
+#'   - "PREREQUISITE":     columns are retained if they are required for future
+#'                            derivations in the specification. Additional
+#'                            prerequisite columns are identified as columns
+#'                            that appear in the 'derivation' column of the
+#'                            metacore object in the format "DATASET.VARIABLE",
+#'                            but not as direct predecessors. Predecessors are
+#'                            defined as columns where the derivation is a 1:1
+#'                            copy of a column in a source dataset.
+#'                            e.g. derivation = "VS.VSTESTCD" is a predecessor,
+#'                            while derivation = "Value of VS.VSSTRESN where
+#'                            VS.VSTESTCD == 'Heart Rate'" contains both
+#'                            VS.VSTESTCD and VS.VSSTRESN as prerequisites, and
+#'                            these columns will be kept through to the ADaM.
+#'
 #'
 #' @return dataset
 #' @export
@@ -37,6 +49,7 @@
 #' @importFrom tidyr unnest
 #' @importFrom purrr map reduce
 #' @importFrom tibble tibble
+#' @importFrom cli cli_alert_warning cli_alert_info
 #'
 #' @examples
 #' library(metacore)
@@ -67,8 +80,9 @@ build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
    # Deprecate KEEP = TRUE
    keep <- match.arg(as.character(keep), c("TRUE", "FALSE", "ALL", "PREREQUISITE"))
    if (keep == "TRUE"){
-      warning("Setting 'keep' = TRUE has been superseded, and will be unavailable in future releases.
-   Please consider setting 'keep' equal to 'ALL' or 'PREREQUISITE'.")
+      cli_alert_warning(paste0("Setting 'keep' = TRUE has been superseded",
+      ", and will be unavailable in future releases. Please consider setting ",
+      "'keep' equal to 'ALL' or 'PREREQUISITE'."))
    }
    metacore <- make_lone_dataset(metacore, dataset_name)
    derirvations <- metacore$derivations %>%
@@ -192,9 +206,9 @@ get_variables <- function(x, ds_list, keep, derivations) {
       # Find all "XX.XXXXX"
       future_derivations <- derivations %>%
          select(derivation) %>%
-         filter(!str_detect(derivation,"^[A-Z]+\\.[A-Z0-9a-z]+$"))
+         filter(!str_detect(derivation,"^[A-Z0-9a-z]+\\.[A-Z0-9a-z]+$"))
 
-      prereq_vector <- str_match_all(future_derivations$derivation, "([A-Z]+)\\.([A-Z0-9a-z]+)")
+      prereq_vector <- str_match_all(future_derivations$derivation, "([A-Z0-9a-z]+)\\.([A-Z0-9a-z]+)")
 
       # Bind into matrix + remove dups
       prereq_matrix <- do.call(rbind,prereq_vector) %>%
@@ -215,7 +229,11 @@ get_variables <- function(x, ds_list, keep, derivations) {
 #'
 #' This function is used with `build_from_derived` to drop columns that would
 #' cause a conflict on joining datasets, prioritising keeping columns in
-#' datasets earlier on in ds_list
+#' datasets earlier on in ds_list.
+#'
+#' e.g. if ds_list = ("AE", "ADSL") and there is a conflicting column
+#' "STUDYID", the column will be dropped from ADSL (index 2) rather than AE
+#' (index 1).
 #'
 #' @param x List of datasets with all columns added
 #' @param keys List of key values to join on
@@ -236,7 +254,8 @@ prepare_join <- function(x, keys, ds_names) {
             drop_cols <- c(drop_cols, conflicting_cols)
 
             if(length(conflicting_cols) > 0){
-               message(paste0("Dropping column(s) from ", ds_names[[i]]," due to conflict with ",ds_names[[j]],": ", conflicting_cols,"."))
+               cli_alert_info(paste0("Dropping column(s) from ", ds_names[[i]],
+                  " due to conflict with ",ds_names[[j]],": ", conflicting_cols,"."))
             }
          }
 

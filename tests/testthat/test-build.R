@@ -47,14 +47,17 @@ test_that("build_from_derived", {
     c(., "TRT01P") %>%
     sort()
 
-  expect_warning(
+  expect_message(
      build_from_derived(spec, ds_list,
        predecessor_only = FALSE,
        keep = TRUE
      ) %>%
        names() %>%
        sort() %>%
-       expect_equal(man_vars)
+       expect_equal(man_vars),
+     label = paste0("! Setting 'keep' = TRUE has been superseded, and will be",
+        " unavailable in future releases. Please consider setting",
+        " 'keep' equal to 'ALL' or 'PREREQUISITE'.")
   )
 
   # Pulling through from more than one dataset
