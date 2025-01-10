@@ -15,19 +15,19 @@ create_var_from_codelist(
 \arguments{
 \item{data}{Dataset that contains the input variable}
 
-\item{metacore}{A metacore object to get the codelist from. If the `out_var`
+\item{metacore}{A metacore object to get the codelist from. If the \code{out_var}
 has different codelists for different datasets the metacore object will
-need to be subsetted using `select_dataset` from the metacore package.}
+need to be subsetted using \code{select_dataset} from the metacore package.}
 
 \item{input_var}{Name of the variable that will be translated for the new
 column}
 
 \item{out_var}{Name of the output variable. Note: the grouping will always be
-from the code of the codelist associates with `out_var`}
+from the code of the codelist associates with \code{out_var}}
 
 \item{decode_to_code}{Direction of the translation. By default assumes the
-`input_var` is the decode column of the codelist. Set to `FALSE` if the
-`input_var` is the code column of the codelist}
+\code{input_var} is the decode column of the codelist. Set to \code{FALSE} if the
+\code{input_var} is the code column of the codelist}
 }
 \value{
 Dataset with a new column added

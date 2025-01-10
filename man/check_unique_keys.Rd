@@ -20,7 +20,7 @@ message if the key uniquely identifies each dataset record, and error otherwise
 }
 \description{
 This function checks the uniqueness of records in the dataset by key using
-`get_keys` from the metacore package. If the key uniquely identifies each
+\code{get_keys} from the metacore package. If the key uniquely identifies each
 record the function will print a message stating everything is as expected.
 If records are not uniquely identified an error will explain the duplicates.
 }
