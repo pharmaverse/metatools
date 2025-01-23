@@ -11,15 +11,15 @@ get_bad_ct(data, metacore, var, na_acceptable = NULL)
 
 \item{metacore}{A metacore object to get the codelist from. If the variable
 has different codelists for different datasets the metacore object will
-need to be subsetted using `select_dataset` from the metacore package.}
+need to be subsetted using \code{select_dataset} from the metacore package.}
 
 \item{var}{Name of variable to check}
 
-\item{na_acceptable}{Logical value, set to `NULL` by default, so the
+\item{na_acceptable}{Logical value, set to \code{NULL} by default, so the
 acceptability of missing values is based on if the core for the variable is
-"Required" in the `metacore` object. If set to `TRUE` then will pass check
+"Required" in the \code{metacore} object. If set to \code{TRUE} then will pass check
 if values are in the control terminology or are missing. If set to
-`FALSE` then NA will not be acceptable.}
+\code{FALSE} then NA will not be acceptable.}
 }
 \value{
 vector

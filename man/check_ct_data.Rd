@@ -12,18 +12,18 @@ check_ct_data(data, metacore, na_acceptable = NULL, omit_vars = NULL)
 \item{metacore}{metacore object that contains the specifications for the
 dataset of interest. If any variable has different codelists for different
 datasets the metacore object will need to be subsetted using
-`select_dataset` from the metacore package.}
+\code{select_dataset} from the metacore package.}
 
-\item{na_acceptable}{`logical` value or `character` vector, set to `NULL` by default.
-`NULL` sets the acceptability of missing values based on if the core for
-the variable is "Required" in the `metacore` object. If set to `TRUE` then will
+\item{na_acceptable}{\code{logical} value or \code{character} vector, set to \code{NULL} by default.
+\code{NULL} sets the acceptability of missing values based on if the core for
+the variable is "Required" in the \code{metacore} object. If set to \code{TRUE} then will
 pass check if values are in the control terminology or are missing. If set
-to `FALSE` then NA will not be acceptable. If set to a `character` vector then
+to \code{FALSE} then NA will not be acceptable. If set to a \code{character} vector then
 only the specified variables may contain NA values.}
 
-\item{omit_vars}{`character` vector indicating which variables should be skipped
-when doing the controlled terminology checks. Internally, `omit_vars` is
-evaluated before `na_acceptable`.}
+\item{omit_vars}{\code{character} vector indicating which variables should be skipped
+when doing the controlled terminology checks. Internally, \code{omit_vars} is
+evaluated before \code{na_acceptable}.}
 }
 \value{
 Given data if all columns pass. It will error otherwise

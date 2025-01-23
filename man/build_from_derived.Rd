@@ -23,14 +23,14 @@ the list is unnamed,then it will use the names of the objects.}
 built. This is only needed if the metacore object provided hasn't already
 been subsetted.}
 
-\item{predecessor_only}{By default `TRUE`, so only variables with the origin
-of 'Predecessor' will be used. If `FALSE` any derivation matching the
+\item{predecessor_only}{By default \code{TRUE}, so only variables with the origin
+of 'Predecessor' will be used. If \code{FALSE} any derivation matching the
 dataset.variable will be used.}
 
 \item{keep}{Boolean to determine if the original columns should be kept. By
-default `FALSE`, so only the ADaM columns are kept. If `TRUE` the resulting
+default \code{FALSE}, so only the ADaM columns are kept. If \code{TRUE} the resulting
 dataset will have all the ADaM columns as well as any SDTM column that were
-renamed in the ADaM (i.e `ARM` and `TRT01P` will be in the resulting
+renamed in the ADaM (i.e \code{ARM} and \code{TRT01P} will be in the resulting
 dataset)}
 }
 \value{
@@ -41,7 +41,7 @@ This function builds a dataset out of the columns that just need to be pulled
 through. So any variable that has a derivation in the format of
 'dataset.variable' will be pulled through to create the new dataset. When
 there are multiple datasets present, they will be joined by the shared
-`key_seq` variables. These columns are often called 'Predecessors' in ADaM,
+\code{key_seq} variables. These columns are often called 'Predecessors' in ADaM,
 but this is not universal so that is optional to specify.
 }
 \examples{

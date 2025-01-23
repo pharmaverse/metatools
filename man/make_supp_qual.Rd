@@ -10,7 +10,7 @@ make_supp_qual(dataset, metacore, dataset_name = NULL)
 \item{dataset}{dataset the supp will be pulled from}
 
 \item{metacore}{A subsetted metacore object to get the supp information from.
-If not already subsetted then a `dataset_name` will need to be provided}
+If not already subsetted then a \code{dataset_name} will need to be provided}
 
 \item{dataset_name}{optional name of dataset}
 }
