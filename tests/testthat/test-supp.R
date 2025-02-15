@@ -261,3 +261,12 @@ test_that("label is added in combine_supp() (#71)", {
   labelled <- combine_supp(simple_ae, simple_suppae)
   expect_equal(attr(labelled$AETRTEM, "label"), "TREATMENT EMERGENT FLAG")
 })
+
+test_that("combine_supp() does not create an IDVARVAL column (#78)", {
+  simple_ae <-
+    safetyData::sdtm_ae |>
+    filter(USUBJID %in% c("01-701-1015", "01-701-1023"))
+  simple_suppae <- safetyData::sdtm_suppae[c(1, 4), ]
+  noidvarval <- combine_supp(simple_ae, simple_suppae)
+  expect_false("IDVARVAL" %in% names(noidvarval))
+})
