@@ -181,7 +181,8 @@ test_that("combine_supp", {
 })
 
 test_that("combine_supp works with different IDVARVAL classes", {
-   expect_equal(
+    skip_if_not_installed("pharmaversesdtm")
+    expect_equal(
       combine_supp(pharmaversesdtm::ae, pharmaversesdtm::suppae) %>%
       pull(AESEQ),
       pharmaversesdtm::ae %>% pull(AESEQ)
@@ -189,7 +190,8 @@ test_that("combine_supp works with different IDVARVAL classes", {
 })
 
 test_that("combine_supp works with without QEVAL", {
-   expect_silent(combine_supp(pharmaversesdtm::tr_onco, pharmaversesdtm::supptr_onco))
+  skip_if_not_installed("pharmaversesdtm")
+  expect_silent(combine_supp(pharmaversesdtm::tr_onco, pharmaversesdtm::supptr_onco))
 })
 
 test_that("supp data that does not match the main data will raise a warning", {
@@ -213,6 +215,7 @@ test_that("Floating point correction works", {
    supp_check <- safetyData::sdtm_suppae %>%
       select(USUBJID, AESEQ = IDVARVAL, AETRTEM = QVAL) %>%
       arrange(USUBJID, AESEQ)
+   attr(supp_check, "label") <- 'TREATMENT EMERGENT FLAG'
    expect_equal(combo_ae, supp_check)
 })
 
@@ -233,7 +236,7 @@ test_that("multiple different IDVAR map to the same QNAM works", {
   simple_suppae$IDVARVAL[2] <- "2012-09-02"
   expect_equal(
     combine_supp(simple_ae, supp = simple_suppae)$AETRTEM,
-    c("Y", NA, NA, NA, NA, NA, "Y")
+    structure(c("Y", NA, NA, NA, NA, NA, "Y"), label = 'TREATMENT EMERGENT FLAG')s
   )
 
   # Replace the value in error
@@ -247,7 +250,7 @@ test_that("multiple different IDVAR map to the same QNAM works", {
   )
 })
 
-test_that("label is added in combine_supp()", {
+test_that("label is added in combine_supp() (#71)", {
   simple_ae <-
     safetyData::sdtm_ae |>
     filter(USUBJID %in% c("01-701-1015", "01-701-1023"))
