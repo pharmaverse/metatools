@@ -246,3 +246,12 @@ test_that("multiple different IDVAR map to the same QNAM works", {
     regexp = "An unexpected number of rows were replaced while merging QNAM AETRTEM and IDVAR AESEQ"
   )
 })
+
+test_that("label is added in combine_supp()", {
+  simple_ae <-
+    safetyData::sdtm_ae |>
+    filter(USUBJID %in% c("01-701-1015", "01-701-1023"))
+  simple_suppae <- safetyData::sdtm_suppae[c(1, 4), ]
+  labelled <- combine_supp(simple_ae, simple_suppae)
+  expect_equal(attr(labelled$AETRTEM, "label"), "TREATMENT EMERGENT FLAG")
+})
