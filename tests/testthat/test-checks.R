@@ -1,15 +1,15 @@
-
 # Load data to use across tests
 load(metacore::metacore_example("pilot_ADaM.rda"))
 spec <- metacore %>% select_dataset("ADSL")
 data <- haven::read_xpt(metatools_example("adsl.xpt"))
 mod_ds_vars <- spec$ds_vars %>%
    mutate(core = if_else(variable %in% c("TRT01PN", "DISCONFL"), "Required", core))
-spec_mod <- metacore::metacore(spec$ds_spec, mod_ds_vars, spec$var_spec, spec$value_spec, spec$derivations, spec$codelist) %>%
-   suppressWarnings()
+spec_mod <-
+  metacore::metacore(spec$ds_spec, mod_ds_vars, spec$var_spec, spec$value_spec, spec$derivations, spec$codelist) %>%
+  suppressWarnings() |>
+  suppressMessages()
 
 test_that("get_bad_ct works correctly", {
-
    # test na_acceptable
    expect_equal(get_bad_ct(data, spec, "DISCONFL"), character(0))
    expect_equal(get_bad_ct(data, spec, "DISCONFL", TRUE), character(0))
@@ -22,7 +22,6 @@ test_that("get_bad_ct works correctly", {
    data_na <- data %>%
       mutate(DISCONFL = if_else(dplyr::row_number() == 1, NA_character_, DISCONFL))
    expect_equal(get_bad_ct(data_na, spec_mod, "DISCONFL"), c(NA_character_, ""))
-
 })
 
 test_that("check_ct_col works correctly", {
@@ -34,7 +33,10 @@ test_that("check_ct_col works correctly", {
    expect_equal(check_ct_col(data, spec, "TRT01PN"), data)
 
    # Test permitted Values
-   spec2 <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet = TRUE)
+   spec2 <-
+     suppressMessages(
+       metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet = TRUE)
+     )
    expect_equal(check_ct_col(data, spec2, ARM), data)
 
    # Test external dictionaries
@@ -89,11 +91,10 @@ test_that("check_ct_data works correctly", {
    expect_error(check_ct_data(data, spec, omit_vars = c("A", "B")))
    expect_error(check_ct_data(data, spec, FALSE, omit_vars = c("DISCONFL", "DSRAEFL")))
    expect_equal(check_ct_data(data, spec_mod, na_acceptable = NULL, omit_vars = "DISCONFL"), data)
-
 })
 
 test_that("variable_check works correctly", {
-   expect_equal(check_variables(data, spec), data)
+   expect_equal(suppressMessages(check_variables(data, spec)), data)
    data_miss <- data %>% select(-1)
    expect_error(check_variables(data_miss, spec))
    data_extra <- data %>% mutate(foo = "hello")
