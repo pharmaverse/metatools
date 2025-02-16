@@ -1,4 +1,3 @@
-
 test_that("build_qnam", {
    full_ae <- safetyData::sdtm_suppae %>%
       select(-QORIG, -QEVAL, -QLABEL) %>%
@@ -102,7 +101,10 @@ test_that("make_supp_qual", {
    expect_error(make_supp_qual(ae, metacore),
                 "Requires either a subsetted metacore object or a dataset name")
    #Testing without supp columns specified
-   metacore_old <- metacore::spec_to_metacore(metacore::metacore_example("SDTM_spec_CDISC_pilot.xlsx"), quiet = TRUE)
+   metacore_old <-
+     suppressMessages(
+       metacore::spec_to_metacore(metacore::metacore_example("SDTM_spec_CDISC_pilot.xlsx"), quiet = TRUE)
+     )
    expect_error(make_supp_qual(ae, metacore_old, "AE"),
                 "No supplemental variables specified in metacore object. Please check your specifications")
 

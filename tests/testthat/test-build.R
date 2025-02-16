@@ -1,6 +1,6 @@
-
 load(metacore::metacore_example("pilot_ADaM.rda"))
 spec <- metacore %>% select_dataset("ADSL")
+
 test_that("drop_unspec_vars", {
   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
     mutate(foo = "Hello", foo2 = "world")
@@ -10,13 +10,12 @@ test_that("drop_unspec_vars", {
     pull(variable)
   man_dat <- data %>%
     select(all_of(man_vars))
-  drop_unspec_vars(data, spec) %>%
-    expect_equal(man_dat)
-  expect_message(drop_unspec_vars(data, spec),
-                 label = "The following variable(s) were dropped:\n  foo\n  foo2")
-
+  expect_message(
+    value <- drop_unspec_vars(data, spec),
+    label = "The following variable(s) were dropped:\n  foo\n  foo2"
+  )
+  expect_equal(value, man_dat)
 })
-
 
 test_that("build_from_derived", {
   ds_list <- list(DM = haven::read_xpt(metatools_example("dm.xpt")))
@@ -84,12 +83,16 @@ test_that("build_from_derived", {
 
 
   # Pulling through from one dataset when spec has more than one
-  adae_auto_adsl_only <- build_from_derived(spec2,
-                                  ds_list = list("ADSL" = safetyData::adam_adsl),
-                                  predecessor_only = FALSE,
-                                  keep = FALSE
-  ) |>
-     order_cols(spec2)
+  adae_auto_adsl_only <-
+    suppressMessages(
+      build_from_derived(
+        spec2,
+        ds_list = list("ADSL" = safetyData::adam_adsl),
+        predecessor_only = FALSE,
+        keep = FALSE
+      ) |>
+        order_cols(spec2)
+    )
   adsl_man <- order_cols(adsl_part, spec2)
   expect_equal(adae_auto_adsl_only, adsl_man)
 
@@ -100,18 +103,21 @@ test_that("build_from_derived", {
                                   predecessor_only = FALSE,
                                   keep = FALSE
   )
-  expect_equal(adae_auto,adae_man)
+  expect_equal(adae_auto, adae_man)
 
-  expect_warning(build_from_derived(spec2,
-                                    ds_list = list(safetyData::sdtm_ae, adsl),
-                                    predecessor_only = FALSE,
-                                    keep = FALSE
-  ))
-
-
+  expect_warning(
+    expect_message(
+      build_from_derived(
+        spec2,
+        ds_list = list(safetyData::sdtm_ae, adsl),
+        predecessor_only = FALSE,
+        keep = FALSE
+      ),
+      regexp = "Not all datasets provided. Only variables from ADSL will be gathered."
+    ),
+    regexp = "The following dataset\\(s\\) have no predecessors and will be ignored:\nsafetydata::sdtm_ae"
+  )
 })
-
-
 
 test_that("add_variables", {
    load(metacore::metacore_example("pilot_ADaM.rda"))

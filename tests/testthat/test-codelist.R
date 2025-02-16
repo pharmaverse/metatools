@@ -1,5 +1,7 @@
-
-spec <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet = TRUE)
+spec <-
+  suppressMessages(
+    metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet = TRUE)
+  )
 load(metacore::metacore_example("pilot_ADaM.rda"))
 spec2 <- metacore %>% select_dataset("ADSL")
 dm <- haven::read_xpt(metatools_example("dm.xpt"))
