@@ -33,14 +33,14 @@ dash_to_eq <- function(string) {
 #' create_subgrps(c(1:10), c("<2", "2-5", ">5"))
 #' create_subgrps(c(1:10), c("<=2", ">2-5", ">5"))
 #' create_subgrps(c(1:10), c("<2", "2-<5", ">=5"))
-create_subgrps <- function(ref_vec, grp_defs) {
+create_subgrps <- function(ref_vec, grp_defs, grp_labs) {
   if (!is.numeric(ref_vec)) {
     stop("ref_vec must be numeric")
   }
 
   equations <- case_when(
-    str_detect(grp_defs, "-") ~ paste0("function(x){if_else(", dash_to_eq(grp_defs), ", '", grp_defs, "','')}"),
-    str_detect(grp_defs, "^(<\\s?=|>\\s?=|<|>)\\s?\\d+") ~ paste0("function(x){if_else(x", grp_defs, ",'", grp_defs, "', '')}"),
+    str_detect(grp_defs, "-") ~ paste0("function(x){if_else(", dash_to_eq(grp_defs), ", '", grp_labs, "','')}"),
+    str_detect(grp_defs, "^(<\\s?=|>\\s?=|<|>)\\s?\\d+") ~ paste0("function(x){if_else(x", grp_defs, ",'", grp_labs, "', '')}"),
     TRUE ~ NA_character_
   )
 
@@ -171,7 +171,7 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var,
 #' # Grouping Column and Numeric Decode
 #' create_cat_var(dm, spec, AGE, AGEGR1, AGEGR1N)
 create_cat_var <- function(data, metacore, ref_var, grp_var,
-                           num_grp_var = NULL) {
+                           num_grp_var = NULL, create_from_decode = FALSE) {
   ct <- get_control_term(metacore, {{ grp_var }})
   if (is.vector(ct) | !("decode" %in% names(ct))) {
     stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
@@ -179,8 +179,11 @@ create_cat_var <- function(data, metacore, ref_var, grp_var,
   grp_defs <- ct %>%
     pull(code)
 
+  if (create_from_decode) { grp_labs <- pull(ct, decode) }
+  else { grp_labs <- grp_defs }
+
   out <- data %>%
-    mutate({{ grp_var }} := create_subgrps({{ ref_var }}, grp_defs))
+    mutate({{ grp_var }} := create_subgrps({{ ref_var }}, grp_defs, grp_labs))
 
   if (!is.null(enexpr(num_grp_var))) {
     out <- out %>%
