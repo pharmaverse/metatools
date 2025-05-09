@@ -2,6 +2,7 @@
 spec <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet = TRUE)
 load(metacore::metacore_example("pilot_ADaM.rda"))
 spec2 <- metacore %>% select_dataset("ADSL")
+spec3 <- metacore::spec_to_metacore("~/metatools/inst/extdata/p21_mock.xlsx", quiet = TRUE)
 dm <- haven::read_xpt(metatools_example("dm.xpt"))
 
 
@@ -68,6 +69,13 @@ test_that("create_cat_var", {
     "<65",       42,
     ">80",       92,
   )
+
+  man_dat_labs <- tibble:: tribble(
+     ~AGEGR1,        ~n,
+     "65-80 years",  172,
+     "<65 years",    42,
+     ">80 years",    92,
+  )
   # Grouping col only
   auto_dat <- create_cat_var(dm, spec2, AGE, AGEGR1) %>%
     group_by(AGEGR1) %>%
@@ -83,6 +91,18 @@ test_that("create_cat_var", {
     pull(AGEGR1N) %>%
     unique() %>%
     expect_equal(c(1:3))
+
+  # Grouping column and numeric decode, build from decode == TRUE
+  decode_num_dat <- create_cat_var(dm, spec3, AGE, AGEGR1, AGEGR1N, TRUE)
+  decode_num_dat %>%
+     group_by(AGEGR1) %>%
+     dplyr::summarise(n = dplyr::n()) %>%
+     expect_equal(man_dat_labs)
+  decode_num_dat %>%
+     pull(AGEGR1N) %>%
+     unique() %>%
+     expect_equal(c(1:3))
+
   # Test errors
   expect_error(create_cat_var(dm, spec, AGE, ARM))
 })
