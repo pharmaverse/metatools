@@ -22,6 +22,9 @@ dash_to_eq <- function(string) {
 #' @param ref_vec Vector of numeric values
 #' @param grp_defs Vector of strings with groupings defined. Format must be
 #'   either: <00, >=00, 00-00, or  00-<00
+#' @param grp_labs Vector of strings with labels defined. The labels correspond
+#'   to the associated `grp_defs`. i.e., "12-17" may translate to "12-17 years".
+#'   If no `grp_labs` specified then `grp_defs` will be used.
 #'
 #' @return Character vector of the values in the subgroups
 #' @export
@@ -33,10 +36,13 @@ dash_to_eq <- function(string) {
 #' create_subgrps(c(1:10), c("<2", "2-5", ">5"))
 #' create_subgrps(c(1:10), c("<=2", ">2-5", ">5"))
 #' create_subgrps(c(1:10), c("<2", "2-<5", ">=5"))
-create_subgrps <- function(ref_vec, grp_defs, grp_labs) {
+#' create_subgrps(c(1:10), c("<2", "2-<5", ">=5"), c("<2 years", "2-5 years", ">=5 years"))
+create_subgrps <- function(ref_vec, grp_defs, grp_labs = NULL) {
   if (!is.numeric(ref_vec)) {
     stop("ref_vec must be numeric")
   }
+
+  if (is.null(grp_labs)) { grp_labs <- grp_defs }
 
   equations <- case_when(
     str_detect(grp_defs, "-") ~ paste0("function(x){if_else(", dash_to_eq(grp_defs), ", '", grp_labs, "','')}"),
@@ -152,6 +158,8 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var,
 #' @param grp_var Name of the new grouped variable
 #' @param num_grp_var Name of the new numeric decode for the grouped variable.
 #'   This is optional if no value given no variable will be created
+#' @param create_from_decode Sets the decode column of the codelist as the column
+#'   from which the variable will be created. By default the column is code.
 #' @importFrom rlang enexpr :=
 #' @importFrom dplyr %>% pull mutate
 #' @importFrom metacore get_control_term
