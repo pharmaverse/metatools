@@ -105,13 +105,33 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #' create_var_from_codelist(data, spec, "VAR2", "SEX")
 #' create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
 create_var_from_codelist <- function(data, metacore, input_var, out_var, dataset = NULL,
-                                     decode_to_code = TRUE) {
-   code_translation <- get_control_term(metacore, {{ out_var }}, {{ dataset }})
-   input_var_str <- as_label(enexpr(input_var)) %>%
-      str_remove_all("\"")
+                                     decode_to_code = TRUE, create_from_out_var = TRUE) {
+
+   if (create_from_out_var) {
+      code_translation <- get_control_term(metacore, {{ out_var }}, {{ dataset }})
+   }
+   else if (!create_from_out_var) {
+      code_translation <- get_control_term(metacore, {{ input_var }}, {{ dataset }})
+   }
+
    if (is.vector(code_translation) | !("decode" %in% names(code_translation))) {
       stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
    }
+
+   if (decode_to_code) { derive_from = expr(decode) }
+   else { derive_from = expr(code) }
+
+   values <- data %>%
+      pull({{ input_var }})
+
+   codelist <- code_translation %>%
+      pull({{ derive_from }})
+   print(values)
+   print(code_translation)
+
+   input_var_str <- as_label(enexpr(input_var)) %>%
+      str_remove_all("\"")
+
    if (decode_to_code) {
       out <- data %>%
          left_join(code_translation, by = set_names("decode", input_var_str)) %>%
