@@ -56,6 +56,56 @@ test_that("create_var_from_codelist", {
      pull(TRT01PN)
   expect_equal(num_out, c(0,  0, 81, 54, 81,0))
 
+  # Test arg `create_from_out_var = FALSE`
+  data_param <- tibble::tribble(
+     ~USUBJID, ~PARAMCD,
+     1, "SYSBP",
+     2, "DIABP",
+     3, "PULSE",
+     4, "WEIGHT",
+     5, "HEIGHT",
+     6, "TEMP",
+     7, "DUMMY01",
+     8, "DUMMY02"
+  )
+
+  create_var_from_codelist(
+     data = data_param,
+     metacore = metacore,
+     dataset = ADVS,
+     input_var = PARAMCD,
+     out_var = PARAM,
+     decode_to_code = FALSE,
+     create_from_out_var = FALSE
+  ) %>%
+     pull(PARAM) %>%
+     expect_equal(
+        c(
+           "Systolic Blood Pressure (mmHg)",
+           "Diastolic Blood Pressure (mmHg)",
+           "Pulse Rate (beats/min)",
+           "Weight (kg)",
+           "Height (cm)",
+           "Temperature (C)",
+           NA,
+           NA
+        )
+     )
+
+  # Test warning where arg `strict == TRUE`
+  expect_warning(
+     create_var_from_codelist(
+        data = data_param,
+        metacore = metacore,
+        dataset = ADVS,
+        input_var = PARAMCD,
+        out_var = PARAM,
+        decode_to_code = FALSE,
+        create_from_out_var = FALSE,
+        strict = TRUE
+     )
+  )
+
   # Test for Variable not in specs
   expect_error(create_var_from_codelist(data, spec, VAR2, FOO))
 })
