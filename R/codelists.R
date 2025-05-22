@@ -104,9 +104,9 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #' create_var_from_codelist(data, spec, VAR2, SEX)
 #' create_var_from_codelist(data, spec, "VAR2", "SEX")
 #' create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
-create_var_from_codelist <- function(data, metacore, input_var, out_var,
+create_var_from_codelist <- function(data, metacore, input_var, out_var, dataset = NULL,
                                      decode_to_code = TRUE) {
-   code_translation <- get_control_term(metacore, {{ out_var }})
+   code_translation <- get_control_term(metacore, {{ out_var }}, {{ dataset }})
    input_var_str <- as_label(enexpr(input_var)) %>%
       str_remove_all("\"")
    if (is.vector(code_translation) | !("decode" %in% names(code_translation))) {
