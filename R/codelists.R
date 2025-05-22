@@ -105,7 +105,7 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #' create_var_from_codelist(data, spec, "VAR2", "SEX")
 #' create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
 create_var_from_codelist <- function(data, metacore, input_var, out_var, dataset = NULL,
-                                     decode_to_code = TRUE, create_from_out_var = TRUE) {
+                                     decode_to_code = TRUE, create_from_out_var = TRUE, strict = FALSE) {
 
    if (create_from_out_var) {
       code_translation <- get_control_term(metacore, {{ out_var }}, {{ dataset }})
@@ -126,8 +126,15 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var, dataset
 
    codelist <- code_translation %>%
       pull({{ derive_from }})
-   print(values)
-   print(code_translation)
+
+   miss <- setdiff(values, codelist)
+
+   if (length(miss) > 0 && strict == TRUE) {
+      warning(
+         paste("One or more values present in the input dataset are not present in the codelist:",
+         paste(miss, collapse = ", "), sep = " ")
+      )
+   }
 
    input_var_str <- as_label(enexpr(input_var)) %>%
       str_remove_all("\"")
