@@ -218,7 +218,7 @@ create_cat_var <- function(data, metacore, ref_var, grp_var,
 
   if (!is.null(enexpr(num_grp_var))) {
     out <- out %>%
-      create_var_from_codelist(metacore, {{ grp_var }}, {{ num_grp_var }})
+      create_var_from_codelist(metacore, input_var = {{ grp_var }}, out_var = {{ num_grp_var }})
   }
   out
 }
