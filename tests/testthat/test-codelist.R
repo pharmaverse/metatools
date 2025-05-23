@@ -39,19 +39,19 @@ test_that("create_var_from_codelist", {
   )
   manual_data <- data %>%
     mutate(SEX = VAR1)
-  expect_equal(create_var_from_codelist(data, spec, VAR2, SEX), manual_data)
-  expect_equal(create_var_from_codelist(data, spec, "VAR2", "SEX"), manual_data)
+  expect_equal(create_var_from_codelist(data, spec, input_var = VAR2, out_var = SEX), manual_data)
+  expect_equal(create_var_from_codelist(data, spec, input_var = "VAR2", out_var = "SEX"), manual_data)
   manual_data2 <- data %>%
     mutate(SEX = VAR2)
   expect_equal(
-    create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE),
+    create_var_from_codelist(data, spec, input_var = VAR1, out_var = SEX, decode_to_code = FALSE),
     manual_data2
   )
   # Test numeric
   num_out <- dm %>%
      mutate(TRT01P = ARM) %>%
      select(TRT01P) %>%
-     create_var_from_codelist(spec2, TRT01P, TRT01PN) %>%
+     create_var_from_codelist(spec2, input_var = TRT01P, out_var = TRT01PN) %>%
      head() %>%
      pull(TRT01PN)
   expect_equal(num_out, c(0,  0, 81, 54, 81,0))
