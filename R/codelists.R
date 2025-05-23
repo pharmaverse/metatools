@@ -73,6 +73,7 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #' @param metacore A metacore object to get the codelist from. If the `out_var`
 #'   has different codelists for different datasets the metacore object will
 #'   need to be subsetted using `select_dataset` from the metacore package.
+#' @param dataset Specify the parent dataset of the parameter to be created.
 #' @param input_var Name of the variable that will be translated for the new
 #'   column
 #' @param out_var Name of the output variable. Note: the grouping will always be
@@ -80,6 +81,12 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #' @param decode_to_code Direction of the translation. By default assumes the
 #'   `input_var` is the decode column of the codelist. Set to `FALSE` if the
 #'   `input_var` is the code column of the codelist
+#' @param create_from_out_var Specifies the variable from which the codelist
+#'   should be taken. By default is out_var.
+#' @param strict A logical value indiciating whether to perform strict checking
+#'   against the codelist. If `TRUE` will issue a warning if values in the `input_var`
+#'   column are not present in the codelist. If `FALSE` no warning is issued and
+#'   values not present in the codelist will likely result in `NA` results.
 #'
 #' @return Dataset with a new column added
 #' @export
@@ -104,7 +111,7 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #' create_var_from_codelist(data, spec, VAR2, SEX)
 #' create_var_from_codelist(data, spec, "VAR2", "SEX")
 #' create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
-create_var_from_codelist <- function(data, metacore, input_var, out_var, dataset = NULL,
+create_var_from_codelist <- function(data, metacore, dataset = NULL, input_var, out_var,
                                      decode_to_code = TRUE, create_from_out_var = TRUE, strict = FALSE) {
 
    if (create_from_out_var) {
@@ -129,7 +136,7 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var, dataset
 
    miss <- setdiff(values, codelist)
 
-   if (length(miss) > 0 && strict == TRUE) {
+   if (strict == TRUE && length(miss) > 0) {
       warning(
          paste("One or more values present in the input dataset are not present in the codelist:",
          paste(miss, collapse = ", "), sep = " ")
