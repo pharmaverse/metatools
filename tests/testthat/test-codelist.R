@@ -2,7 +2,7 @@
 spec <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet = TRUE)
 load(metacore::metacore_example("pilot_ADaM.rda"))
 spec2 <- metacore %>% select_dataset("ADSL")
-spec3 <- metacore::spec_to_metacore("~/metatools/inst/extdata/p21_mock.xlsx", quiet = TRUE)
+spec3 <- metacore::spec_to_metacore("p21_mock.xlsx", quiet = TRUE)
 dm <- haven::read_xpt(metatools_example("dm.xpt"))
 
 
