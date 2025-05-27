@@ -4,7 +4,7 @@
 \alias{check_variables}
 \title{Check Variable Names}
 \usage{
-check_variables(data, metacore, dataset_name = NULL)
+check_variables(data, metacore, dataset_name = NULL, strict_validation = TRUE)
 }
 \arguments{
 \item{data}{Dataset to check}
@@ -14,6 +14,11 @@ dataset of interest.}
 
 \item{dataset_name}{Optional string to specify the dataset. This is only
 needed if the metacore object provided hasn't already been subsetted.}
+
+\item{strict_validation}{A logical value indicating whether to perform strict
+validation on the input dataset. If \code{TRUE} (default), errors will be raised
+if validation fails. If \code{FALSE}, warnings will be issued instead, allowing
+the function execution to continue event with invalid data.}
 }
 \value{
 message if the dataset matches the specification and the dataset, and error otherwise
@@ -32,4 +37,6 @@ load(metacore_example("pilot_ADaM.rda"))
 spec <- metacore \%>\% select_dataset("ADSL")
 data <- read_xpt(metatools_example("adsl.xpt"))
 check_variables(data, spec)
+data["DUMMY_COL"] <- NA
+check_variables(data, spec, strict_validation = FALSE)
 }
