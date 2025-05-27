@@ -108,9 +108,9 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #'   5, "M", "Male",
 #' )
 #' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
-#' create_var_from_codelist(data, spec, VAR2, SEX)
-#' create_var_from_codelist(data, spec, "VAR2", "SEX")
-#' create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
+#' create_var_from_codelist(data, spec, input_var = VAR2, out_var = SEX)
+#' create_var_from_codelist(data, spec, input_var = "VAR2", out_var = "SEX")
+#' create_var_from_codelist(data, spec, input_var = VAR1, out_var = SEX, decode_to_code = FALSE)
 create_var_from_codelist <- function(data, metacore, dataset = NULL, input_var, out_var,
                                      decode_to_code = TRUE, create_from_out_var = TRUE, strict = FALSE) {
 
