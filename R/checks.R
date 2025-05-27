@@ -261,33 +261,33 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #' check_variables(data, spec)
 check_variables <- function(data, metacore, dataset_name = NULL) {
   metacore <- make_lone_dataset(metacore, dataset_name)
+
   var_list <- metacore$ds_vars %>%
      filter(is.na(supp_flag) | !(supp_flag)) %>%
-    pull(variable)
-  missing <- var_list %>%
-    discard(~ . %in% names(data))
-  extra <- names(data) %>%
-    discard(~ . %in% var_list)
-  if (length(missing) == 0 & length(extra) == 0) {
-    message("No missing or extra variables")
-  } else if (length(missing) > 0 & length(extra) > 0) {
-    stop(paste0(
-      "The following variables are missing:\n",
-      paste0(missing, collapse = "\n"),
-      "\nThe following variables do not belong:\n",
-      paste0(extra, collapse = "\n")
-    ))
-  } else if (length(missing) > 0) {
-    stop(paste0(
-      "The following variables are missing:\n",
-      paste0(missing, collapse = "\n")
-    ))
-  } else {
-    stop(paste0(
-      "The following variables do not belong:\n",
-      paste0(extra, collapse = "\n")
-    ))
+     pull(variable)
+
+  missing <- var_list  %>% discard(~ . %in% names(data))
+  extra <- names(data) %>% discard(~ . %in% var_list)
+
+  messages <- character(0)
+  data_list <- list()
+
+  if (length(missing) > 0) {
+     messages <- c(messages, "The following variables are missing")
+     data_list <- c(data_list, list(missing))
   }
+
+  if (length(extra) > 0) {
+     messages <- c(messages, "The following variables do not belong")
+     data_list <- c(data_list, list(extra))
+  }
+
+  if (length(messages) > 0) {
+     print_to_console(messages, data_list)
+  } else {
+     message("No missing or extra variables")
+  }
+
   data
 }
 
