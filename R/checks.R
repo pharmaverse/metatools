@@ -244,6 +244,10 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #'   dataset of interest.
 #' @param dataset_name Optional string to specify the dataset. This is only
 #'   needed if the metacore object provided hasn't already been subsetted.
+#' @param strict_validation A logical value indicating whether to perform strict
+#'   validation on the input dataset. If \code{TRUE} (default), errors will be raised
+#'   if validation fails. If \code{FALSE}, warnings will be issued instead, allowing
+#'   the function execution to continue event with invalid data.
 #'
 #' @return message if the dataset matches the specification and the dataset, and error otherwise
 #' @export
@@ -292,14 +296,14 @@ check_variables <- function(data, metacore, dataset_name = NULL, strict_validati
 }
 
 print_to_console <- function(messages, data_list, strict_validation = TRUE) {
-   calling_function <- as.character(deparse(sys.call(-1)))
+   calling_function <- paste(deparse(sys.call(-1)), collapse = " ")
    output_string <- paste0("In: [", calling_function, "]" )
 
    for (i in seq_along(messages)) {
       message <- paste(messages[i],
                        paste(data_list[[i]], collapse = "\n"), sep = "\n")
 
-      output_string <- paste(output_string, message, sep = "\n")
+      output_string <- paste(output_string, message, sep = "\n\n")
    }
 
    options(deparse.max.lines = 2000L)
