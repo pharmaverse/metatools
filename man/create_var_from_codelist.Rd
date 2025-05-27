@@ -7,9 +7,12 @@
 create_var_from_codelist(
   data,
   metacore,
+  dataset = NULL,
   input_var,
   out_var,
-  decode_to_code = TRUE
+  decode_to_code = TRUE,
+  create_from_out_var = TRUE,
+  strict = FALSE
 )
 }
 \arguments{
@@ -18,6 +21,8 @@ create_var_from_codelist(
 \item{metacore}{A metacore object to get the codelist from. If the \code{out_var}
 has different codelists for different datasets the metacore object will
 need to be subsetted using \code{select_dataset} from the metacore package.}
+
+\item{dataset}{Specify the parent dataset of the parameter to be created.}
 
 \item{input_var}{Name of the variable that will be translated for the new
 column}
@@ -28,6 +33,14 @@ from the code of the codelist associates with \code{out_var}}
 \item{decode_to_code}{Direction of the translation. By default assumes the
 \code{input_var} is the decode column of the codelist. Set to \code{FALSE} if the
 \code{input_var} is the code column of the codelist}
+
+\item{create_from_out_var}{Specifies the variable from which the codelist
+should be taken. By default is out_var.}
+
+\item{strict}{A logical value indiciating whether to perform strict checking
+against the codelist. If \code{TRUE} will issue a warning if values in the \code{input_var}
+column are not present in the codelist. If \code{FALSE} no warning is issued and
+values not present in the codelist will likely result in \code{NA} results.}
 }
 \value{
 Dataset with a new column added
