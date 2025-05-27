@@ -259,7 +259,7 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_variables(data, spec)
-check_variables <- function(data, metacore, dataset_name = NULL) {
+check_variables <- function(data, metacore, dataset_name = NULL, strict_validation = TRUE) {
   metacore <- make_lone_dataset(metacore, dataset_name)
 
   var_list <- metacore$ds_vars %>%
@@ -283,7 +283,7 @@ check_variables <- function(data, metacore, dataset_name = NULL) {
   }
 
   if (length(messages) > 0) {
-     print_to_console(messages, data_list)
+     print_to_console(messages, data_list, strict_validation = {{ strict_validation }})
   } else {
      message("No missing or extra variables")
   }
@@ -304,9 +304,9 @@ print_to_console <- function(messages, data_list, strict_validation = TRUE) {
 
    options(deparse.max.lines = 2000L)
 
-   switch (strict_validation,
-      TRUE = stop(output_string, call. = FALSE),
-      FALSE = warning(output_string, call. = FALSE)
+   switch (as.character(strict_validation),
+      "TRUE" = stop(output_string, call. = FALSE),
+      "FALSE" = warning(output_string, call. = FALSE)
    )
 }
 
