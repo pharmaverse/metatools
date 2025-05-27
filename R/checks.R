@@ -295,6 +295,30 @@ check_variables <- function(data, metacore, dataset_name = NULL, strict_validati
   data
 }
 
+#' Print Messages to Console
+#'
+#' This function prints formatted messages to the console, either as errors (stopping
+#' execution) or as warnings. It is designed as a helper function to provide informative
+#' messages during validation checks.
+#'
+#' @param messages A character vector of messages to be printed. Each element corresponds
+#'   to a separate message.
+#' @param data_list A list of character vectors. Each element in the list corresponds
+#'   to a message in `messages` and provides associated data (e.g., column names).
+#'   If an element in `messages` has no corresponding data, include a `NULL`.
+#' @param strict_validation A logical value indicating whether to print messages as
+#'   errors (\code{TRUE}, default) or warnings (\code{FALSE}).
+#'
+#' @details The function constructs a formatted message string including the calling
+#' function's name, the individual messages provided in `messages`, and associated data
+#' from `data_list`. The function uses \code{switch} to call either `stop()` or `warning()`
+#' based on `strict_validation` and prints the full message string to the console.
+#'
+#' @return None. The function's primary purpose is its side effect of printing a message.
+#' It does not return a meaningful value.
+#'
+#' @export
+#'
 print_to_console <- function(messages, data_list, strict_validation = TRUE) {
    calling_function <- paste(deparse(sys.call(-1)), collapse = " ")
    output_string <- paste0("In: [", calling_function, "]" )
