@@ -263,6 +263,8 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_variables(data, spec)
+#' data["DUMMY_COL"] <- NA
+#' check_variables(data, spec, strict_validation = FALSE)
 check_variables <- function(data, metacore, dataset_name = NULL, strict_validation = TRUE) {
   metacore <- make_lone_dataset(metacore, dataset_name)
 
@@ -331,7 +333,6 @@ print_to_console <- function(messages, data_list, strict_validation = TRUE) {
    }
 
    options(deparse.max.lines = 2000L)
-
    switch (as.character(strict_validation),
       "TRUE" = stop(output_string, call. = FALSE),
       "FALSE" = warning(output_string, call. = FALSE)
