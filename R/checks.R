@@ -291,6 +291,25 @@ check_variables <- function(data, metacore, dataset_name = NULL) {
   data
 }
 
+print_to_console <- function(messages, data_list, strict_validation = TRUE) {
+   calling_function <- as.character(deparse(sys.call(-1)))
+   output_string <- paste0("In: [", calling_function, "]" )
+
+   for (i in seq_along(messages)) {
+      message <- paste(messages[i],
+                       paste(data_list[[i]], collapse = "\n"), sep = "\n")
+
+      output_string <- paste(output_string, message, sep = "\n")
+   }
+
+   options(deparse.max.lines = 2000L)
+
+   switch (strict_validation,
+      TRUE = stop(output_string, call. = FALSE),
+      FALSE = warning(output_string, call. = FALSE)
+   )
+}
+
 #' Check Uniqueness of Records by Key
 #'
 #' This function checks the uniqueness of records in the dataset by key using
