@@ -7,10 +7,10 @@
 metatools_example(file = NULL)
 }
 \arguments{
-\item{file}{Name of file. If `NULL`, the example files will be listed.}
+\item{file}{Name of file. If \code{NULL}, the example files will be listed.}
 }
 \description{
-pkg comes bundled with a number of sample files in its `inst/extdata`
+pkg comes bundled with a number of sample files in its \code{inst/extdata}
 directory. This function make them easy to access
 }
 \examples{

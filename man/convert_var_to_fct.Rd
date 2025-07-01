@@ -11,7 +11,7 @@ convert_var_to_fct(data, metacore, var)
 
 \item{metacore}{A metacore object to get the codelist from. If the
 variable has different codelists for different datasets the metacore object
-will need to be subsetted using `select_dataset` from the metacore package}
+will need to be subsetted using \code{select_dataset} from the metacore package}
 
 \item{var}{Name of variable to change}
 }

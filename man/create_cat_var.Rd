@@ -11,7 +11,7 @@ create_cat_var(data, metacore, ref_var, grp_var, num_grp_var = NULL)
 
 \item{metacore}{A metacore object to get the codelist from. If the
 variable has different codelists for different datasets the metacore object
-will need to be subsetted using `select_dataset` from the metacore package.}
+will need to be subsetted using \code{select_dataset} from the metacore package.}
 
 \item{ref_var}{Name of variable to be used as the reference i.e AGE when
 creating AGEGR1}
@@ -25,8 +25,8 @@ This is optional if no value given no variable will be created}
 dataset with new column added
 }
 \description{
-Using the grouping from either the `decode_var` or `code_var` and a reference
-variable (`ref_var`) it will create a categorical variable and the numeric
+Using the grouping from either the \code{decode_var} or \code{code_var} and a reference
+variable (\code{ref_var}) it will create a categorical variable and the numeric
 version of that categorical variable.
 }
 \examples{
