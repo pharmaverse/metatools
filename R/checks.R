@@ -31,6 +31,7 @@
 #' check_ct_col(data, spec, TRT01PN)
 #' check_ct_col(data, spec, "TRT01PN")
 check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
+   verify_DatasetMeta(metacore)
    bad_vals <- get_bad_ct(data = data, metacore = metacore,
                           var = {{var}}, na_acceptable = na_acceptable)
   if(length(bad_vals) == 0){
@@ -150,6 +151,7 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL){
 #' check_ct_data(data, spec, na_acceptable = c("DSRAEFL", "DCSREAS"), omit_vars = "DISCONFL")
 #'}
 check_ct_data <- function(data, metacore, na_acceptable = NULL, omit_vars = NULL) {
+   verify_DatasetMeta(metacore)
   codes_in_data <- metacore$value_spec %>%
     filter(variable %in% names(data), !is.na(code_id)) %>%
     pull(code_id) %>%
@@ -242,8 +244,12 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #' @param data Dataset to check
 #' @param metacore metacore object that only contains the specifications for the
 #'   dataset of interest.
-#' @param dataset_name Optional string to specify the dataset. This is only
-#'   needed if the metacore object provided hasn't already been subsetted.
+#' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
+#'   specify the dataset. This is only needed if the metacore object provided
+#'   hasn't already been subsetted.\cr
+#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
+#'   in a future release. Please use `metacore::select_dataset` to subset the
+#'   `metacore` object to obtain metadata for a single dataset.
 #'
 #' @return message if the dataset matches the specification and the dataset, and error otherwise
 #' @export
@@ -259,15 +265,26 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_variables(data, spec)
-check_variables <- function(data, metacore, dataset_name = NULL) {
-  metacore <- make_lone_dataset(metacore, dataset_name)
-  var_list <- metacore$ds_vars %>%
-     filter(is.na(supp_flag) | !(supp_flag)) %>%
-    pull(variable)
-  missing <- var_list %>%
-    discard(~ . %in% names(data))
-  extra <- names(data) %>%
-    discard(~ . %in% var_list)
+check_variables <- function(data, metacore, dataset_name = deprecated()) {
+   if (is_present(dataset_name)) {
+      lifecycle::deprecate_warn(
+         when = "1.0.0",
+         what = "check_variables(dataset_name)",
+         details = cli_text("The {.arg dataset_name} argument will be removed in
+                            a future release. Please use {.fcn metacore::select_dataset}
+                            to subset the {.obj metacore} object to obtain metadata
+                            for a single dataset.")
+      )
+      metacore <- make_lone_dataset(metacore, dataset_name)
+   }
+   verify_DatasetMeta(metacore)
+   var_list <- metacore$ds_vars %>%
+      filter(is.na(supp_flag) | !(supp_flag)) %>%
+      pull(variable)
+   missing <- var_list %>%
+      discard(~ . %in% names(data))
+   extra <- names(data) %>%
+      discard(~ . %in% var_list)
   if (length(missing) == 0 & length(extra) == 0) {
     message("No missing or extra variables")
   } else if (length(missing) > 0 & length(extra) > 0) {
@@ -300,8 +317,12 @@ check_variables <- function(data, metacore, dataset_name = NULL) {
 #' @param data Dataset to check
 #' @param metacore metacore object that only contains the specifications for the
 #'   dataset of interest.
-#' @param dataset_name Optional string to specify the dataset. This is only
-#'   needed if the metacore object provided hasn't already been subsetted.
+#' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
+#'   specify the dataset that is being built. This is only needed if the metacore
+#'   object provided hasn't already been subsetted.\cr
+#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
+#'   in a future release. Please use `metacore::select_dataset` to subset the
+#'   `metacore` object to obtain metadata for a single dataset.
 #'
 #' @return message if the key uniquely identifies each dataset record, and error otherwise
 #' @export
@@ -317,8 +338,19 @@ check_variables <- function(data, metacore, dataset_name = NULL) {
 #' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_unique_keys(data, spec)
-check_unique_keys <- function(data, metacore, dataset_name = NULL) {
-  metacore <- make_lone_dataset(metacore, dataset_name)
+check_unique_keys <- function(data, metacore, dataset_name = deprecated()) {
+   if (is_present(dataset_name)) {
+      lifecycle::deprecate_warn(
+         when = "1.0.0",
+         what = "check_variables(dataset_name)",
+         details = cli_text("The {.arg dataset_name} argument will be removed in
+                            a future release. Please use {.fcn metacore::select_dataset}
+                            to subset the {.obj metacore} object to obtain metadata
+                            for a single dataset.")
+      )
+      metacore <- make_lone_dataset(metacore, dataset_name)
+   }
+   verify_DatasetMeta(metacore)
   keys <- get_keys(metacore,expr(!!metacore$ds_spec$dataset))
   var_list <- keys %>%
     pull(variable)

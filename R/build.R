@@ -10,9 +10,12 @@
 #'   dataset of interest.
 #' @param ds_list Named list of datasets that are needed to build the from. If
 #'   the list is unnamed,then it will use the names of the objects.
-#' @param dataset_name Optional string to specify the dataset that is being
-#'   built. This is only needed if the metacore object provided hasn't already
-#'   been subsetted.
+#' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
+#'   specify the dataset that is being built. This is only needed if the metacore
+#'   object provided hasn't already been subsetted.\cr
+#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
+#'   in a future release. Please use `metacore::select_dataset` to subset the
+#'   `metacore` object to obtain metadata for a single dataset.
 #' @param predecessor_only By default `TRUE`, so only variables with the origin
 #'   of 'Predecessor' will be used. If `FALSE` any derivation matching the
 #'   dataset.variable will be used.
@@ -40,9 +43,19 @@
 #' spec <- metacore %>% select_dataset("ADSL")
 #' ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
 #' build_from_derived(spec, ds_list, predecessor_only = FALSE)
-build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
+build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
                                predecessor_only = TRUE, keep = FALSE) {
-   metacore <- make_lone_dataset(metacore, dataset_name)
+   if (is_present(dataset_name)) {
+      lifecycle::deprecate_warn(
+         when = "1.0.0",
+         what = "build_from_derived(dataset_name)",
+         details = cli_text("The {.arg dataset_name} argument will be removed in a future release.
+      Please use {.fcn metacore::select_dataset} to subset the {.obj metacore} object to obtain
+      metadata for a single dataset.")
+      )
+      metacore <- make_lone_dataset(metacore, dataset_name)
+   }
+   verify_DatasetMeta(metacore)
    derirvations <- metacore$derivations %>%
       mutate(derivation = trimws(derivation))
 
@@ -164,10 +177,13 @@ get_variables <- function(x, ds_list, keep) {
 #' @param dataset Dataset to change
 #' @param metacore metacore object that only contains the specifications for the
 #'   dataset of interest.
-#' @param dataset_name Optional string to specify the dataset. This is only
-#'   needed if the metacore object provided hasn't already been subsetted.
-#' @importFrom dplyr pull across select filter
-#' @importFrom purrr discard
+#' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to specify
+#' the dataset. This is only needed if the metacore object provided hasn't already
+#' been subsetted.\cr
+#' Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
+#' in a future release. Please use `metacore::select_dataset` to subset the
+#' `metacore` object to obtain metadata for a single dataset.
+#'
 #' @return Dataset with only specified columns
 #' @export
 #'
@@ -182,6 +198,15 @@ get_variables <- function(x, ds_list, keep) {
 #'   mutate(foo = "Hello")
 #' drop_unspec_vars(data, spec)
 drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL) {
+   if (!missing(dataset_name)) {
+      lifecycle::deprecate_soft(
+         when = "1.0.0",
+         what = "drop_unspec_vars(dataset_name)",
+         details = "The `dataset_name` argument will be removed in a future release.
+      Please use `metacore::select_dataset` to subset the `metacore` object to obtain
+      metadata for a single dataset."
+      )}
+
    metacore <- make_lone_dataset(metacore, dataset_name)
    var_list <- metacore$ds_vars %>%
       filter(is.na(supp_flag) | !(supp_flag)) %>%
@@ -212,15 +237,13 @@ drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL) {
 #' @param metacore metacore object that only contains the specifications for the
 #'   dataset of interest.
 #' @param dataset_name Optional string to specify the dataset. This is only
-#'   needed if the metacore object provided hasn't already been subsetted.
+#'   needed if the metacore object provided hasn't already been subsetted.\cr
+#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
+#'   in a future release. Please use `metacore::select_dataset` to subset the
+#'   `metacore` object to obtain metadata for a single dataset.
 #'
 #' @return The given dataset with any additional columns added
 #' @export
-#'
-#' @importFrom dplyr filter pull mutate bind_cols as_tibble
-#' @importFrom purrr discard map
-#' @importFrom rlang !! :=
-#'
 #'
 #' @examples
 #' library(metacore)
@@ -232,6 +255,15 @@ drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL) {
 #'    select(-TRTSDT, -TRT01P, -TRT01PN)
 #' add_variables(data, spec)
 add_variables <- function(dataset, metacore, dataset_name = NULL){
+   if (!missing(dataset_name)) {
+      lifecycle::deprecate_soft(
+         when = "1.0.0",
+         what = "add_variables(dataset_name)",
+         details = "The `dataset_name` argument will be removed in a future release.
+      Please use `metacore::select_dataset` to subset the `metacore` object to obtain
+      metadata for a single dataset."
+      )}
+
    metacore <- make_lone_dataset(metacore, dataset_name)
    var_list <- metacore$ds_vars %>%
       filter(is.na(supp_flag) | !(supp_flag)) %>%

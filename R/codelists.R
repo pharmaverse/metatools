@@ -172,6 +172,7 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var,
 #' create_cat_var(dm, spec, AGE, AGEGR1, AGEGR1N)
 create_cat_var <- function(data, metacore, ref_var, grp_var,
                            num_grp_var = NULL) {
+   verify_DatasetMeta(metacore)
   ct <- get_control_term(metacore, {{ grp_var }})
   if (is.vector(ct) | !("decode" %in% names(ct))) {
     stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
@@ -222,6 +223,7 @@ create_cat_var <- function(data, metacore, ref_var, grp_var,
 #' # Variable with permitted value control terms
 #' convert_var_to_fct(dm, spec, ARM)
 convert_var_to_fct <- function(data, metacore, var) {
+   verify_DatasetMeta(metacore)
   code_translation <- get_control_term(metacore, {{ var }})
   var_str <- as_label(enexpr(var)) %>%
     str_remove_all("\"")

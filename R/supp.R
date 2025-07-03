@@ -71,7 +71,12 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
 #' @param dataset dataset the supp will be pulled from
 #' @param metacore A subsetted metacore object to get the supp information from.
 #'   If not already subsetted then a `dataset_name` will need to be provided
-#' @param dataset_name optional name of dataset
+#' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
+#'   specify the dataset that is being built. This is only needed if the metacore
+#'   object provided hasn't already been subsetted.\cr
+#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
+#'   in a future release. Please use `metacore::select_dataset` to subset the
+#'   `metacore` object to obtain metadata for a single dataset.
 #'
 #' @return a CDISC formatted SUPP dataset
 #' @export
@@ -90,9 +95,19 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
 #' spec <- metacore %>% select_dataset("AE")
 #' ae <- combine_supp(sdtm_ae, sdtm_suppae)
 #' make_supp_qual(ae, spec) %>% as_tibble()
-make_supp_qual <- function(dataset, metacore, dataset_name = NULL){
-   #Get a single metacore object
-   metacore <- make_lone_dataset(metacore, dataset_name)
+make_supp_qual <- function(dataset, metacore, dataset_name = deprecated()){
+   if (is_present(dataset_name)) {
+      lifecycle::deprecate_warn(
+         when = "1.0.0",
+         what = "check_variables(dataset_name)",
+         details = cli_text("The {.arg dataset_name} argument will be removed in
+                            a future release. Please use {.fcn metacore::select_dataset}
+                            to subset the {.obj metacore} object to obtain metadata
+                            for a single dataset.")
+      )
+      metacore <- make_lone_dataset(metacore, dataset_name)
+   }
+   verify_DatasetMeta(metacore)
 
    supp_vars <- metacore$ds_vars %>%
       filter(supp_flag)
