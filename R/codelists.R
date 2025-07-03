@@ -100,12 +100,14 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #'   4, "U", "Unknown",
 #'   5, "M", "Male",
 #' )
-#' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
+#' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE) %>%
+#'   select_dataset("DM")
 #' create_var_from_codelist(data, spec, VAR2, SEX)
 #' create_var_from_codelist(data, spec, "VAR2", "SEX")
 #' create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
 create_var_from_codelist <- function(data, metacore, input_var, out_var,
                                      decode_to_code = TRUE) {
+   verify_DatasetMeta(metacore)
    code_translation <- get_control_term(metacore, {{ out_var }})
    input_var_str <- as_label(enexpr(input_var)) %>%
       str_remove_all("\"")

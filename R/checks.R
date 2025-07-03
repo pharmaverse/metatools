@@ -74,10 +74,11 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
 #' load(metacore_example("pilot_ADaM.rda"))
 #' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
-#' get_bad_ct(data, spec, "DISCONFL")
-#' get_bad_ct(data, spec, "DISCONFL", na_acceptable = FALSE)
+#' get_bad_ct(data, spec, "DCSREAS")
+#' get_bad_ct(data, spec, "DCSREAS", na_acceptable = FALSE)
 #'
 get_bad_ct <- function(data, metacore, var, na_acceptable = NULL){
+   verify_DatasetMeta(metacore)
    col_name_str <- as_label(enexpr(var)) %>%
       str_remove_all("\"")
    if (!col_name_str %in% names(data)) {
