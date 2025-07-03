@@ -7,35 +7,36 @@
 create_var_from_codelist(
   data,
   metacore,
-  dataset = NULL,
   input_var,
   out_var,
+  codelist = NULL,
   decode_to_code = TRUE,
-  create_from_out_var = TRUE,
-  strict = FALSE
+  strict = TRUE
 )
 }
 \arguments{
 \item{data}{Dataset that contains the input variable}
 
-\item{metacore}{A metacore object to get the codelist from. If the \code{out_var}
-has different codelists for different datasets the metacore object will
-need to be subsetted using \code{select_dataset} from the metacore package.}
-
-\item{dataset}{Specify the parent dataset of the parameter to be created.}
+\item{metacore}{A metacore object to get the codelist from. This should be a
+subsetted metacore object (of subclass \code{DatasetMeta}) created using
+\code{metacore::select_dataset}.}
 
 \item{input_var}{Name of the variable that will be translated for the new
 column}
 
-\item{out_var}{Name of the output variable. Note: the grouping will always be
-from the code of the codelist associates with \code{out_var}}
+\item{out_var}{Name of the output variable. Note: Unless a codelist is provided
+the grouping will always be from the code of the codelist associates with
+\code{out_var}.}
+
+\item{codelist}{Optional argument to supply a codelist. Must be a data.frame
+with \code{code} and \code{decode} columns such as those created by the function
+\code{metacore::get_control_term}. If no codelist is provided the codelist
+associated with the column supplied to \code{out_var} will be used. By default
+\code{codelist} is \code{NULL}.}
 
 \item{decode_to_code}{Direction of the translation. By default assumes the
 \code{input_var} is the decode column of the codelist. Set to \code{FALSE} if the
 \code{input_var} is the code column of the codelist}
-
-\item{create_from_out_var}{Specifies the variable from which the codelist
-should be taken. By default is out_var.}
 
 \item{strict}{A logical value indiciating whether to perform strict checking
 against the codelist. If \code{TRUE} will issue a warning if values in the \code{input_var}
@@ -61,7 +62,8 @@ data <- tribble(
   5, "M", "Male",
 )
 spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
-create_var_from_codelist(data, spec, input_var = VAR2, out_var = SEX)
-create_var_from_codelist(data, spec, input_var = "VAR2", out_var = "SEX")
-create_var_from_codelist(data, spec, input_var = VAR1, out_var = SEX, decode_to_code = FALSE)
+dm_spec <- select_dataset(spec, "DM")
+create_var_from_codelist(data, dm_spec, input_var = VAR2, out_var = SEX)
+create_var_from_codelist(data, dm_spec, input_var = "VAR2", out_var = "SEX")
+create_var_from_codelist(data, dm_spec, input_var = VAR1, out_var = SEX, decode_to_code = FALSE)
 }

@@ -94,10 +94,11 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #' @return Dataset with a new column added
 #' @export
 #'
-#' @importFrom rlang enexpr as_label set_names := as_name
+#' @importFrom rlang enexpr as_label set_names := as_name as_character is_logical
 #' @importFrom dplyr left_join rename
 #' @importFrom metacore get_control_term
 #' @importFrom stringr str_remove_all
+#' @importFrom cli cli_abort cli_warn
 #'
 #' @examples
 #' library(metacore)
@@ -111,9 +112,10 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #'   5, "M", "Male",
 #' )
 #' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
-#' create_var_from_codelist(data, spec, input_var = VAR2, out_var = SEX)
-#' create_var_from_codelist(data, spec, input_var = "VAR2", out_var = "SEX")
-#' create_var_from_codelist(data, spec, input_var = VAR1, out_var = SEX, decode_to_code = FALSE)
+#' dm_spec <- select_dataset(spec, "DM")
+#' create_var_from_codelist(data, dm_spec, input_var = VAR2, out_var = SEX)
+#' create_var_from_codelist(data, dm_spec, input_var = "VAR2", out_var = "SEX")
+#' create_var_from_codelist(data, dm_spec, input_var = VAR1, out_var = SEX, decode_to_code = FALSE)
 create_var_from_codelist <- function(data, metacore, input_var, out_var, codelist = NULL,
                                      decode_to_code = TRUE, strict = TRUE) {
    # Use codelist if provided, else use codelist of the out_var
