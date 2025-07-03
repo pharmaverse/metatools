@@ -121,7 +121,9 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var, codelis
    else { code_translation <- get_control_term(metacore, {{ out_var }}) }
 
    if (is.vector(code_translation) | !("decode" %in% names(code_translation))) {
-      stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
+      cli_abort("Expecting 'code_decode' type of control terminology. Actual \\
+type is {typeof(code_translation)}. Check the structure of the codelist in the \\
+{.obj metacore} object using {.fn View}.")
    }
 
    if (decode_to_code) { derive_from = expr(decode) }
@@ -135,11 +137,11 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var, codelis
 
    miss <- setdiff(values, codelist)
 
+   miss <- setdiff(values, codelist)
    if (strict == TRUE && length(miss) > 0) {
-      warning(
-         paste("One or more values present in the input dataset are not present in the codelist:",
-         paste(miss, collapse = ", "), sep = " ")
-      )
+      cli_warn(
+         "In {.fn create_var_from_codelist}: The following value{?s} present in the
+input dataset {?is/are} not present in the codelist: {miss}")
    }
 
    input_var_str <- as_label(enexpr(input_var)) %>%
@@ -162,7 +164,7 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var, codelis
             mutate({{ out_var }} := as.numeric({{ out_var }}))
       }
    } else {
-      stop("decode_to_code must be either TRUE or FALSE")
+      cli_abort("{.arg decode_to_code} must be either TRUE or FALSE.")
    }
    out
 }
