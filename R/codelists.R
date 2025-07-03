@@ -73,7 +73,6 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #' @param metacore A metacore object to get the codelist from. If the `out_var`
 #'   has different codelists for different datasets the metacore object will
 #'   need to be subsetted using `select_dataset` from the metacore package.
-#' @param dataset Specify the parent dataset of the parameter to be created.
 #' @param input_var Name of the variable that will be translated for the new
 #'   column
 #' @param out_var Name of the output variable. Note: the grouping will always be
@@ -81,8 +80,6 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #' @param decode_to_code Direction of the translation. By default assumes the
 #'   `input_var` is the decode column of the codelist. Set to `FALSE` if the
 #'   `input_var` is the code column of the codelist
-#' @param create_from_out_var Specifies the variable from which the codelist
-#'   should be taken. By default is out_var.
 #' @param strict A logical value indiciating whether to perform strict checking
 #'   against the codelist. If `TRUE` will issue a warning if values in the `input_var`
 #'   column are not present in the codelist. If `FALSE` no warning is issued and
@@ -111,14 +108,14 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #' create_var_from_codelist(data, spec, input_var = VAR2, out_var = SEX)
 #' create_var_from_codelist(data, spec, input_var = "VAR2", out_var = "SEX")
 #' create_var_from_codelist(data, spec, input_var = VAR1, out_var = SEX, decode_to_code = FALSE)
-create_var_from_codelist <- function(data, metacore, dataset = NULL, input_var, out_var,
-                                     decode_to_code = TRUE, create_from_out_var = TRUE, strict = FALSE) {
+create_var_from_codelist <- function(data, metacore, input_var, out_var,
+                                     decode_to_code = TRUE, strict = FALSE) {
 
    if (create_from_out_var) {
-      code_translation <- get_control_term(metacore, {{ out_var }}, {{ dataset }})
+      code_translation <- get_control_term(metacore, {{ out_var }})
    }
    else if (!create_from_out_var) {
-      code_translation <- get_control_term(metacore, {{ input_var }}, {{ dataset }})
+      code_translation <- get_control_term(metacore, {{ input_var }})
    }
 
    if (is.vector(code_translation) | !("decode" %in% names(code_translation))) {
