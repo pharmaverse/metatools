@@ -1,6 +1,6 @@
 
 load(metacore::metacore_example("pilot_ADaM.rda"))
-spec <- metacore %>% select_dataset("ADSL")
+spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
 test_that("drop_unspec_vars", {
   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
     mutate(foo = "Hello", foo2 = "world")
@@ -55,7 +55,7 @@ test_that("build_from_derived", {
     expect_equal(man_vars)
 
   # Pulling through from more than one dataset
-  spec2 <- metacore %>% select_dataset("ADAE")
+  spec2 <- metacore %>% select_dataset("ADAE", quiet = TRUE)
   adae_auto <- build_from_derived(spec2,
      ds_list = list("AE" = safetyData::sdtm_ae,
                  "ADSL" = safetyData::adam_adsl),
@@ -115,7 +115,7 @@ test_that("build_from_derived", {
 
 test_that("add_variables", {
    load(metacore::metacore_example("pilot_ADaM.rda"))
-   spec <- metacore %>% select_dataset("ADSL")
+   spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
    data <- haven::read_xpt(metatools_example("adsl.xpt"))
    data_mis <- data %>%
       select(-TRTSDT, -TRT01P, -TRT01PN)
