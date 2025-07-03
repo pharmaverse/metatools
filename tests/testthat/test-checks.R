@@ -1,27 +1,29 @@
 
 # Load data to use across tests
 load(metacore::metacore_example("pilot_ADaM.rda"))
-spec <- metacore %>% select_dataset("ADSL")
+spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
 data <- haven::read_xpt(metatools_example("adsl.xpt"))
+
 mod_ds_vars <- spec$ds_vars %>%
-   mutate(core = if_else(variable %in% c("TRT01PN", "DISCONFL"), "Required", core))
+   mutate(core = if_else(variable %in% c("TRT01PN", "COMP8FL"), "Required", core))
 spec_mod <- metacore::metacore(spec$ds_spec, mod_ds_vars, spec$var_spec, spec$value_spec, spec$derivations, spec$codelist) %>%
    suppressWarnings()
+spec_mod <- select_dataset(spec_mod, "ADSL", quiet = TRUE)
 
 test_that("get_bad_ct works correctly", {
 
    # test na_acceptable
-   expect_equal(get_bad_ct(data, spec, "DISCONFL"), character(0))
-   expect_equal(get_bad_ct(data, spec, "DISCONFL", TRUE), character(0))
-   expect_equal(get_bad_ct(data, spec, "DISCONFL", FALSE), "")
+   expect_equal(get_bad_ct(data, spec, "DCSREAS"), character(0))
+   expect_equal(get_bad_ct(data, spec, "DCSREAS", TRUE), character(0))
+   expect_equal(get_bad_ct(data, spec, "DCSREAS", FALSE), "")
 
-   expect_equal(get_bad_ct(data, spec_mod, "DISCONFL"), "")
-   expect_equal(get_bad_ct(data, spec_mod, "DISCONFL", TRUE), character(0))
-   expect_equal(get_bad_ct(data, spec_mod, "DISCONFL", FALSE), "")
+   expect_equal(get_bad_ct(data, spec_mod, "COMP8FL"), "")
+   expect_equal(get_bad_ct(data, spec_mod, "COMP8FL", TRUE), character(0))
+   expect_equal(get_bad_ct(data, spec_mod, "COMP8FL", FALSE), "")
 
    data_na <- data %>%
-      mutate(DISCONFL = if_else(dplyr::row_number() == 1, NA_character_, DISCONFL))
-   expect_equal(get_bad_ct(data_na, spec_mod, "DISCONFL"), c(NA_character_, ""))
+      mutate(COMP8FL = if_else(dplyr::row_number() == 1, NA_character_, COMP8FL))
+   expect_equal(get_bad_ct(data_na, spec_mod, "COMP8FL"), c(NA_character_, ""))
 
 })
 
@@ -35,21 +37,23 @@ test_that("check_ct_col works correctly", {
 
    # Test permitted Values
    spec2 <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet = TRUE)
-   expect_equal(check_ct_col(data, spec2, ARM), data)
+   dm <- select_dataset(spec2, "DM", quiet = TRUE)
+   expect_equal(check_ct_col(data, dm, ARM), data)
 
    # Test external dictionaries
    data2 <- tibble::tibble(AELLT = "Hello")
-   expect_error(check_ct_col(data2, spec2, AELLT),
+   ae <- select_dataset(spec2, "AE", quiet = TRUE)
+   expect_error(check_ct_col(data2, ae, AELLT),
                 "We currently don't have the ability to check against external libraries")
 
    # Test a column that isn't in the dataset
-   expect_error(check_ct_col(data, spec2, AELLT),
+   expect_error(check_ct_col(data, ae, AELLT),
                 "AELLT not found in dataset. Please check and try again")
 
    # Test NA acceptable
-   expect_error(check_ct_col(data, spec, DCSREAS, FALSE))
+   expect_error(check_ct_col(data, dm, COMP8FL, FALSE))
 
-   expect_equal(check_ct_col(data, spec, DCSREAS, TRUE), data)
+   expect_equal(check_ct_col(data, dm, ARM, TRUE), data)
    data_w_miss <- data %>%
       mutate(TRT01PN = if_else(dplyr::row_number() == 3, NA_real_, TRT01PN))
    expect_error(check_ct_col(data_w_miss, spec, TRT01PN, FALSE))
@@ -59,9 +63,9 @@ test_that("check_ct_col works correctly", {
    # Required without missing
    expect_equal(check_ct_col(data, spec_mod, TRT01PN), data)
    # Required with missing
-   expect_error(check_ct_col(data, spec_mod, DISCONFL))
-   expect_equal(get_bad_ct(data, spec_mod, DISCONFL), "")
-   expect_equal(check_ct_col(data, spec_mod, DISCONFL, TRUE), data)
+   expect_error(check_ct_col(data, spec_mod, COMP8FL))
+   expect_equal(get_bad_ct(data, spec_mod, COMP8FL), "")
+   expect_equal(check_ct_col(data, spec_mod, COMP8FL, TRUE), data)
 })
 
 test_that("check_ct_data works correctly", {
@@ -76,8 +80,6 @@ test_that("check_ct_data works correctly", {
    expect_error(check_ct_data(data, spec, FALSE))
    expect_equal(check_ct_data(data, spec), data)
    expect_equal(check_ct_data(data, spec, TRUE), data)
-   expect_error(check_ct_data(data, metacore, TRUE),
-                "DSRAEFL does not have a unique control term, consider spcificing a dataset")
    expect_error(check_ct_data(data, spec_mod))
    expect_equal(check_ct_data(data, spec_mod, TRUE), data)
 
@@ -88,7 +90,7 @@ test_that("check_ct_data works correctly", {
    # Check omit_vars:
    expect_error(check_ct_data(data, spec, omit_vars = c("A", "B")))
    expect_error(check_ct_data(data, spec, FALSE, omit_vars = c("DISCONFL", "DSRAEFL")))
-   expect_equal(check_ct_data(data, spec_mod, na_acceptable = NULL, omit_vars = "DISCONFL"), data)
+   expect_equal(check_ct_data(data, spec_mod, na_acceptable = NULL, omit_vars = "COMP8FL"), data)
 
 })
 
@@ -106,16 +108,16 @@ test_that("check_unique_keys works as expected", {
    #check requirement for subsetted metacore object or a dataset name
    expect_error(check_unique_keys(data, metacore))
    #check missing variable keys error
-   expect_error(check_unique_keys(data, metacore, dataset_name = "ADVS"))
+   adae <- select_dataset(metacore, "ADAE", quiet = TRUE)
+   expect_error(check_unique_keys(data, adae))
    #check works correctly when records are unique
-   expect_message(check_unique_keys(data, metacore, dataset_name = "ADSL"))
+   adsl <- select_dataset(metacore, "ADSL", quiet = TRUE)
+   expect_message(check_unique_keys(data, adsl))
    #check works correctly when records are not unique
-   test <- build_from_derived(metacore,
-                              dataset_name = "ADLBHY",
-                              ds_list = list("LB" = safetyData::sdtm_lb,
-                                              "ADSL" = safetyData::adam_adsl,
-                                              "ADLBC" = safetyData::adam_adlbc),
+   test <- build_from_derived(adae,
+                              ds_list = list("AE" = safetyData::sdtm_ae,
+                                              "ADSL" = safetyData::adam_adsl),
                               predecessor_only = FALSE,
                               keep = FALSE)
-   expect_error(check_unique_keys(test, metacore, dataset_name = "ADLBHY"))
+   expect_error(check_unique_keys(test, adae))
 })

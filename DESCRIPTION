@@ -22,6 +22,7 @@ BugReports: https://github.com/pharmaverse/metatools/issues
 Imports: 
     cli,
     dplyr,
+    lifecycle,
     magrittr,
     metacore (>= 0.0.4),
     purrr,

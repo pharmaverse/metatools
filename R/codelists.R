@@ -6,8 +6,6 @@
 #'
 #' @return string
 #' @noRd
-#' @importFrom stringr str_extract str_detect
-#' @importFrom dplyr if_else
 dash_to_eq <- function(string) {
   front <- str_extract(string, "^.*(?=\\-)")
   front_eq <- if_else(str_detect(front, "<|>|="), front, paste0(">=", front))
@@ -25,9 +23,6 @@ dash_to_eq <- function(string) {
 #'
 #' @return Character vector of the values in the subgroups
 #' @export
-#' @importFrom  stringr str_detect str_c str_count
-#' @importFrom purrr map reduce keep
-#' @importFrom  dplyr case_when
 #'
 #' @examples
 #' create_subgrps(c(1:10), c("<2", "2-5", ">5"))
@@ -94,12 +89,15 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #' @return Dataset with a new column added
 #' @export
 #'
+<<<<<<< HEAD
 #' @importFrom rlang enexpr as_label set_names := as_name as_character is_logical
 #' @importFrom dplyr left_join rename
 #' @importFrom metacore get_control_term
 #' @importFrom stringr str_remove_all
 #' @importFrom cli cli_abort cli_warn
 #'
+=======
+>>>>>>> 87-check-for-subsetted-metacore
 #' @examples
 #' library(metacore)
 #' library(tibble)
@@ -111,6 +109,7 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #'   4, "U", "Unknown",
 #'   5, "M", "Male",
 #' )
+<<<<<<< HEAD
 #' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
 #' dm_spec <- select_dataset(spec, "DM")
 #' create_var_from_codelist(data, dm_spec, input_var = VAR2, out_var = SEX)
@@ -122,6 +121,19 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var, codelis
    if (!missing(codelist)) { code_translation <- codelist }
    else { code_translation <- get_control_term(metacore, {{ out_var }}) }
 
+=======
+#' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE) %>%
+#'   select_dataset("DM")
+#' create_var_from_codelist(data, spec, VAR2, SEX)
+#' create_var_from_codelist(data, spec, "VAR2", "SEX")
+#' create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
+create_var_from_codelist <- function(data, metacore, input_var, out_var,
+                                     decode_to_code = TRUE) {
+   verify_DatasetMeta(metacore)
+   code_translation <- get_control_term(metacore, {{ out_var }})
+   input_var_str <- as_label(enexpr(input_var)) %>%
+      str_remove_all("\"")
+>>>>>>> 87-check-for-subsetted-metacore
    if (is.vector(code_translation) | !("decode" %in% names(code_translation))) {
       cli_abort("Expecting 'code_decode' type of control terminology. Actual \\
 type is {typeof(code_translation)}. Check the structure of the codelist in the \\
@@ -190,9 +202,6 @@ input dataset {?is/are} not present in the codelist: {miss}")
 #' @param grp_var Name of the new grouped variable
 #' @param num_grp_var Name of the new numeric decode for the grouped variable.
 #'   This is optional if no value given no variable will be created
-#' @importFrom rlang enexpr :=
-#' @importFrom dplyr %>% pull mutate
-#' @importFrom metacore get_control_term
 #'
 #' @return dataset with new column added
 #' @export
@@ -210,6 +219,7 @@ input dataset {?is/are} not present in the codelist: {miss}")
 #' create_cat_var(dm, spec, AGE, AGEGR1, AGEGR1N)
 create_cat_var <- function(data, metacore, ref_var, grp_var,
                            num_grp_var = NULL) {
+   verify_DatasetMeta(metacore)
   ct <- get_control_term(metacore, {{ grp_var }})
   if (is.vector(ct) | !("decode" %in% names(ct))) {
     stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
@@ -240,9 +250,6 @@ create_cat_var <- function(data, metacore, ref_var, grp_var,
 #'   variable has different codelists for different datasets the metacore object
 #'   will need to be subsetted using `select_dataset` from the metacore package
 #' @param var Name of variable to change
-#' @importFrom rlang as_label enexpr
-#' @importFrom stringr str_remove_all
-#' @importFrom dplyr mutate
 #'
 #' @return Dataset with variable changed to a factor
 #' @export
@@ -260,6 +267,7 @@ create_cat_var <- function(data, metacore, ref_var, grp_var,
 #' # Variable with permitted value control terms
 #' convert_var_to_fct(dm, spec, ARM)
 convert_var_to_fct <- function(data, metacore, var) {
+   verify_DatasetMeta(metacore)
   code_translation <- get_control_term(metacore, {{ var }})
   var_str <- as_label(enexpr(var)) %>%
     str_remove_all("\"")
