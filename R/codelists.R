@@ -115,8 +115,8 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #' create_var_from_codelist(data, spec, input_var = "VAR2", out_var = "SEX")
 #' create_var_from_codelist(data, spec, input_var = VAR1, out_var = SEX, decode_to_code = FALSE)
 create_var_from_codelist <- function(data, metacore, input_var, out_var, codelist = NULL,
-                                     decode_to_code = TRUE, strict = FALSE) {
-   # Use codelist if provided, else use codelist of the outvar
+                                     decode_to_code = TRUE, strict = TRUE) {
+   # Use codelist if provided, else use codelist of the out_var
    if (!missing(codelist)) { code_translation <- codelist }
    else { code_translation <- get_control_term(metacore, {{ out_var }}) }
 
@@ -126,16 +126,17 @@ type is {typeof(code_translation)}. Check the structure of the codelist in the \
 {.obj metacore} object using {.fn View}.")
    }
 
-   if (decode_to_code) { derive_from = expr(decode) }
-   else { derive_from = expr(code) }
+   # Check decode_to_code is logical and set direction of translation
+   if (!is_logical(decode_to_code)) {
+      cli_abort("{.arg decode_to_code} must be either TRUE or FALSE.")
+   }
 
-   values <- data %>%
-      pull({{ input_var }})
+   ref_var <- if (decode_to_code) "decode" else "code"
+   new_var <- if (decode_to_code) "code"   else "decode"
 
-   codelist <- code_translation %>%
-      pull({{ derive_from }})
-
-   miss <- setdiff(values, codelist)
+   # Pull data values and codelist values to check inconsistent overlap
+   values   <- data |> pull({{ input_var }})
+   codelist <- code_translation |> pull(ref_var)
 
    miss <- setdiff(values, codelist)
    if (strict == TRUE && length(miss) > 0) {
@@ -144,28 +145,26 @@ type is {typeof(code_translation)}. Check the structure of the codelist in the \
 input dataset {?is/are} not present in the codelist: {miss}")
    }
 
-   input_var_str <- as_label(enexpr(input_var)) %>%
+   input_var_str <- as_label(enexpr(input_var)) |>
       str_remove_all("\"")
 
-   if (decode_to_code) {
-      out <- data %>%
-         left_join(code_translation, by = set_names("decode", input_var_str)) %>%
-         rename({{ out_var }} := code)
-      if(all(str_detect(code_translation$code, "^\\d*$"))){
-         out <- out %>%
-            mutate({{ out_var }} := as.numeric({{ out_var }}))
-      }
-   } else if (!decode_to_code) {
-      out <- data %>%
-         left_join(code_translation, by = set_names("code", input_var_str)) %>%
-         rename({{ out_var }} := decode)
-      if(all(str_detect(code_translation$decode, "^\\d*$"))){
-         out <- out %>%
-            mutate({{ out_var }} := as.numeric({{ out_var }}))
-      }
-   } else {
-      cli_abort("{.arg decode_to_code} must be either TRUE or FALSE.")
+   data <- data |> mutate({{ input_var }} := as.character(.data[[input_var_str]]))
+   code_translation <- code_translation |>
+      mutate(
+         decode = as.character(decode),
+         code = as.character(code)
+      )
+
+   out <- data |>
+      left_join(code_translation, by = set_names(ref_var, input_var_str)) |>
+      rename({{ out_var }} := !!sym(new_var))
+
+   # Optionally coerce to numeric if the output values are numeric
+   if (all(str_detect(code_translation[[new_var]], "^\\d*$"))) {
+      out <- out |>
+         mutate({{ out_var }} := as.numeric({{ out_var }}))
    }
+
    out
 }
 
