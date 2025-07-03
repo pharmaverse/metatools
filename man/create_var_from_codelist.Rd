@@ -38,7 +38,7 @@ associated with the column supplied to \code{out_var} will be used. By default
 \code{input_var} is the decode column of the codelist. Set to \code{FALSE} if the
 \code{input_var} is the code column of the codelist}
 
-\item{strict}{A logical value indiciating whether to perform strict checking
+\item{strict}{A logical value indicating whether to perform strict checking
 against the codelist. If \code{TRUE} will issue a warning if values in the \code{input_var}
 column are not present in the codelist. If \code{FALSE} no warning is issued and
 values not present in the codelist will likely result in \code{NA} results.}
@@ -61,17 +61,9 @@ data <- tribble(
   4, "U", "Unknown",
   5, "M", "Male",
 )
-<<<<<<< HEAD
-spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
-dm_spec <- select_dataset(spec, "DM")
-create_var_from_codelist(data, dm_spec, input_var = VAR2, out_var = SEX)
-create_var_from_codelist(data, dm_spec, input_var = "VAR2", out_var = "SEX")
-create_var_from_codelist(data, dm_spec, input_var = VAR1, out_var = SEX, decode_to_code = FALSE)
-=======
-spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE) \%>\%
+spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE) |>
   select_dataset("DM")
 create_var_from_codelist(data, spec, VAR2, SEX)
 create_var_from_codelist(data, spec, "VAR2", "SEX")
 create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
->>>>>>> 87-check-for-subsetted-metacore
 }

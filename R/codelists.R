@@ -81,7 +81,7 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #' @param decode_to_code Direction of the translation. By default assumes the
 #'   `input_var` is the decode column of the codelist. Set to `FALSE` if the
 #'   `input_var` is the code column of the codelist
-#' @param strict A logical value indiciating whether to perform strict checking
+#' @param strict A logical value indicating whether to perform strict checking
 #'   against the codelist. If `TRUE` will issue a warning if values in the `input_var`
 #'   column are not present in the codelist. If `FALSE` no warning is issued and
 #'   values not present in the codelist will likely result in `NA` results.
@@ -89,15 +89,6 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #' @return Dataset with a new column added
 #' @export
 #'
-<<<<<<< HEAD
-#' @importFrom rlang enexpr as_label set_names := as_name as_character is_logical
-#' @importFrom dplyr left_join rename
-#' @importFrom metacore get_control_term
-#' @importFrom stringr str_remove_all
-#' @importFrom cli cli_abort cli_warn
-#'
-=======
->>>>>>> 87-check-for-subsetted-metacore
 #' @examples
 #' library(metacore)
 #' library(tibble)
@@ -109,31 +100,19 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #'   4, "U", "Unknown",
 #'   5, "M", "Male",
 #' )
-<<<<<<< HEAD
-#' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
-#' dm_spec <- select_dataset(spec, "DM")
-#' create_var_from_codelist(data, dm_spec, input_var = VAR2, out_var = SEX)
-#' create_var_from_codelist(data, dm_spec, input_var = "VAR2", out_var = "SEX")
-#' create_var_from_codelist(data, dm_spec, input_var = VAR1, out_var = SEX, decode_to_code = FALSE)
-create_var_from_codelist <- function(data, metacore, input_var, out_var, codelist = NULL,
-                                     decode_to_code = TRUE, strict = TRUE) {
-   # Use codelist if provided, else use codelist of the out_var
-   if (!missing(codelist)) { code_translation <- codelist }
-   else { code_translation <- get_control_term(metacore, {{ out_var }}) }
-
-=======
-#' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE) %>%
+#' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE) |>
 #'   select_dataset("DM")
 #' create_var_from_codelist(data, spec, VAR2, SEX)
 #' create_var_from_codelist(data, spec, "VAR2", "SEX")
 #' create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
-create_var_from_codelist <- function(data, metacore, input_var, out_var,
-                                     decode_to_code = TRUE) {
+create_var_from_codelist <- function(data, metacore, input_var, out_var, codelist = NULL,
+                                     decode_to_code = TRUE, strict = TRUE) {
    verify_DatasetMeta(metacore)
-   code_translation <- get_control_term(metacore, {{ out_var }})
-   input_var_str <- as_label(enexpr(input_var)) %>%
-      str_remove_all("\"")
->>>>>>> 87-check-for-subsetted-metacore
+
+   # Use codelist if provided, else use codelist of the out_var
+   if (!missing(codelist)) { code_translation <- codelist }
+   else { code_translation <- get_control_term(metacore, {{ out_var }}) }
+
    if (is.vector(code_translation) | !("decode" %in% names(code_translation))) {
       cli_abort("Expecting 'code_decode' type of control terminology. Actual \\
 type is {typeof(code_translation)}. Check the structure of the codelist in the \\

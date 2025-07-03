@@ -4,11 +4,7 @@ options(cli.default_handler = function(...) { })
 spec <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet = TRUE)
 dm_spec <- select_dataset(spec, "DM", quiet = TRUE)
 load(metacore::metacore_example("pilot_ADaM.rda"))
-<<<<<<< HEAD
-spec2 <- metacore %>% select_dataset("ADSL", quiet = TRUE)
-=======
 adsl_spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
->>>>>>> 87-check-for-subsetted-metacore
 dm <- haven::read_xpt(metatools_example("dm.xpt"))
 
 
@@ -47,32 +43,19 @@ test_that("create_var_from_codelist", {
 
   manual_data <- data %>%
     mutate(SEX = VAR1)
-<<<<<<< HEAD
-  expect_equal(create_var_from_codelist(data, spec, input_var = VAR2, out_var = SEX), manual_data)
-  expect_equal(create_var_from_codelist(data, spec, input_var = "VAR2", out_var = "SEX"), manual_data)
-  manual_data2 <- data %>%
-    mutate(SEX = VAR2)
-  expect_equal(
-    create_var_from_codelist(data, spec, input_var = VAR1, out_var = SEX, decode_to_code = FALSE),
-=======
   expect_equal(create_var_from_codelist(data, dm_spec, VAR2, SEX), manual_data)
   expect_equal(create_var_from_codelist(data, dm_spec, "VAR2", "SEX"), manual_data)
   manual_data2 <- data %>%
     mutate(SEX = VAR2)
   expect_equal(
     create_var_from_codelist(data, dm_spec, VAR1, SEX, decode_to_code = FALSE),
->>>>>>> 87-check-for-subsetted-metacore
     manual_data2
   )
   # Test numeric
   num_out <- dm %>%
      mutate(TRT01P = ARM) %>%
      select(TRT01P) %>%
-<<<<<<< HEAD
-     create_var_from_codelist(spec2, input_var = TRT01P, out_var = TRT01PN, strict = FALSE) %>%
-=======
      create_var_from_codelist(adsl_spec, TRT01P, TRT01PN) %>%
->>>>>>> 87-check-for-subsetted-metacore
      head() %>%
      pull(TRT01PN)
   expect_equal(num_out, c(0,  0, 81, 54, 81,0))
