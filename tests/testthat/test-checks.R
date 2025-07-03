@@ -1,7 +1,6 @@
 
 # Load data to use across tests
-# load(metacore::metacore_example("pilot_ADaM.rda"))
-metacore <- metacore::spec_to_metacore(metatools_example('adam-pilot-3.xlsx'), where_sep_sheet = FALSE, quiet = TRUE)
+load(metacore::metacore_example("pilot_ADaM.rda"))
 spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
 data <- haven::read_xpt(metatools_example("adsl.xpt"))
 
