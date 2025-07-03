@@ -148,7 +148,8 @@ input dataset {?is/are} not present in the codelist: {miss}")
    input_var_str <- as_label(enexpr(input_var)) |>
       str_remove_all("\"")
 
-   data <- data |> mutate({{ input_var }} := as.character(.data[[input_var_str]]))
+   # Coerce join column to character to ensure join if input var is numeric
+   data <- data |> mutate(merge_on := as.character(.data[[input_var_str]]))
    code_translation <- code_translation |>
       mutate(
          decode = as.character(decode),
@@ -156,8 +157,9 @@ input dataset {?is/are} not present in the codelist: {miss}")
       )
 
    out <- data |>
-      left_join(code_translation, by = set_names(ref_var, input_var_str)) |>
-      rename({{ out_var }} := !!sym(new_var))
+      left_join(code_translation, by = set_names(ref_var, "merge_on")) |>
+      rename({{ out_var }} := !!sym(new_var)) |>
+      select(-merge_on)
 
    # Optionally coerce to numeric if the output values are numeric
    if (all(str_detect(code_translation[[new_var]], "^\\d*$"))) {
