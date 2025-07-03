@@ -7,7 +7,7 @@
 build_from_derived(
   metacore,
   ds_list,
-  dataset_name = NULL,
+  dataset_name = deprecated(),
   predecessor_only = TRUE,
   keep = FALSE
 )
@@ -19,9 +19,12 @@ dataset of interest.}
 \item{ds_list}{Named list of datasets that are needed to build the from. If
 the list is unnamed,then it will use the names of the objects.}
 
-\item{dataset_name}{Optional string to specify the dataset that is being
-built. This is only needed if the metacore object provided hasn't already
-been subsetted.}
+\item{dataset_name}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Optional string to
+specify the dataset that is being built. This is only needed if the metacore
+object provided hasn't already been subsetted.\cr
+Note: Deprecated in version 1.0.0. The \code{dataset_name} argument will be removed
+in a future release. Please use \code{metacore::select_dataset} to subset the
+\code{metacore} object to obtain metadata for a single dataset.}
 
 \item{predecessor_only}{By default \code{TRUE}, so only variables with the origin
 of 'Predecessor' will be used. If \code{FALSE} any derivation matching the

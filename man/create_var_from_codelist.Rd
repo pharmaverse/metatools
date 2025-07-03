@@ -47,7 +47,8 @@ data <- tribble(
   4, "U", "Unknown",
   5, "M", "Male",
 )
-spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
+spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE) \%>\%
+  select_dataset("DM")
 create_var_from_codelist(data, spec, VAR2, SEX)
 create_var_from_codelist(data, spec, "VAR2", "SEX")
 create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
