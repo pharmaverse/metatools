@@ -6,8 +6,6 @@
 #'
 #' @return string
 #' @noRd
-#' @importFrom stringr str_extract str_detect
-#' @importFrom dplyr if_else
 dash_to_eq <- function(string) {
   front <- str_extract(string, "^.*(?=\\-)")
   front_eq <- if_else(str_detect(front, "<|>|="), front, paste0(">=", front))
@@ -25,9 +23,6 @@ dash_to_eq <- function(string) {
 #'
 #' @return Character vector of the values in the subgroups
 #' @export
-#' @importFrom  stringr str_detect str_c str_count
-#' @importFrom purrr map reduce keep
-#' @importFrom  dplyr case_when
 #'
 #' @examples
 #' create_subgrps(c(1:10), c("<2", "2-5", ">5"))
@@ -83,11 +78,6 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #'
 #' @return Dataset with a new column added
 #' @export
-#'
-#' @importFrom rlang enexpr as_label set_names := as_name
-#' @importFrom dplyr left_join rename
-#' @importFrom metacore get_control_term
-#' @importFrom stringr str_remove_all
 #'
 #' @examples
 #' library(metacore)
@@ -154,9 +144,6 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var,
 #' @param grp_var Name of the new grouped variable
 #' @param num_grp_var Name of the new numeric decode for the grouped variable.
 #'   This is optional if no value given no variable will be created
-#' @importFrom rlang enexpr :=
-#' @importFrom dplyr %>% pull mutate
-#' @importFrom metacore get_control_term
 #'
 #' @return dataset with new column added
 #' @export
@@ -205,9 +192,6 @@ create_cat_var <- function(data, metacore, ref_var, grp_var,
 #'   variable has different codelists for different datasets the metacore object
 #'   will need to be subsetted using `select_dataset` from the metacore package
 #' @param var Name of variable to change
-#' @importFrom rlang as_label enexpr
-#' @importFrom stringr str_remove_all
-#' @importFrom dplyr mutate
 #'
 #' @return Dataset with variable changed to a factor
 #' @export

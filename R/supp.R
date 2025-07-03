@@ -7,9 +7,6 @@
 #' @param qeval QEVAL value to be populated for this QNAM
 #' @param qorig QORIG value to be populated for this QNAM
 #'
-#' @importFrom rlang sym
-#' @importFrom dplyr select rename filter mutate distinct
-#'
 #' @return Observations structured in SUPP format
 #' @export
 #'
@@ -81,11 +78,6 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
 #' @return a CDISC formatted SUPP dataset
 #' @export
 #'
-#' @importFrom rlang as_label
-#' @importFrom stringr str_remove_all
-#' @importFrom dplyr filter if_else distinct
-#' @importFrom purrr pmap_dfr
-#'
 #' @examples
 #'
 #' library(metacore)
@@ -137,13 +129,7 @@ make_supp_qual <- function(dataset, metacore, dataset_name = deprecated()){
 #'
 #' @return a dataset with the supp variables added to it
 #' @export
-#'
-#' @importFrom purrr discard map reduce
-#' @importFrom dplyr if_else select group_by group_split pull rename left_join
-#'   any_of
-#' @importFrom tidyr pivot_wider
-#' @importFrom rlang sym
-#'
+#
 #' @examples
 #' library(safetyData)
 #' library(tibble)
@@ -287,9 +273,6 @@ combine_supp_join <- function(dataset, supp) {
 #'
 #' @return list of datasets
 #' @noRd
-#' @importFrom dplyr anti_join
-#' @importFrom utils capture.output
-#' @importFrom stringr str_trim
 combine_supp_by_idvar <- function(dataset, supp){
    # Get the IDVAR value to allow for renaming of IDVARVAL
    id_var <- unique(supp$IDVAR)

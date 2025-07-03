@@ -15,8 +15,6 @@
 #'
 #' @return dataset with ordered columns
 #' @export
-#' @importFrom metacore select_dataset
-#' @importFrom dplyr filter arrange pull select all_of everything
 #'
 #' @examples
 #' library(metacore)
@@ -66,8 +64,6 @@ verify_DatasetMeta(metacore)
 #'
 #' @return dataset with ordered columns
 #' @export
-#' @importFrom metacore select_dataset
-#' @importFrom dplyr filter arrange pull select all_of everything across
 #'
 #' @examples
 #' library(metacore)

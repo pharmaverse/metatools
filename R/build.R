@@ -27,13 +27,6 @@
 #'
 #' @return dataset
 #' @export
-#' @importFrom stringr str_to_lower str_detect str_extract str_to_upper
-#'   str_split
-#' @importFrom dplyr filter pull mutate group_by group_split inner_join select
-#'   full_join bind_rows
-#' @importFrom tidyr unnest
-#' @importFrom purrr map reduce
-#' @importFrom tibble tibble
 #'
 #' @examples
 #' library(metacore)

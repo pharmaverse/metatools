@@ -14,9 +14,6 @@
 #'   if values are in the control terminology or are missing. If set to
 #'   `FALSE`then NA will not be acceptable.
 #'
-#' @importFrom metacore get_control_term
-#' @importFrom dplyr pull
-#' @importFrom stringr str_remove_all
 #' @return Given data if column only contains control terms. If not, will error
 #'   given the values which should not be in the column
 #' @export
@@ -62,9 +59,6 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
 #'   `FALSE` then NA will not be acceptable.
 #'
 #' @return vector
-#' @importFrom metacore get_control_term
-#' @importFrom dplyr pull
-#' @importFrom stringr str_remove_all
 #' @export
 #'
 #' @examples
@@ -130,9 +124,6 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL){
 #'   when doing the controlled terminology checks. Internally, `omit_vars` is
 #'   evaluated before `na_acceptable`.
 #'
-#' @importFrom purrr map_lgl map map2 safely discard
-#' @importFrom dplyr filter pull select inner_join
-#' @importFrom stringr str_remove
 #' @return Given data if all columns pass. It will error otherwise
 #' @export
 #'
@@ -254,9 +245,6 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #'
 #' @return message if the dataset matches the specification and the dataset, and error otherwise
 #' @export
-#' @importFrom metacore select_dataset
-#' @importFrom purrr discard
-#' @importFrom dplyr pull
 #'
 #' @examples
 #' library(haven)
@@ -327,9 +315,6 @@ check_variables <- function(data, metacore, dataset_name = deprecated()) {
 #'
 #' @return message if the key uniquely identifies each dataset record, and error otherwise
 #' @export
-#' @importFrom metacore get_keys
-#' @importFrom dplyr pull add_count pick
-#' @importFrom rlang expr
 #'
 #' @examples
 #' library(haven)
