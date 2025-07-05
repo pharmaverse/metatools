@@ -1,8 +1,7 @@
 
 spec <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet = TRUE)
 load(metacore::metacore_example("pilot_ADaM.rda"))
-spec2 <- metacore %>% select_dataset("ADSL")
-spec3 <- metacore::spec_to_metacore("p21_mock.xlsx", quiet = TRUE)
+spec2 <- metacore %>% select_dataset("ADSL", quiet = TRUE)
 dm <- haven::read_xpt(metatools_example("dm.xpt"))
 
 
@@ -72,8 +71,8 @@ test_that("create_cat_var", {
 
   man_dat_labs <- tibble:: tribble(
      ~AGEGR1,        ~n,
+     "18-64 years",  42,
      "65-80 years",  172,
-     "<65 years",    42,
      ">80 years",    92,
   )
   # Grouping col only
@@ -93,7 +92,7 @@ test_that("create_cat_var", {
     expect_equal(c(1:3))
 
   # Grouping column and numeric decode, build from decode == TRUE
-  decode_num_dat <- create_cat_var(dm, spec3, AGE, AGEGR1, AGEGR1N, TRUE)
+  decode_num_dat <- create_cat_var(dm, spec2, AGE, AGEGR1, AGEGR1N, TRUE)
   decode_num_dat %>%
      group_by(AGEGR1) %>%
      dplyr::summarise(n = dplyr::n()) %>%
@@ -102,6 +101,59 @@ test_that("create_cat_var", {
      pull(AGEGR1N) %>%
      unique() %>%
      expect_equal(c(1:3))
+
+  # Test error 'unable to decipher group definition'
+  bad_ct <- spec2$codelist |>
+     filter(name == "AGEGR1") |>
+     pull(codes) |>
+     purrr::pluck(1)|>
+     tibble::add_row(code = "DUMMY", decode = "DUMMY")
+
+  codelist <- spec2$codelist |> filter(name == 'AGEGR1')
+  codelist$codes <- list(bad_ct)
+
+  spec3 <- suppressWarnings(metacore::metacore(
+     spec2$ds_spec,
+     spec2$ds_vars,
+     spec2$var_spec,
+     spec2$value_spec,
+     spec2$derivations,
+     codelist = codelist,
+     supp = spec2$supp
+  ))
+
+  create_cat_var(dm, spec3, AGE, AGEGR1, AGEGR1N, TRUE) |>
+     expect_error("Unable to decipher the following group definition: DUMMY. Please check your controlled terminology.")
+
+  # Test error 'group definitions are not exclusive'
+  bad_ct <- spec2$codelist |>
+     filter(name == "AGEGR1") |>
+     pull(codes) |>
+     purrr::pluck(1)|>
+     tibble::add_row(code = "18-64", decode = "18-64 years")
+
+  codelist <- spec2$codelist |> filter(name == 'AGEGR1')
+  codelist$codes <- list(bad_ct)
+
+  spec3 <- suppressWarnings(metacore::metacore(
+     spec2$ds_spec,
+     spec2$ds_vars,
+     spec2$var_spec,
+     spec2$value_spec,
+     spec2$derivations,
+     codelist = codelist,
+     supp = spec2$supp
+  ))
+
+  create_cat_var(dm, spec3, AGE, AGEGR1, AGEGR1N, create_from_decode = TRUE) |>
+     expect_error("Group definitions are not exclusive. Please check your controlled terminology")
+
+  # Test error 'value exists that is not defined in controlled terminology
+  dm2 <- dm |>
+     tibble::add_row(AGE = 15) |>
+     tibble::add_row(AGE = 16)
+  x <- create_cat_var(dm2, spec2, AGE, AGEGR1, create_from_decode = TRUE) |>
+     expect_warning()
 
   # Test errors
   expect_error(create_cat_var(dm, spec, AGE, ARM))
