@@ -70,7 +70,7 @@ test_that("create_cat_var", {
   )
 
   man_dat_labs <- tibble:: tribble(
-     ~AGEGR1,        ~n,
+     ~AGEGR2,        ~n,
      "18-64 years",  42,
      "65-80 years",  172,
      ">80 years",    92,
@@ -92,13 +92,13 @@ test_that("create_cat_var", {
     expect_equal(c(1:3))
 
   # Grouping column and numeric decode, build from decode == TRUE
-  decode_num_dat <- create_cat_var(dm, spec2, AGE, AGEGR1, AGEGR1N, TRUE)
+  decode_num_dat <- create_cat_var(dm, spec2, AGE, AGEGR2, AGEGR2N, TRUE)
   decode_num_dat %>%
-     group_by(AGEGR1) %>%
+     group_by(AGEGR2) %>%
      dplyr::summarise(n = dplyr::n()) %>%
      expect_equal(man_dat_labs)
   decode_num_dat %>%
-     pull(AGEGR1N) %>%
+     pull(AGEGR2N) %>%
      unique() %>%
      expect_equal(c(1:3))
 
@@ -152,7 +152,7 @@ test_that("create_cat_var", {
   dm2 <- dm |>
      tibble::add_row(AGE = 15) |>
      tibble::add_row(AGE = 16)
-  x <- create_cat_var(dm2, spec2, AGE, AGEGR1, create_from_decode = TRUE) |>
+  x <- create_cat_var(dm2, spec2, AGE, AGEGR2, create_from_decode = TRUE) |>
      expect_warning()
 
   # Test errors
