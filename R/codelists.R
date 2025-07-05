@@ -28,9 +28,10 @@ dash_to_eq <- function(string) {
 #'
 #' @return Character vector of the values in the subgroups
 #' @export
-#' @importFrom  stringr str_detect str_c str_count
-#' @importFrom purrr map reduce keep
-#' @importFrom  dplyr case_when
+#' @importFrom stringr str_detect str_c str_count
+#' @importFrom purrr map reduce keep map_chr
+#' @importFrom dplyr case_when
+#' @importFrom cli cli_abort cli_warn qty cli_text cli_bullets
 #'
 #' @examples
 #' create_subgrps(c(1:10), c("<2", "2-5", ">5"))
@@ -38,34 +39,51 @@ dash_to_eq <- function(string) {
 #' create_subgrps(c(1:10), c("<2", "2-<5", ">=5"))
 #' create_subgrps(c(1:10), c("<2", "2-<5", ">=5"), c("<2 years", "2-5 years", ">=5 years"))
 create_subgrps <- function(ref_vec, grp_defs, grp_labs = NULL) {
-  if (!is.numeric(ref_vec)) {
-    stop("ref_vec must be numeric")
-  }
+   if (!is.numeric(ref_vec)) { cli_abort("ref_vec must be numeric") }
+   if (is.null(grp_labs)) { grp_labs <- grp_defs }
 
-  if (is.null(grp_labs)) { grp_labs <- grp_defs }
+   # Create equations used to derive the subgroups
+   equations <- case_when(
+      str_detect(grp_defs, "-") ~ paste0("function(x){if_else(", dash_to_eq(grp_defs), ", '", grp_labs, "', '')}"),
+      str_detect(grp_defs, "^(<\\s?=|>\\s?=|<|>)\\s?\\d+") ~ paste0("function(x){if_else(x", grp_defs, ",'", grp_labs, "', '')}"),
+      TRUE ~ NA_character_
+   )
 
-  equations <- case_when(
-    str_detect(grp_defs, "-") ~ paste0("function(x){if_else(", dash_to_eq(grp_defs), ", '", grp_labs, "','')}"),
-    str_detect(grp_defs, "^(<\\s?=|>\\s?=|<|>)\\s?\\d+") ~ paste0("function(x){if_else(x", grp_defs, ",'", grp_labs, "', '')}"),
-    TRUE ~ NA_character_
-  )
+   # Apply equations
+   if (all(!is.na(equations))) {
+      functions <- equations %>%
+         map(~ eval(parse(text = .)))
+      out <- functions %>%
+         map(~ .(ref_vec)) %>%
+         reduce(str_c) %>%
+         replace(. == "", NA)
+   } else {
+      na_index <- which(is.na(equations))
+      bad_defs <- grp_defs[na_index]
+      cli_abort(paste("Unable to decipher the following group definition{?s}: {bad_defs}.",
+                      "Please check your controlled terminology."))
+   }
+   # Find non-exclusive subgroups i.e., values that have been mapped to two groups
+   non_excl <- out |>
+      discard(is.na) |>
+      map(~ grp_labs[str_detect(.x, grp_labs)]) |>
+      keep(~ length(.) > 1) |>
+      unique()
 
-  if (all(!is.na(equations))) {
-    functions <- equations %>%
-      map(~ eval(parse(text = .)))
-    out <- functions %>%
-      map(~ .(ref_vec)) %>%
-      reduce(str_c)
-  } else {
-    stop("Unable to decipher all groups please update and try again")
-  }
-  all_options <- str_c(grp_defs, collapse = "|")
-  too_many_grps <- str_count(out, all_options) %>%
-    keep(~ !is.na(.) && . > 1 )
-  if (length(too_many_grps) > 0) {
-    stop("Grouping is not exclusive. Please look at the groups and try again")
-  }
-  out
+   # Throw error if groups are not exclusive
+   if (length(non_excl) > 0) {
+      msg <- map_chr(non_excl, ~ {
+         items <- paste(.x, collapse = ", ")
+      }) %>%
+         paste0(seq_along(.), ". ", .)
+
+      cli_abort(c(
+         "Group definitions are not exclusive. Please check your controlled terminology",
+         "The following group definitions overlap:",
+         msg
+      ))
+   }
+   out
 }
 
 
