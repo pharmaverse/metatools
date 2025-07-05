@@ -19,11 +19,29 @@
 #' @param predecessor_only By default `TRUE`, so only variables with the origin
 #'   of 'Predecessor' will be used. If `FALSE` any derivation matching the
 #'   dataset.variable will be used.
-#' @param keep Boolean to determine if the original columns should be kept. By
-#'   default `FALSE`, so only the ADaM columns are kept. If `TRUE` the resulting
-#'   dataset will have all the ADaM columns as well as any SDTM column that were
-#'   renamed in the ADaM (i.e `ARM` and `TRT01P` will be in the resulting
-#'   dataset)
+#' @param keep String to determine which columns from the original datasets
+#'   should be kept
+#'   - "FALSE" (default):  only columns that are also present in the ADaM
+#'                            specification are kept in the output.
+#'   - "ALL":              all original columns are carried through to the
+#'                            ADaM, including those that have been renamed.
+#'                            e.g. if DM.ARM is a predecessor to DM.TRT01P,
+#'                            both ARM and TRT01P will be present as columns
+#'                            in the ADaM output.
+#'   - "PREREQUISITE":     columns are retained if they are required for future
+#'                            derivations in the specification. Additional
+#'                            prerequisite columns are identified as columns
+#'                            that appear in the 'derivation' column of the
+#'                            metacore object in the format "DATASET.VARIABLE",
+#'                            but not as direct predecessors. Predecessors are
+#'                            defined as columns where the derivation is a 1:1
+#'                            copy of a column in a source dataset.
+#'                            e.g. derivation = "VS.VSTESTCD" is a predecessor,
+#'                            while derivation = "Value of VS.VSSTRESN where
+#'                            VS.VSTESTCD == 'Heart Rate'" contains both
+#'                            VS.VSTESTCD and VS.VSSTRESN as prerequisites, and
+#'                            these columns will be kept through to the ADaM.
+#'
 #'
 #' @return dataset
 #' @export
@@ -49,6 +67,15 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
    verify_DatasetMeta(metacore)
+
+   # Deprecate KEEP = TRUE
+   keep <- match.arg(as.character(keep), c("TRUE", "FALSE", "ALL", "PREREQUISITE"))
+   if (keep == "TRUE"){
+      cli_warn(paste0("Setting 'keep' = TRUE has been superseded",
+      ", and will be unavailable in future releases. Please consider setting ",
+      "'keep' equal to 'ALL' or 'PREREQUISITE'."))
+   }
+
    derirvations <- metacore$derivations %>%
       mutate(derivation = trimws(derivation))
 
@@ -66,6 +93,7 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
 
    vars_to_pull_through <- derirvations %>%
       filter(str_detect(derivation, "^\\w*\\.[a-zA-Z0-9]*$"))
+
    # To lower so it is flexible about how people name their ds list
    vars_w_ds <- vars_to_pull_through %>%
       mutate(ds = str_extract(derivation, "^\\w*(?=\\.)") %>%
@@ -129,11 +157,10 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
       bind_rows(additional_vals) %>%
       group_by(ds) %>%
       group_split() %>%
-      map(get_variables, ds_list, keep) %>%
+      map(get_variables, ds_list, keep, derirvations) %>%
+      prepare_join(join_by, names(ds_list)) %>%
       reduce(full_join, by = join_by)
 }
-
-
 
 #' Internal functions to get variables from a dataset list
 #'
@@ -146,22 +173,89 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
 #'
 #' @return datasets
 #' @noRd
-get_variables <- function(x, ds_list, keep) {
+get_variables <- function(x, ds_list, keep, derivations) {
    ds_name <- unique(x$ds)
    data <- ds_list[[ds_name]]
    rename_vec <- set_names(x$col_name, x$variable)
-   if (keep) {
+   if (keep == "TRUE") {
+      # Don't drop predecessor columns
       out <- data %>%
          select(x$col_name) %>%
          mutate(across(all_of(rename_vec)))
-   } else {
+   } else if (keep == "FALSE") {
+      # Drop predecessor columns
       out <- data %>%
          select(x$col_name) %>%
-         rename(all_of(rename_vec))
+         mutate(across(all_of(rename_vec))) %>%
+         select(x$variable)
+   } else if (keep == "ALL") {
+      # Keep all cols from original datasets
+      out <- data %>%
+         mutate(across(all_of(rename_vec)))
+   } else if (keep == "PREREQUISITE") {
+      # Keep all columns required for future derivations
+      # Find all "XX.XXXXX"
+      future_derivations <- derivations %>%
+         select(derivation) %>%
+         filter(!str_detect(derivation,"^[A-Z0-9a-z]+\\.[A-Z0-9a-z]+$"))
+
+      prereq_vector <- str_match_all(future_derivations$derivation, "([A-Z0-9a-z]+)\\.([A-Z0-9a-z]+)")
+
+      # Bind into matrix + remove dups
+      prereq_matrix <- do.call(rbind,prereq_vector) %>%
+         unique()
+
+      # Subset to those present in current dataset
+      prereq_cols <- subset(prereq_matrix, tolower(prereq_matrix[,2]) == tolower(ds_name))[,3]
+
+      out <- data %>%
+         select(c(x$col_name, all_of(prereq_cols))) %>%
+         mutate(across(all_of(rename_vec))) %>%
+         select(c(x$variable, all_of(prereq_cols)))
    }
    out
 }
 
+#' Internal function to remove duplicated non-key variables prior to join
+#'
+#' This function is used with `build_from_derived` to drop columns that would
+#' cause a conflict on joining datasets, prioritising keeping columns in
+#' datasets earlier on in ds_list.
+#'
+#' e.g. if ds_list = ("AE", "ADSL") and there is a conflicting column
+#' "STUDYID", the column will be dropped from ADSL (index 2) rather than AE
+#' (index 1).
+#'
+#' @param x List of datasets with all columns added
+#' @param keys List of key values to join on
+#'
+#' @return datasets
+#' @noRd
+prepare_join <- function(x, keys, ds_names) {
+   out <- list(x[[1]])
+
+   if (length(x) > 1){
+      for (i in 2:length(x)){
+         # Drop non-key cols present in each previous dataset in order
+         drop_cols <- c()
+
+         for (j in 1:(i-1)){
+            conflicting_cols <- keep(names(x[[j]]), function(col) !(col %in% keys)) %>%
+               intersect(colnames(x[[i]]))
+            drop_cols <- c(drop_cols, conflicting_cols)
+
+            if(length(conflicting_cols) > 0){
+               cli_inform(c("i" = "Dropping column(s) from {ds_names[[i]]} due to \\
+                            conflict with {ds_names[[j]]}: {conflicting_cols}."))
+            }
+         }
+
+         out[[i]] <- x[[i]] %>%
+            select(-any_of(drop_cols))
+      }
+   }
+   out
+}
 
 #' Drop Unspecified Variables
 #'
