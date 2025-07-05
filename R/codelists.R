@@ -196,26 +196,35 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var,
 #' create_cat_var(dm, spec, AGE, AGEGR1)
 #' # Grouping Column and Numeric Decode
 #' create_cat_var(dm, spec, AGE, AGEGR1, AGEGR1N)
-create_cat_var <- function(data, metacore, ref_var, grp_var,
-                           num_grp_var = NULL, create_from_decode = FALSE) {
-  ct <- get_control_term(metacore, {{ grp_var }})
-  if (is.vector(ct) | !("decode" %in% names(ct))) {
-    stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
-  }
-  grp_defs <- ct %>%
-    pull(code)
+create_cat_var <- function(data, metacore, ref_var, grp_var, num_grp_var = NULL,
+                           create_from_decode = FALSE, strict = TRUE) {
+   ct <- get_control_term(metacore, {{ grp_var }})
+   if (is.vector(ct) | !("decode" %in% names(ct))) {
+      cli_abort("Expecting 'code_decode' type of control terminology. Please check metacore object")
+   }
 
-  if (create_from_decode) { grp_labs <- pull(ct, decode) }
-  else { grp_labs <- grp_defs }
+   # Assign group definitions and labels
+   grp_defs <- pull(ct, code)
+   grp_labs <- if (create_from_decode) pull(ct, decode) else grp_defs
 
-  out <- data %>%
-    mutate({{ grp_var }} := create_subgrps({{ ref_var }}, grp_defs, grp_labs))
+   out <- data %>%
+      mutate({{ grp_var }} := create_subgrps({{ ref_var }}, grp_defs, grp_labs))
 
-  if (!is.null(enexpr(num_grp_var))) {
-    out <- out %>%
-      create_var_from_codelist(metacore, {{ grp_var }}, {{ num_grp_var }})
-  }
-  out
+   if (!is.null(enexpr(num_grp_var))) {
+      out <- out %>%
+         create_var_from_codelist(metacore, {{ grp_var }}, {{ num_grp_var }})
+   }
+
+   missing <- out |> pull({{ grp_var }}) |> is.na() |> which()|> length()
+   if (strict && missing > 0) {
+      cli_warn(paste(
+         "There {qty(missing)} {?is/are} {missing} {qty(missing)} observation{?s}",
+         "in {as_name(enquo(ref_var))} that {qty(missing)} {?does/do} not fit into",
+         "the provided categories for {as_name(enquo(grp_var))}. Please check your",
+         "controlled terminology.")
+      )
+   }
+   out
 }
 
 
