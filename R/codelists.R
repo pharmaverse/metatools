@@ -178,6 +178,11 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var,
 #'   This is optional if no value given no variable will be created
 #' @param create_from_decode Sets the `decode` column of the codelist as the column
 #'   from which the variable will be created. By default the column is `code`.
+#' @param strict A logical value indicating whether to perform strict checking
+#'   against the codelist. If `TRUE` will issue a warning if values in the `ref_var`
+#'   column do not fit into the group definitions for the codelist in `grp_var`.
+#'   If `FALSE` no warning is issued and values not defined by the codelist will
+#'   likely result in `NA` results.
 #' @importFrom rlang enexpr := as_character enquo
 #' @importFrom dplyr %>% pull mutate
 #' @importFrom metacore get_control_term
