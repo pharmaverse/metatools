@@ -9,11 +9,11 @@
 #' @importFrom stringr str_extract str_detect
 #' @importFrom dplyr if_else
 dash_to_eq <- function(string) {
-  front <- str_extract(string, "^.*(?=\\-)")
-  front_eq <- if_else(str_detect(front, "<|>|="), front, paste0(">=", front))
-  back <- str_extract(string, "(?<=\\-).*$")
-  back_eq <- if_else(str_detect(back, "<|>|="), back, paste0("<=", back))
-  paste0("x", front_eq, " & x", back_eq)
+   front <- str_extract(string, "^.*(?=\\-)")
+   front_eq <- if_else(str_detect(front, "<|>|="), front, paste0(">=", front))
+   back <- str_extract(string, "(?<=\\-).*$")
+   back_eq <- if_else(str_detect(back, "<|>|="), back, paste0("<=", back))
+   paste0("x", front_eq, " & x", back_eq)
 }
 
 
@@ -176,9 +176,9 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var,
 #' @param grp_var Name of the new grouped variable
 #' @param num_grp_var Name of the new numeric decode for the grouped variable.
 #'   This is optional if no value given no variable will be created
-#' @param create_from_decode Sets the decode column of the codelist as the column
-#'   from which the variable will be created. By default the column is code.
-#' @importFrom rlang enexpr :=
+#' @param create_from_decode Sets the `decode` column of the codelist as the column
+#'   from which the variable will be created. By default the column is `code`.
+#' @importFrom rlang enexpr := as_character enquo
 #' @importFrom dplyr %>% pull mutate
 #' @importFrom metacore get_control_term
 #'
@@ -240,7 +240,7 @@ create_cat_var <- function(data, metacore, ref_var, grp_var, num_grp_var = NULL,
 #'   variable has different codelists for different datasets the metacore object
 #'   will need to be subsetted using `select_dataset` from the metacore package
 #' @param var Name of variable to change
-#' @importFrom rlang as_label enexpr
+#' @importFrom rlang as_label enexpr as_name
 #' @importFrom stringr str_remove_all
 #' @importFrom dplyr mutate
 #'
@@ -260,19 +260,20 @@ create_cat_var <- function(data, metacore, ref_var, grp_var, num_grp_var = NULL,
 #' # Variable with permitted value control terms
 #' convert_var_to_fct(dm, spec, ARM)
 convert_var_to_fct <- function(data, metacore, var) {
-  code_translation <- get_control_term(metacore, {{ var }})
-  var_str <- as_label(enexpr(var)) %>%
-    str_remove_all("\"")
-  if (is.vector(code_translation)) {
-    levels <- code_translation
-  } else if ("code" %in% names(code_translation)) {
-    levels <- code_translation$code
-  } else {
-    stop("We currently don't have the ability to use external libraries")
-  }
-  if (!var_str %in% names(data)) {
-    stop(paste(var_str, "cannot be found in the dataset. Please create variable before converting to factor"))
-  }
-  data %>%
-    mutate({{ var }} := factor({{ var }}, levels = levels))
+   code_translation <- get_control_term(metacore, {{ var }})
+   var_str <- as_label(enexpr(var)) %>%
+      str_remove_all("\"")
+   if (is.vector(code_translation)) {
+      levels <- code_translation
+   } else if ("code" %in% names(code_translation)) {
+      levels <- code_translation$code
+   } else {
+      stop("We currently don't have the ability to use external libraries")
+   }
+   if (!var_str %in% names(data)) {
+      stop(paste(var_str, "cannot be found in the dataset. Please create variable before converting to factor"))
+   }
+   data %>%
+      mutate({{ var }} := factor({{ var }}, levels = levels))
 }
+
