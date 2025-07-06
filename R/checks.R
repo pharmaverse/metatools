@@ -244,7 +244,7 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #'   dataset of interest.
 #' @param dataset_name Optional string to specify the dataset. This is only
 #'   needed if the metacore object provided hasn't already been subsetted.
-#' @param strict_validation A logical value indicating whether to perform strict
+#' @param strict A logical value indicating whether to perform strict
 #'   validation on the input dataset. If \code{TRUE} (default), errors will be raised
 #'   if validation fails. If \code{FALSE}, warnings will be issued instead, allowing
 #'   the function execution to continue event with invalid data.
@@ -264,8 +264,8 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_variables(data, spec)
 #' data["DUMMY_COL"] <- NA
-#' check_variables(data, spec, strict_validation = FALSE)
-check_variables <- function(data, metacore, dataset_name = NULL, strict_validation = TRUE) {
+#' check_variables(data, spec, strict = FALSE)
+check_variables <- function(data, metacore, dataset_name = NULL, strict = TRUE) {
   metacore <- make_lone_dataset(metacore, dataset_name)
 
   var_list <- metacore$ds_vars %>%
@@ -289,7 +289,7 @@ check_variables <- function(data, metacore, dataset_name = NULL, strict_validati
   }
 
   if (length(messages) > 0) {
-     print_to_console(messages, data_list, strict_validation = {{ strict_validation }})
+     print_to_console(messages, data_list, strict = {{ strict }})
   } else {
      message("No missing or extra variables")
   }
@@ -308,34 +308,34 @@ check_variables <- function(data, metacore, dataset_name = NULL, strict_validati
 #' @param data_list A list of character vectors. Each element in the list corresponds
 #'   to a message in `messages` and provides associated data (e.g., column names).
 #'   If an element in `messages` has no corresponding data, include a `NULL`.
-#' @param strict_validation A logical value indicating whether to print messages as
+#' @param strict A logical value indicating whether to print messages as
 #'   errors (\code{TRUE}, default) or warnings (\code{FALSE}).
 #'
 #' @details The function constructs a formatted message string including the calling
 #' function's name, the individual messages provided in `messages`, and associated data
 #' from `data_list`. The function uses \code{switch} to call either `stop()` or `warning()`
-#' based on `strict_validation` and prints the full message string to the console.
+#' based on `strict` and prints the full message string to the console.
 #'
 #' @return None. The function's primary purpose is its side effect of printing a message.
 #' It does not return a meaningful value.
 #'
-#' @export
+#' @noRd
 #'
-print_to_console <- function(messages, data_list, strict_validation = TRUE) {
+print_to_console <- function(messages, data_list, strict = TRUE) {
    calling_function <- paste(deparse(sys.call(-1)), collapse = " ")
    output_string <- paste0("In: [", calling_function, "]" )
 
    for (i in seq_along(messages)) {
-      message <- paste(messages[i],
-                       paste(data_list[[i]], collapse = "\n"), sep = "\n")
+      message <- paste0(messages[i], ": ",
+                       paste(data_list[[i]], collapse = ", "), sep = "\n")
 
       output_string <- paste(output_string, message, sep = "\n\n")
    }
 
    options(deparse.max.lines = 2000L)
-   switch (as.character(strict_validation),
-      "TRUE" = stop(output_string, call. = FALSE),
-      "FALSE" = warning(output_string, call. = FALSE)
+   switch (as.character(strict),
+      "TRUE"  = cli::cli_abort(output_string, call = NULL),
+      "FALSE" = cli::cli_warn(output_string, call = NULL)
    )
 }
 
