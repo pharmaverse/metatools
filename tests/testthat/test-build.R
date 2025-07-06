@@ -28,7 +28,7 @@ test_that("build_from_derived", {
     pull(derivation) %>%
     str_remove("^DM\\.") %>%
     unique() %>%
-    ifelse(. == "ARM", "TRT01P", .) %>%
+    c("TRT01P") %>%
     sort()
   build_from_derived(spec, ds_list,
     predecessor_only = FALSE,
@@ -46,13 +46,19 @@ test_that("build_from_derived", {
     unique() %>%
     c(., "TRT01P") %>%
     sort()
-  build_from_derived(spec, ds_list,
-    predecessor_only = FALSE,
-    keep = TRUE
-  ) %>%
-    names() %>%
-    sort() %>%
-    expect_equal(man_vars)
+
+  expect_message(
+     build_from_derived(spec, ds_list,
+       predecessor_only = FALSE,
+       keep = TRUE
+     ) %>%
+       names() %>%
+       sort() %>%
+       expect_equal(man_vars),
+     label = paste0("! Setting 'keep' = TRUE has been superseded, and will be",
+        " unavailable in future releases. Please consider setting",
+        " 'keep' equal to 'ALL' or 'PREREQUISITE'.")
+  )
 
   # Pulling through from more than one dataset
   spec2 <- metacore %>% select_dataset("ADAE")
@@ -108,6 +114,50 @@ test_that("build_from_derived", {
                                     keep = FALSE
   ))
 
+  # Pulling through all columns from original dataset
+  adae_full <- build_from_derived(spec2,
+                                  ds_list = list("AE" = safetyData::sdtm_ae,
+                                                 "ADSL" = safetyData::adam_adsl),
+                                  predecessor_only = FALSE,
+                                  keep = "ALL"
+  )
+
+  full_adsl_part <- safetyData::adam_adsl %>%
+     mutate(TRTA = TRT01A, TRTAN = TRT01AN)
+
+  adae_all_man <- full_join(full_adsl_part, safetyData::sdtm_ae, by = c("STUDYID", "USUBJID"), multiple = "all")
+
+  expect_equal(adae_full,adae_all_man)
+
+  # Pulling through columns required for future derivations
+  spec3 <- metacore %>% select_dataset("ADVS")
+
+  advs_prereq <- build_from_derived(spec3,
+                                  ds_list = list("VS" = safetyData::sdtm_vs,
+                                                 "ADSL" = safetyData::adam_adsl),
+                                  predecessor_only = FALSE,
+                                  keep = "PREREQUISITE"
+  )
+
+  advs_auto <- build_from_derived(spec3,
+                                    ds_list = list("VS" = safetyData::sdtm_vs,
+                                                   "ADSL" = safetyData::adam_adsl),
+                                    predecessor_only = FALSE,
+                                    keep = "PREREQUISITE"
+  )
+
+
+  advs_all <- build_from_derived(spec3,
+                                 ds_list = list("VS" = safetyData::sdtm_vs,
+                                                "ADSL" = safetyData::adam_adsl),
+                                 predecessor_only = FALSE,
+                                 keep = "ALL"
+  )
+
+  advs_prereq_man <- advs_all %>%
+     select(c(names(advs_auto), VSDTC, VSSTRESN))
+
+  expect_equal(advs_prereq, advs_prereq_man)
 
 })
 
