@@ -6,8 +6,6 @@
 #'
 #' @return string
 #' @noRd
-#' @importFrom stringr str_extract str_detect
-#' @importFrom dplyr if_else
 dash_to_eq <- function(string) {
    front <- str_extract(string, "^.*(?=\\-)")
    front_eq <- if_else(str_detect(front, "<|>|="), front, paste0(">=", front))
@@ -28,10 +26,6 @@ dash_to_eq <- function(string) {
 #'
 #' @return Character vector of the values in the subgroups
 #' @export
-#' @importFrom stringr str_detect str_c str_count
-#' @importFrom purrr map reduce keep map_chr
-#' @importFrom dplyr case_when
-#' @importFrom cli cli_abort cli_warn qty cli_text cli_bullets
 #'
 #' @examples
 #' create_subgrps(c(1:10), c("<2", "2-5", ">5"))
@@ -108,11 +102,6 @@ create_subgrps <- function(ref_vec, grp_defs, grp_labs = NULL) {
 #' @return Dataset with a new column added
 #' @export
 #'
-#' @importFrom rlang enexpr as_label set_names := as_name
-#' @importFrom dplyr left_join rename
-#' @importFrom metacore get_control_term
-#' @importFrom stringr str_remove_all
-#'
 #' @examples
 #' library(metacore)
 #' library(tibble)
@@ -124,12 +113,14 @@ create_subgrps <- function(ref_vec, grp_defs, grp_labs = NULL) {
 #'   4, "U", "Unknown",
 #'   5, "M", "Male",
 #' )
-#' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
+#' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE) %>%
+#'   select_dataset("DM")
 #' create_var_from_codelist(data, spec, VAR2, SEX)
 #' create_var_from_codelist(data, spec, "VAR2", "SEX")
 #' create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
 create_var_from_codelist <- function(data, metacore, input_var, out_var,
                                      decode_to_code = TRUE) {
+   verify_DatasetMeta(metacore)
    code_translation <- get_control_term(metacore, {{ out_var }})
    input_var_str <- as_label(enexpr(input_var)) %>%
       str_remove_all("\"")
@@ -183,9 +174,6 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var,
 #'   column do not fit into the group definitions for the codelist in `grp_var`.
 #'   If `FALSE` no warning is issued and values not defined by the codelist will
 #'   likely result in `NA` results.
-#' @importFrom rlang enexpr := as_character enquo
-#' @importFrom dplyr %>% pull mutate
-#' @importFrom metacore get_control_term
 #'
 #' @return dataset with new column added
 #' @export
@@ -245,9 +233,6 @@ create_cat_var <- function(data, metacore, ref_var, grp_var, num_grp_var = NULL,
 #'   variable has different codelists for different datasets the metacore object
 #'   will need to be subsetted using `select_dataset` from the metacore package
 #' @param var Name of variable to change
-#' @importFrom rlang as_label enexpr as_name
-#' @importFrom stringr str_remove_all
-#' @importFrom dplyr mutate
 #'
 #' @return Dataset with variable changed to a factor
 #' @export
@@ -265,20 +250,21 @@ create_cat_var <- function(data, metacore, ref_var, grp_var, num_grp_var = NULL,
 #' # Variable with permitted value control terms
 #' convert_var_to_fct(dm, spec, ARM)
 convert_var_to_fct <- function(data, metacore, var) {
-   code_translation <- get_control_term(metacore, {{ var }})
-   var_str <- as_label(enexpr(var)) %>%
-      str_remove_all("\"")
-   if (is.vector(code_translation)) {
-      levels <- code_translation
-   } else if ("code" %in% names(code_translation)) {
-      levels <- code_translation$code
-   } else {
-      stop("We currently don't have the ability to use external libraries")
-   }
-   if (!var_str %in% names(data)) {
-      stop(paste(var_str, "cannot be found in the dataset. Please create variable before converting to factor"))
-   }
-   data %>%
-      mutate({{ var }} := factor({{ var }}, levels = levels))
+   verify_DatasetMeta(metacore)
+  code_translation <- get_control_term(metacore, {{ var }})
+  var_str <- as_label(enexpr(var)) %>%
+    str_remove_all("\"")
+  if (is.vector(code_translation)) {
+    levels <- code_translation
+  } else if ("code" %in% names(code_translation)) {
+    levels <- code_translation$code
+  } else {
+    stop("We currently don't have the ability to use external libraries")
+  }
+  if (!var_str %in% names(data)) {
+    stop(paste(var_str, "cannot be found in the dataset. Please create variable before converting to factor"))
+  }
+  data %>%
+    mutate({{ var }} := factor({{ var }}, levels = levels))
 }
 

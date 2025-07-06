@@ -1,55 +1,45 @@
-Package: metatools
 Type: Package
+Package: metatools
 Title: Enable the Use of 'metacore' to Help Create and Check Dataset
 Version: 0.1.6
 Authors@R: c(
-         person(given = "Christina",
-             family = "Fillmore",
-             role = c("aut", "cre"),
-             email = "christina.e.fillmore@gsk.com",
-             comment = c(ORCID = "0000-0003-0595-2302")),
-         person(given = "Mike",
-           family = "Stackhouse",
-           role = c("aut"),
-           email = "mike.stackhouse@atorusresearch.com",
+    person("Christina", "Fillmore", , "christina.e.fillmore@gsk.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0003-0595-2302")),
+    person("Mike", "Stackhouse", , "mike.stackhouse@atorusresearch.com", role = "aut",
            comment = c(ORCID = "0000-0001-6030-723X")),
-         person(given = "Jana",
-           family = "Stoilova",
-           role = c("aut"),
-           email = "jana.stoilova@roche.com"),
-         person(given = "Tamara",
-           family = "Senior",
-           role = c("aut"),
-           email = "tamara.senior@roche.com"),
-         person("GlaxoSmithKline LLC", role = c("cph", "fnd")),
-         person("F. Hoffmann-La Roche AG", role = c("cph", "fnd")),
-         person("Atorus Research LLC", role = c("cph", "fnd"))
-             )
-Description: Uses the metadata information stored in 'metacore' objects to check and build metadata associated columns.
+    person("Jana", "Stoilova", , "jana.stoilova@roche.com", role = "aut"),
+    person("Tamara", "Senior", , "tamara.senior@roche.com", role = "aut"),
+    person("GlaxoSmithKline LLC", role = c("cph", "fnd")),
+    person("F. Hoffmann-La Roche AG", role = c("cph", "fnd")),
+    person("Atorus Research LLC", role = c("cph", "fnd"))
+  )
+Description: Uses the metadata information stored in 'metacore' objects to
+    check and build metadata associated columns.
 License: MIT + file LICENSE
-Encoding: UTF-8
-LazyData: true
-RoxygenNote: 7.3.2
+URL: https://github.com/pharmaverse/metatools,
+    https://pharmaverse.github.io/metatools/
+BugReports: https://github.com/pharmaverse/metatools/issues
 Imports: 
+    cli,
     dplyr,
+    lifecycle,
+    magrittr,
     metacore (>= 0.0.4),
     purrr,
     rlang,
     stringr,
-    tidyr,
     tibble,
-    magrittr,
-    cli
+    tidyr
 Suggests:
-    testthat (>= 3.0.0),
-    haven,
     covr,
-    safetyData,
+    haven,
     pharmaversesdtm,
-    spelling
+    safetyData,
+    spelling,
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
-URL: https://github.com/pharmaverse/metatools,
-     https://pharmaverse.github.io/metatools/
-BugReports: https://github.com/pharmaverse/metatools/issues
+Encoding: UTF-8
 Language: en-US
+LazyData: true
 Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
