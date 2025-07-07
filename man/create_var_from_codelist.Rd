@@ -34,9 +34,9 @@ with \code{code} and \code{decode} columns such as those created by the function
 associated with the column supplied to \code{out_var} will be used. By default
 \code{codelist} is \code{NULL}.}
 
-\item{decode_to_code}{Direction of the translation. By default assumes the
-\code{input_var} is the decode column of the codelist. Set to \code{FALSE} if the
-\code{input_var} is the code column of the codelist}
+\item{decode_to_code}{Direction of the translation. Default value is \code{TRUE},
+i.e., assumes the  \code{input_var} is the decode column of the codelist.
+Set to \code{FALSE} if the \code{input_var} is the code column of the codelist.}
 
 \item{strict}{A logical value indicating whether to perform strict checking
 against the codelist. If \code{TRUE} will issue a warning if values in the \code{input_var}
@@ -61,9 +61,36 @@ data <- tribble(
   4, "U", "Unknown",
   5, "M", "Male",
 )
-spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE) |>
-  select_dataset("DM")
-create_var_from_codelist(data, spec, VAR2, SEX)
-create_var_from_codelist(data, spec, "VAR2", "SEX")
-create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
+spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
+dm_spec <- select_dataset(spec, "DM", quiet = TRUE)
+create_var_from_codelist(data, dm_spec, VAR2, SEX)
+create_var_from_codelist(data, dm_spec, "VAR2", "SEX")
+create_var_from_codelist(data, dm_spec, VAR1, SEX, decode_to_code = FALSE)
+
+# Example providing a custom codelist
+# This example also reverses the direction of translation
+load(metacore_example('pilot_ADaM.rda'))
+adlb_spec <- select_dataset(metacore, "ADLBC", quiet = TRUE)
+adlb <- tibble(PARAMCD = c("ALB", "ALP", "ALT", "AST", "BILI", "BUN"))
+create_var_from_codelist(
+   adlb,
+   adlb_spec,
+   PARAMCD,
+   PARAM,
+   codelist = get_control_term(adlb_spec, PARAMCD),
+   decode_to_code = FALSE,
+   strict = FALSE)
+
+\dontrun{
+# Example expecting warning where `strict` == `TRUE`
+adlb <- tibble(PARAMCD = c("ALB", "ALP", "ALT", "AST", "BILI", "BUN", "DUMMY1", "DUMMY2"))
+create_var_from_codelist(
+   adlb,
+   adlb_spec,
+   PARAMCD,
+   PARAM,
+   codelist = get_control_term(adlb_spec, PARAMCD),
+   decode_to_code = FALSE,
+   strict = TRUE)
+}
 }

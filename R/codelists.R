@@ -78,9 +78,9 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #'   `metacore::get_control_term`. If no codelist is provided the codelist
 #'   associated with the column supplied to `out_var` will be used. By default
 #'   `codelist` is `NULL`.
-#' @param decode_to_code Direction of the translation. By default assumes the
-#'   `input_var` is the decode column of the codelist. Set to `FALSE` if the
-#'   `input_var` is the code column of the codelist
+#' @param decode_to_code Direction of the translation. Default value is `TRUE`,
+#'    i.e., assumes the  `input_var` is the decode column of the codelist.
+#'    Set to `FALSE` if the `input_var` is the code column of the codelist.
 #' @param strict A logical value indicating whether to perform strict checking
 #'   against the codelist. If `TRUE` will issue a warning if values in the `input_var`
 #'   column are not present in the codelist. If `FALSE` no warning is issued and
@@ -100,11 +100,38 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #'   4, "U", "Unknown",
 #'   5, "M", "Male",
 #' )
-#' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE) |>
-#'   select_dataset("DM")
-#' create_var_from_codelist(data, spec, VAR2, SEX)
-#' create_var_from_codelist(data, spec, "VAR2", "SEX")
-#' create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
+#' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
+#' dm_spec <- select_dataset(spec, "DM", quiet = TRUE)
+#' create_var_from_codelist(data, dm_spec, VAR2, SEX)
+#' create_var_from_codelist(data, dm_spec, "VAR2", "SEX")
+#' create_var_from_codelist(data, dm_spec, VAR1, SEX, decode_to_code = FALSE)
+#'
+#' # Example providing a custom codelist
+#' # This example also reverses the direction of translation
+#' load(metacore_example('pilot_ADaM.rda'))
+#' adlb_spec <- select_dataset(metacore, "ADLBC", quiet = TRUE)
+#' adlb <- tibble(PARAMCD = c("ALB", "ALP", "ALT", "AST", "BILI", "BUN"))
+#' create_var_from_codelist(
+#'    adlb,
+#'    adlb_spec,
+#'    PARAMCD,
+#'    PARAM,
+#'    codelist = get_control_term(adlb_spec, PARAMCD),
+#'    decode_to_code = FALSE,
+#'    strict = FALSE)
+#'
+#'\dontrun{
+#' # Example expecting warning where `strict` == `TRUE`
+#' adlb <- tibble(PARAMCD = c("ALB", "ALP", "ALT", "AST", "BILI", "BUN", "DUMMY1", "DUMMY2"))
+#' create_var_from_codelist(
+#'    adlb,
+#'    adlb_spec,
+#'    PARAMCD,
+#'    PARAM,
+#'    codelist = get_control_term(adlb_spec, PARAMCD),
+#'    decode_to_code = FALSE,
+#'    strict = TRUE)
+#' }
 create_var_from_codelist <- function(data, metacore, input_var, out_var, codelist = NULL,
                                      decode_to_code = TRUE, strict = TRUE) {
    verify_DatasetMeta(metacore)
