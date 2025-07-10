@@ -3,7 +3,7 @@ Package: metatools
 Title: Enable the Use of 'metacore' to Help Create and Check Dataset
 Version: 0.2.0
 Authors@R: c(
-    person("Liam", "Hobby", , "liam.f.hobby@gsk.com", role = c("aut", "cre"),
+    person("Liam", "Hobby", , "liam.f.hobby@gsk.com", role = c("aut", "cre")),
     person("Christina", "Fillmore", , "christina.e.fillmore@gsk.com", role = "aut",
            comment = c(ORCID = "0000-0003-0595-2302")),
     person("Bill", "Denney", role = "aut"),
