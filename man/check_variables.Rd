@@ -4,7 +4,7 @@
 \alias{check_variables}
 \title{Check Variable Names}
 \usage{
-check_variables(data, metacore, dataset_name = deprecated())
+check_variables(data, metacore, dataset_name = deprecated(), strict = TRUE)
 }
 \arguments{
 \item{data}{Dataset to check}
@@ -18,7 +18,12 @@ hasn't already been subsetted.\cr
 Note: Deprecated in version 1.0.0. The \code{dataset_name} argument will be removed
 in a future release. Please use \code{metacore::select_dataset} to subset the
 \code{metacore} object to obtain metadata for a single dataset.}
-}
+
+\item{strict}{A logical value indicating whether to perform strict
+validation on the input dataset. If \code{TRUE} (default), errors will be raised
+if validation fails. If \code{FALSE}, warnings will be issued instead, allowing
+the function execution to continue event with invalid data.}
+
 \value{
 message if the dataset matches the specification and the dataset, and error otherwise
 }
@@ -36,4 +41,6 @@ load(metacore_example("pilot_ADaM.rda"))
 spec <- metacore \%>\% select_dataset("ADSL")
 data <- read_xpt(metatools_example("adsl.xpt"))
 check_variables(data, spec)
+data["DUMMY_COL"] <- NA
+check_variables(data, spec, strict = FALSE)
 }

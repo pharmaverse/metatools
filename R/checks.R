@@ -242,6 +242,10 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
 #'   in a future release. Please use `metacore::select_dataset` to subset the
 #'   `metacore` object to obtain metadata for a single dataset.
+#' @param strict A logical value indicating whether to perform strict
+#'   validation on the input dataset. If \code{TRUE} (default), errors will be raised
+#'   if validation fails. If \code{FALSE}, warnings will be issued instead, allowing
+#'   the function execution to continue event with invalid data.
 #'
 #' @return message if the dataset matches the specification and the dataset, and error otherwise
 #' @export
@@ -254,7 +258,9 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_variables(data, spec)
-check_variables <- function(data, metacore, dataset_name = deprecated()) {
+#' data["DUMMY_COL"] <- NA
+#' check_variables(data, spec, strict = FALSE)
+check_variables <- function(data, metacore, dataset_name = deprecated(), strict = TRUE) {
    if (is_present(dataset_name)) {
       lifecycle::deprecate_warn(
          when = "1.0.0",
@@ -266,35 +272,76 @@ check_variables <- function(data, metacore, dataset_name = deprecated()) {
       )
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
-   verify_DatasetMeta(metacore)
-   var_list <- metacore$ds_vars %>%
-      filter(is.na(supp_flag) | !(supp_flag)) %>%
-      pull(variable)
-   missing <- var_list %>%
-      discard(~ . %in% names(data))
-   extra <- names(data) %>%
-      discard(~ . %in% var_list)
-  if (length(missing) == 0 & length(extra) == 0) {
-    message("No missing or extra variables")
-  } else if (length(missing) > 0 & length(extra) > 0) {
-    stop(paste0(
-      "The following variables are missing:\n",
-      paste0(missing, collapse = "\n"),
-      "\nThe following variables do not belong:\n",
-      paste0(extra, collapse = "\n")
-    ))
-  } else if (length(missing) > 0) {
-    stop(paste0(
-      "The following variables are missing:\n",
-      paste0(missing, collapse = "\n")
-    ))
-  } else {
-    stop(paste0(
-      "The following variables do not belong:\n",
-      paste0(extra, collapse = "\n")
-    ))
+
+  var_list <- metacore$ds_vars %>%
+     filter(is.na(supp_flag) | !(supp_flag)) %>%
+     pull(variable)
+
+  missing <- var_list  %>% discard(~ . %in% names(data))
+  extra <- names(data) %>% discard(~ . %in% var_list)
+
+  messages <- character(0)
+  data_list <- list()
+
+  if (length(missing) > 0) {
+     messages <- c(messages, "The following variables are missing")
+     data_list <- c(data_list, list(missing))
   }
+
+  if (length(extra) > 0) {
+     messages <- c(messages, "The following variables do not belong")
+     data_list <- c(data_list, list(extra))
+  }
+
+  if (length(messages) > 0) {
+     print_to_console(messages, data_list, strict = {{ strict }})
+  } else {
+     message("No missing or extra variables")
+  }
+
   data
+}
+
+#' Print Messages to Console
+#'
+#' This function prints formatted messages to the console, either as errors (stopping
+#' execution) or as warnings. It is designed as a helper function to provide informative
+#' messages during validation checks.
+#'
+#' @param messages A character vector of messages to be printed. Each element corresponds
+#'   to a separate message.
+#' @param data_list A list of character vectors. Each element in the list corresponds
+#'   to a message in `messages` and provides associated data (e.g., column names).
+#'   If an element in `messages` has no corresponding data, include a `NULL`.
+#' @param strict A logical value indicating whether to print messages as
+#'   errors (\code{TRUE}, default) or warnings (\code{FALSE}).
+#'
+#' @details The function constructs a formatted message string including the calling
+#' function's name, the individual messages provided in `messages`, and associated data
+#' from `data_list`. The function uses \code{switch} to call either `stop()` or `warning()`
+#' based on `strict` and prints the full message string to the console.
+#'
+#' @return None. The function's primary purpose is its side effect of printing a message.
+#' It does not return a meaningful value.
+#'
+#' @noRd
+#'
+print_to_console <- function(messages, data_list, strict = TRUE) {
+   calling_function <- paste(deparse(sys.call(-1)), collapse = " ")
+   output_string <- paste0("In: [", calling_function, "]" )
+
+   for (i in seq_along(messages)) {
+      message <- paste0(messages[i], ": ",
+                       paste(data_list[[i]], collapse = ", "), sep = "\n")
+
+      output_string <- paste(output_string, message, sep = "\n\n")
+   }
+
+   options(deparse.max.lines = 2000L)
+   switch (as.character(strict),
+      "TRUE"  = cli::cli_abort(output_string, call = NULL),
+      "FALSE" = cli::cli_warn(output_string, call = NULL)
+   )
 }
 
 #' Check Uniqueness of Records by Key
