@@ -1,3 +1,5 @@
+# Suppress cli output during testing
+options(cli.default_handler = function(...) { })
 
 # Load data to use across tests
 load(metacore::metacore_example("pilot_ADaM.rda"))

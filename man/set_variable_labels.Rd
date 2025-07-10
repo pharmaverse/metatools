@@ -4,7 +4,7 @@
 \alias{set_variable_labels}
 \title{Apply labels to a data frame using a metacore object}
 \usage{
-set_variable_labels(data, metacore, dataset_name = NULL)
+set_variable_labels(data, metacore, dataset_name = deprecated())
 }
 \arguments{
 \item{data}{A dataframe or tibble upon which labels will be applied}
@@ -12,8 +12,12 @@ set_variable_labels(data, metacore, dataset_name = NULL)
 \item{metacore}{metacore object that contains the specifications for the
 dataset of interest.}
 
-\item{dataset_name}{Optional string to specify the dataset. This is only
-needed if the metacore object provided hasn't already been subsetted.}
+\item{dataset_name}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Optional string to
+specify the dataset that is being built. This is only needed if the metacore
+object provided hasn't already been subsetted.\cr
+Note: Deprecated in version 0.2.0. The \code{dataset_name} argument will be removed
+in a future release. Please use \code{metacore::select_dataset} to subset the
+\code{metacore} object to obtain metadata for a single dataset.}
 }
 \value{
 Dataframe with labels applied

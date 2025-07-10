@@ -53,8 +53,9 @@ test_that("create_var_from_codelist", {
   )
   # Test numeric
   num_out <- dm %>%
+     filter(ARMCD != "Scrnfail") %>%
      mutate(TRT01P = ARM) %>%
-     select(TRT01P) %>%
+     select(TRT01P, ARMCD) %>%
      create_var_from_codelist(adsl_spec, TRT01P, TRT01PN) %>%
      head() %>%
      pull(TRT01PN)
@@ -193,7 +194,7 @@ test_that("create_cat_var", {
      codelist = codelist,
      supp = adsl_spec$supp
   )) %>%
-     select_dataset("ADSL")
+     select_dataset("ADSL", quiet = TRUE)
 
   create_cat_var(dm, spec2, AGE, AGEGR1, AGEGR1N, TRUE) |>
      expect_error("Unable to decipher the following group definition: DUMMY. Please check your controlled terminology.")
@@ -217,7 +218,7 @@ test_that("create_cat_var", {
      codelist = codelist,
      supp = adsl_spec$supp
   )) %>%
-     select_dataset("ADSL")
+     select_dataset("ADSL", quiet = TRUE)
 
   create_cat_var(dm, spec2, AGE, AGEGR1, AGEGR1N, create_from_decode = TRUE) |>
      expect_error("Group definitions are not exclusive. Please check your controlled terminology")

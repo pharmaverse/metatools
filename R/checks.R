@@ -31,14 +31,14 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
    verify_DatasetMeta(metacore)
    bad_vals <- get_bad_ct(data = data, metacore = metacore,
                           var = {{var}}, na_acceptable = na_acceptable)
-  if(length(bad_vals) == 0){
-     data
-  } else {
-     extra <- bad_vals %>%
-        paste0("'", ., "'") %>%
-        paste0(collapse = ", ")
-     stop(paste("The following values should not be present:\n", extra))
-  }
+   if(length(bad_vals) == 0){
+      data
+   } else {
+      extra <- bad_vals %>%
+         paste0("'", ., "'") %>%
+         paste0(collapse = ", ")
+      stop(paste("The following values should not be present:\n", extra))
+   }
 }
 
 #' Gets vector of control terminology which should be there
@@ -144,75 +144,75 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL){
 #'}
 check_ct_data <- function(data, metacore, na_acceptable = NULL, omit_vars = NULL) {
    verify_DatasetMeta(metacore)
-  codes_in_data <- metacore$value_spec %>%
-    filter(variable %in% names(data), !is.na(code_id)) %>%
-    pull(code_id) %>%
-    unique()
-  # Remove any codes that have external libraries
-  codes_to_check <- metacore$codelist %>%
-    filter(type != "external_library", code_id %in% codes_in_data) %>%
-    select(code_id)
-  # convert list of codes to variables
-  cols_to_check <- metacore$value_spec %>%
-    inner_join(codes_to_check, by = "code_id", multiple = "all", relationship = "many-to-many") %>%
-    filter(variable %in% names(data)) %>%
-    pull(variable) %>%
-    unique()
+   codes_in_data <- metacore$value_spec %>%
+      filter(variable %in% names(data), !is.na(code_id)) %>%
+      pull(code_id) %>%
+      unique()
+   # Remove any codes that have external libraries
+   codes_to_check <- metacore$codelist %>%
+      filter(type != "external_library", code_id %in% codes_in_data) %>%
+      select(code_id)
+   # convert list of codes to variables
+   cols_to_check <- metacore$value_spec %>%
+      inner_join(codes_to_check, by = "code_id", multiple = "all", relationship = "many-to-many") %>%
+      filter(variable %in% names(data)) %>%
+      pull(variable) %>%
+      unique()
 
-  # Subset cols_to_check by omit_vars
-  if (is.character(omit_vars)) {
-     check_vars_in_data(omit_vars, "omit_vars", data)
-     cols_to_check <- setdiff(cols_to_check, omit_vars)
-  }
+   # Subset cols_to_check by omit_vars
+   if (is.character(omit_vars)) {
+      check_vars_in_data(omit_vars, "omit_vars", data)
+      cols_to_check <- setdiff(cols_to_check, omit_vars)
+   }
 
-  # send all variables through check_ct_col
-  safe_chk <- safely(check_ct_col)
+   # send all variables through check_ct_col
+   safe_chk <- safely(check_ct_col)
 
-  if (is.character(na_acceptable)) {
-     check_vars_in_data(na_acceptable, "na_acceptable", data)
-     new_na_acceptable <- rep(FALSE, length(cols_to_check))
-     new_na_acceptable[match(na_acceptable, cols_to_check)] <- TRUE
+   if (is.character(na_acceptable)) {
+      check_vars_in_data(na_acceptable, "na_acceptable", data)
+      new_na_acceptable <- rep(FALSE, length(cols_to_check))
+      new_na_acceptable[match(na_acceptable, cols_to_check)] <- TRUE
 
-     results <- map2(cols_to_check, new_na_acceptable, function(x, naac) {
-        out <- safe_chk(data, metacore, {{ x }}, naac)
-        out$error
-     })
+      results <- map2(cols_to_check, new_na_acceptable, function(x, naac) {
+         out <- safe_chk(data, metacore, {{ x }}, naac)
+         out$error
+      })
 
-  } else if(is.logical(na_acceptable) || is.null(na_acceptable)) {
-     results <- cols_to_check %>%
-        map(function(x) {
-           out <- safe_chk(data, metacore, {{ x }}, na_acceptable)
-           out$error
-        })
+   } else if(is.logical(na_acceptable) || is.null(na_acceptable)) {
+      results <- cols_to_check %>%
+         map(function(x) {
+            out <- safe_chk(data, metacore, {{ x }}, na_acceptable)
+            out$error
+         })
 
-  } else {
-     stop("na_acceptable is not NULL, logical or character.", call. = FALSE)
-  }
+   } else {
+      stop("na_acceptable is not NULL, logical or character.", call. = FALSE)
+   }
 
 
-  # Write out warning message
-  test <- map_lgl(results, is.null)
-  if (all(test)) {
-    return(data)
-  } else {
-     extras <- results %>%
-        discard(is.null) %>%
-        map(~.$message) %>%
-        unlist() %>%
-        str_remove("The following values should not be present:\n\\s")
-     unique_test <- extras %>%
-        keep(~str_detect(., "does not have a unique control term"))
-     if(length(unique_test) > 0){
-        stop(paste0(unique_test, collapse = "\n"), call. = FALSE)
-     }
-     message <- paste0(cols_to_check[!test], " (", extras, ")") %>%
-        paste0(collapse = "\n")
-    stop(paste0(
-       "The following variables contained values not found in the control terminology
+   # Write out warning message
+   test <- map_lgl(results, is.null)
+   if (all(test)) {
+      return(data)
+   } else {
+      extras <- results %>%
+         discard(is.null) %>%
+         map(~.$message) %>%
+         unlist() %>%
+         str_remove("The following values should not be present:\n\\s")
+      unique_test <- extras %>%
+         keep(~str_detect(., "does not have a unique control term"))
+      if(length(unique_test) > 0){
+         stop(paste0(unique_test, collapse = "\n"), call. = FALSE)
+      }
+      message <- paste0(cols_to_check[!test], " (", extras, ")") %>%
+         paste0(collapse = "\n")
+      stop(paste0(
+         "The following variables contained values not found in the control terminology
        Variable (Prohibited Value(s))\n",
-       message),
+         message),
          call. = FALSE)
-  }
+   }
 }
 
 check_vars_in_data <- function(vars, vars_name, data) {
@@ -239,7 +239,7 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
 #'   specify the dataset. This is only needed if the metacore object provided
 #'   hasn't already been subsetted.\cr
-#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
+#'   Note: Deprecated in version 0.2.0. The `dataset_name` argument will be removed
 #'   in a future release. Please use `metacore::select_dataset` to subset the
 #'   `metacore` object to obtain metadata for a single dataset.
 #' @param strict A logical value indicating whether to perform strict
@@ -263,7 +263,7 @@ check_vars_in_data <- function(vars, vars_name, data) {
 check_variables <- function(data, metacore, dataset_name = deprecated(), strict = TRUE) {
    if (is_present(dataset_name)) {
       lifecycle::deprecate_warn(
-         when = "1.0.0",
+         when = "0.2.0",
          what = "check_variables(dataset_name)",
          details = cli_text("The {.arg dataset_name} argument will be removed in
                             a future release. Please use {.fcn metacore::select_dataset}
@@ -272,34 +272,35 @@ check_variables <- function(data, metacore, dataset_name = deprecated(), strict 
       )
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
+   verify_DatasetMeta(metacore)
 
-  var_list <- metacore$ds_vars %>%
-     filter(is.na(supp_flag) | !(supp_flag)) %>%
-     pull(variable)
+   var_list <- metacore$ds_vars %>%
+      filter(is.na(supp_flag) | !(supp_flag)) %>%
+      pull(variable)
 
-  missing <- var_list  %>% discard(~ . %in% names(data))
-  extra <- names(data) %>% discard(~ . %in% var_list)
+   missing <- var_list  %>% discard(~ . %in% names(data))
+   extra <- names(data) %>% discard(~ . %in% var_list)
 
-  messages <- character(0)
-  data_list <- list()
+   messages <- character(0)
+   data_list <- list()
 
-  if (length(missing) > 0) {
-     messages <- c(messages, "The following variables are missing")
-     data_list <- c(data_list, list(missing))
-  }
+   if (length(missing) > 0) {
+      messages <- c(messages, "The following variables are missing")
+      data_list <- c(data_list, list(missing))
+   }
 
-  if (length(extra) > 0) {
-     messages <- c(messages, "The following variables do not belong")
-     data_list <- c(data_list, list(extra))
-  }
+   if (length(extra) > 0) {
+      messages <- c(messages, "The following variables do not belong")
+      data_list <- c(data_list, list(extra))
+   }
 
-  if (length(messages) > 0) {
-     print_to_console(messages, data_list, strict = {{ strict }})
-  } else {
-     message("No missing or extra variables")
-  }
+   if (length(messages) > 0) {
+      print_to_console(messages, data_list, strict = {{ strict }})
+   } else {
+      message("No missing or extra variables")
+   }
 
-  data
+   data
 }
 
 #' Print Messages to Console
@@ -356,7 +357,7 @@ print_to_console <- function(messages, data_list, strict = TRUE) {
 #' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
 #'   specify the dataset that is being built. This is only needed if the metacore
 #'   object provided hasn't already been subsetted.\cr
-#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
+#'   Note: Deprecated in version 0.2.0. The `dataset_name` argument will be removed
 #'   in a future release. Please use `metacore::select_dataset` to subset the
 #'   `metacore` object to obtain metadata for a single dataset.
 #'
@@ -374,7 +375,7 @@ print_to_console <- function(messages, data_list, strict = TRUE) {
 check_unique_keys <- function(data, metacore, dataset_name = deprecated()) {
    if (is_present(dataset_name)) {
       lifecycle::deprecate_warn(
-         when = "1.0.0",
+         when = "0.2.0",
          what = "check_variables(dataset_name)",
          details = cli_text("The {.arg dataset_name} argument will be removed in
                             a future release. Please use {.fcn metacore::select_dataset}
@@ -384,27 +385,27 @@ check_unique_keys <- function(data, metacore, dataset_name = deprecated()) {
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
    verify_DatasetMeta(metacore)
-  keys <- get_keys(metacore,expr(!!metacore$ds_spec$dataset))
-  var_list <- keys %>%
-    pull(variable)
-  missing <- var_list %>%
-    discard(~ . %in% names(data))
-  if (length(missing) > 0) {
-    stop(paste0(
-      "The following variable keys are missing in the dataset:\n",
-      paste0(missing, collapse = "\n")
-    ))
-    }
-  grouped <- data %>%
-    group_by(pick(!!keys$variable)) %>%
-    add_count() %>%
-    filter(.data$n != 1)
-  if (nrow(grouped) == 0) {
-    message("Keys uniquely identify records")
-  } else {
-    stop(paste0("Keys do not uniquely identify records\n",
-                "variable keys:\n",
-                paste0(var_list, collapse = "\n")))
-  }
-  data
+   keys <- get_keys(metacore,expr(!!metacore$ds_spec$dataset))
+   var_list <- keys %>%
+      pull(variable)
+   missing <- var_list %>%
+      discard(~ . %in% names(data))
+   if (length(missing) > 0) {
+      stop(paste0(
+         "The following variable keys are missing in the dataset:\n",
+         paste0(missing, collapse = "\n")
+      ))
+   }
+   grouped <- data %>%
+      group_by(pick(!!keys$variable)) %>%
+      add_count() %>%
+      filter(.data$n != 1)
+   if (nrow(grouped) == 0) {
+      message("Keys uniquely identify records")
+   } else {
+      stop(paste0("Keys do not uniquely identify records\n",
+                  "variable keys:\n",
+                  paste0(var_list, collapse = "\n")))
+   }
+   data
 }

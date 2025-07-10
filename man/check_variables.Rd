@@ -15,7 +15,7 @@ dataset of interest.}
 \item{dataset_name}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Optional string to
 specify the dataset. This is only needed if the metacore object provided
 hasn't already been subsetted.\cr
-Note: Deprecated in version 1.0.0. The \code{dataset_name} argument will be removed
+Note: Deprecated in version 0.2.0. The \code{dataset_name} argument will be removed
 in a future release. Please use \code{metacore::select_dataset} to subset the
 \code{metacore} object to obtain metadata for a single dataset.}
 
@@ -23,7 +23,7 @@ in a future release. Please use \code{metacore::select_dataset} to subset the
 validation on the input dataset. If \code{TRUE} (default), errors will be raised
 if validation fails. If \code{FALSE}, warnings will be issued instead, allowing
 the function execution to continue event with invalid data.}
-
+}
 \value{
 message if the dataset matches the specification and the dataset, and error otherwise
 }

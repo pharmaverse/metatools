@@ -1,3 +1,5 @@
+# Suppress cli output during testing
+options(cli.default_handler = function(...) { })
 
 load(metacore::metacore_example("pilot_ADaM.rda"))
 spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)

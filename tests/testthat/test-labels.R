@@ -1,3 +1,5 @@
+# Suppress cli output during testing
+options(cli.default_handler = function(...) { })
 
 # Mock up metacore data
 starwars_short <- dplyr::starwars %>% select(1:5)
@@ -99,7 +101,7 @@ test_that("set_variable_labels raises warnings properly", {
       suppressMessages(
          metacore::metacore(ds_spec, ds_vars, var_spec, value_spec, derivations, code_id)
       )
-   )
+   ) %>% select_dataset("Starwars", quiet = TRUE)
 
    starwars_short2 <- starwars_short
    starwars_short2$new_var <- ""

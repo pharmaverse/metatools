@@ -9,7 +9,7 @@
 #' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
 #'   specify the dataset that is being built. This is only needed if the metacore
 #'   object provided hasn't already been subsetted.\cr
-#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
+#'   Note: Deprecated in version 0.2.0. The `dataset_name` argument will be removed
 #'   in a future release. Please use `metacore::select_dataset` to subset the
 #'   `metacore` object to obtain metadata for a single dataset.
 #'
@@ -27,7 +27,7 @@
 order_cols <- function(data, metacore, dataset_name = deprecated()) {
    if (is_present(dataset_name)) {
       lifecycle::deprecate_warn(
-         when = "1.0.0",
+         when = "0.2.0",
          what = "check_variables(dataset_name)",
          details = cli_text("The {.arg dataset_name} argument will be removed in
                             a future release. Please use {.fcn metacore::select_dataset}
@@ -36,7 +36,7 @@ order_cols <- function(data, metacore, dataset_name = deprecated()) {
       )
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
-verify_DatasetMeta(metacore)
+   verify_DatasetMeta(metacore)
    var_ord <- metacore$ds_vars %>%
       filter(!is.na(order)) %>%
       arrange(order) %>%
@@ -58,7 +58,7 @@ verify_DatasetMeta(metacore)
 #' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
 #'   specify the dataset that is being built. This is only needed if the metacore
 #'   object provided hasn't already been subsetted.\cr
-#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
+#'   Note: Deprecated in version 0.2.0. The `dataset_name` argument will be removed
 #'   in a future release. Please use `metacore::select_dataset` to subset the
 #'   `metacore` object to obtain metadata for a single dataset.
 #'
@@ -76,7 +76,7 @@ verify_DatasetMeta(metacore)
 sort_by_key <- function(data, metacore, dataset_name = deprecated()) {
    if (is_present(dataset_name)) {
       lifecycle::deprecate_warn(
-         when = "1.0.0",
+         when = "0.2.0",
          what = "check_variables(dataset_name)",
          details = cli_text("The {.arg dataset_name} argument will be removed in
                             a future release. Please use {.fcn metacore::select_dataset}
