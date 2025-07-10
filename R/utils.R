@@ -19,6 +19,11 @@ metatools_example <- function(file = NULL) {
 
 #' Convert metacore object to just a single dataset
 #'
+#' @description
+#' `r lifecycle::badge("deprecated")`
+#' This function is deprecated as of version 1.0.0 and will be removed in a future
+#' version. Dataset subsetting must now be performed via the `select_dataset`
+#' function of the `metacore` package.
 #'
 #' @param metacore metacore object, which may or may not be subsetted
 #' @param dataset_name Name of datasets which may or may not be null. If it is
@@ -27,6 +32,10 @@ metatools_example <- function(file = NULL) {
 #' @return metacore object
 #' @noRd
 make_lone_dataset <- function(metacore, dataset_name) {
+   lifecycle::deprecate_soft(
+      what = "make_lone_dataset()",
+      when = "1.0.0"
+   )
   if (!(nrow(metacore$ds_spec) == 1 | !is.null(dataset_name))) {
     stop("Requires either a subsetted metacore object or a dataset name", call. = FALSE)
   }

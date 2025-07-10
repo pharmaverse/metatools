@@ -1,9 +1,11 @@
+# Suppress cli output during testing
+options(cli.default_handler = function(...) { })
 
 load(metacore::metacore_example("pilot_ADaM.rda"))
-spec <- metacore %>% select_dataset("ADSL")
+spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
 test_that("drop_unspec_vars", {
   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
-    mutate(foo = "Hello", foo2 = "world")
+    mutate(AGEGR2 = 'DUMMY', AGEGR2N = 99, foo = "Hello", foo2 = "world")
 
   man_vars <- metacore$ds_vars %>%
     filter(dataset == "ADSL") %>%
@@ -28,7 +30,7 @@ test_that("build_from_derived", {
     pull(derivation) %>%
     str_remove("^DM\\.") %>%
     unique() %>%
-    ifelse(. == "ARM", "TRT01P", .) %>%
+    c("TRT01P") %>%
     sort()
   build_from_derived(spec, ds_list,
     predecessor_only = FALSE,
@@ -46,16 +48,22 @@ test_that("build_from_derived", {
     unique() %>%
     c(., "TRT01P") %>%
     sort()
-  build_from_derived(spec, ds_list,
-    predecessor_only = FALSE,
-    keep = TRUE
-  ) %>%
-    names() %>%
-    sort() %>%
-    expect_equal(man_vars)
+
+  expect_warning(
+     build_from_derived(spec, ds_list,
+       predecessor_only = FALSE,
+       keep = TRUE
+     ) %>%
+       names() %>%
+       sort() %>%
+       expect_equal(man_vars),
+     label = paste0("Setting 'keep' = TRUE has been superseded, and will be",
+        " unavailable in future releases. Please consider setting",
+        " 'keep' equal to 'ALL' or 'PREREQUISITE'.")
+  )
 
   # Pulling through from more than one dataset
-  spec2 <- metacore %>% select_dataset("ADAE")
+  spec2 <- metacore %>% select_dataset("ADAE", quiet = TRUE)
   adae_auto <- build_from_derived(spec2,
      ds_list = list("AE" = safetyData::sdtm_ae,
                  "ADSL" = safetyData::adam_adsl),
@@ -108,6 +116,50 @@ test_that("build_from_derived", {
                                     keep = FALSE
   ))
 
+  # Pulling through all columns from original dataset
+  adae_full <- build_from_derived(spec2,
+                                  ds_list = list("AE" = safetyData::sdtm_ae,
+                                                 "ADSL" = safetyData::adam_adsl),
+                                  predecessor_only = FALSE,
+                                  keep = "ALL"
+  )
+
+  full_adsl_part <- safetyData::adam_adsl %>%
+     mutate(TRTA = TRT01A, TRTAN = TRT01AN)
+
+  adae_all_man <- full_join(full_adsl_part, safetyData::sdtm_ae, by = c("STUDYID", "USUBJID"), multiple = "all")
+
+  expect_equal(adae_full,adae_all_man)
+
+  # Pulling through columns required for future derivations
+  spec3 <- metacore %>% select_dataset("ADAE", quiet = TRUE)
+
+  adae_prereq <- build_from_derived(spec3,
+                                  ds_list = list("AE" = safetyData::sdtm_ae,
+                                                 "ADSL" = safetyData::adam_adsl),
+                                  predecessor_only = FALSE,
+                                  keep = "PREREQUISITE"
+  )
+
+  adae_auto <- build_from_derived(spec3,
+                                    ds_list = list("AE" = safetyData::sdtm_ae,
+                                                   "ADSL" = safetyData::adam_adsl),
+                                    predecessor_only = FALSE,
+                                    keep = "PREREQUISITE"
+  )
+
+
+  adae_all <- build_from_derived(spec3,
+                                 ds_list = list("AE" = safetyData::sdtm_ae,
+                                                "ADSL" = safetyData::adam_adsl),
+                                 predecessor_only = FALSE,
+                                 keep = "ALL"
+  )
+
+  adae_prereq_man <- adae_all %>%
+     select(c(names(adae_auto)))
+
+  expect_equal(adae_prereq, adae_prereq_man)
 
 })
 
@@ -115,8 +167,9 @@ test_that("build_from_derived", {
 
 test_that("add_variables", {
    load(metacore::metacore_example("pilot_ADaM.rda"))
-   spec <- metacore %>% select_dataset("ADSL")
-   data <- haven::read_xpt(metatools_example("adsl.xpt"))
+   spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
+   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
+      mutate(AGEGR2 = "DUMMY", AGEGR2N = 99)
    data_mis <- data %>%
       select(-TRTSDT, -TRT01P, -TRT01PN)
    #Check data when there is missing
