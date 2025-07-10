@@ -1,3 +1,5 @@
+# Suppress cli output during testing
+options(cli.default_handler = function(...) { })
 
 # Mock up metacore data
 starwars_short <- dplyr::starwars %>% select(1:5)

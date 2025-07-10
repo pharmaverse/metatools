@@ -23,7 +23,7 @@ in a future release. Please use \code{metacore::select_dataset} to subset the
 validation on the input dataset. If \code{TRUE} (default), errors will be raised
 if validation fails. If \code{FALSE}, warnings will be issued instead, allowing
 the function execution to continue event with invalid data.}
-
+}
 \value{
 message if the dataset matches the specification and the dataset, and error otherwise
 }

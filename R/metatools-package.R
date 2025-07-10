@@ -10,8 +10,9 @@
 #' @importFrom purrr discard keep map map2 map_chr map_dfr map_lgl map pmap_dfr reduce
 #'   safely walk2
 #' @importFrom rlang !! := as_label as_name enexpr expr is_named list2 set_names list2
-#'   set_names sym
-#'   str_remove_all str_trim str_to_lower str_to_upper str_split
+#'   set_names sym is_logical
+#' @importFrom stringr str_remove_all str_trim str_to_lower str_to_upper str_split
+#'   str_detect str_remove str_extract str_match_all str_c
 #' @importFrom tibble tibble
 #' @importFrom tidyr pivot_wider unnest
 #' @importFrom utils capture.output

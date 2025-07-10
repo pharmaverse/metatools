@@ -1,3 +1,6 @@
+# Suppress cli output during testing
+options(cli.default_handler = function(...) { })
+
 test_that("metatools_example", {
   expect_equal(metatools_example(), c("adsl.xpt", "dm.xpt"))
   expect_equal(

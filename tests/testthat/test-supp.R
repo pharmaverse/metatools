@@ -1,3 +1,5 @@
+# Suppress cli output during testing
+options(cli.default_handler = function(...) { })
 
 test_that("build_qnam", {
    full_ae <- safetyData::sdtm_suppae %>%
