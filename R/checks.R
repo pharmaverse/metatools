@@ -239,7 +239,7 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
 #'   specify the dataset. This is only needed if the metacore object provided
 #'   hasn't already been subsetted.\cr
-#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
+#'   Note: Deprecated in version 0.2.0. The `dataset_name` argument will be removed
 #'   in a future release. Please use `metacore::select_dataset` to subset the
 #'   `metacore` object to obtain metadata for a single dataset.
 #' @param strict A logical value indicating whether to perform strict
@@ -263,7 +263,7 @@ check_vars_in_data <- function(vars, vars_name, data) {
 check_variables <- function(data, metacore, dataset_name = deprecated(), strict = TRUE) {
    if (is_present(dataset_name)) {
       lifecycle::deprecate_warn(
-         when = "1.0.0",
+         when = "0.2.0",
          what = "check_variables(dataset_name)",
          details = cli_text("The {.arg dataset_name} argument will be removed in
                             a future release. Please use {.fcn metacore::select_dataset}
@@ -357,7 +357,7 @@ print_to_console <- function(messages, data_list, strict = TRUE) {
 #' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
 #'   specify the dataset that is being built. This is only needed if the metacore
 #'   object provided hasn't already been subsetted.\cr
-#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
+#'   Note: Deprecated in version 0.2.0. The `dataset_name` argument will be removed
 #'   in a future release. Please use `metacore::select_dataset` to subset the
 #'   `metacore` object to obtain metadata for a single dataset.
 #'
@@ -375,7 +375,7 @@ print_to_console <- function(messages, data_list, strict = TRUE) {
 check_unique_keys <- function(data, metacore, dataset_name = deprecated()) {
    if (is_present(dataset_name)) {
       lifecycle::deprecate_warn(
-         when = "1.0.0",
+         when = "0.2.0",
          what = "check_variables(dataset_name)",
          details = cli_text("The {.arg dataset_name} argument will be removed in
                             a future release. Please use {.fcn metacore::select_dataset}

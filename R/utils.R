@@ -21,7 +21,7 @@ metatools_example <- function(file = NULL) {
 #'
 #' @description
 #' `r lifecycle::badge("deprecated")`
-#' This function is deprecated as of version 1.0.0 and will be removed in a future
+#' This function is deprecated as of version 0.2.0 and will be removed in a future
 #' version. Dataset subsetting must now be performed via the `select_dataset`
 #' function of the `metacore` package.
 #'
@@ -34,7 +34,7 @@ metatools_example <- function(file = NULL) {
 make_lone_dataset <- function(metacore, dataset_name) {
    lifecycle::deprecate_soft(
       what = "make_lone_dataset()",
-      when = "1.0.0"
+      when = "0.2.0"
    )
   if (!(nrow(metacore$ds_spec) == 1 | !is.null(dataset_name))) {
     stop("Requires either a subsetted metacore object or a dataset name", call. = FALSE)
