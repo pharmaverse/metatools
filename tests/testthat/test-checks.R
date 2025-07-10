@@ -78,10 +78,10 @@ test_that("check_ct_data works correctly", {
    expect_error(check_ct_data(data_multi_word, spec))
 
    expect_error(check_ct_data(data, spec, FALSE))
-   expect_equal(check_ct_data(data, spec), data)
-   expect_equal(check_ct_data(data, spec, TRUE), data)
+   expect_equal(check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N")), data)
+   expect_equal(check_ct_data(data, spec, TRUE, omit_vars = c("AGEGR2", "AGEGR2N")), data)
    expect_error(check_ct_data(data, spec_mod))
-   expect_equal(check_ct_data(data, spec_mod, TRUE), data)
+   expect_equal(check_ct_data(data, spec_mod, TRUE, omit_vars = c("AGEGR2", "AGEGR2N")), data)
 
    # Check character vector input for na_acceptable:
    expect_error(check_ct_data(data, spec, na_acceptable = c("DISCONFL", "DSRAEFL")))
@@ -90,8 +90,14 @@ test_that("check_ct_data works correctly", {
    # Check omit_vars:
    expect_error(check_ct_data(data, spec, omit_vars = c("A", "B")))
    expect_error(check_ct_data(data, spec, FALSE, omit_vars = c("DISCONFL", "DSRAEFL")))
-   expect_equal(check_ct_data(data, spec_mod, na_acceptable = NULL, omit_vars = "COMP8FL"), data)
-
+   expect_equal(
+      check_ct_data(
+         data,
+         spec_mod,
+         na_acceptable = NULL,
+         omit_vars = c("AGEGR2", "AGEGR2N", "COMP8FL")),
+      data
+   )
 })
 
 test_that("variable_check works correctly", {

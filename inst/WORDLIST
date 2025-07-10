@@ -4,6 +4,7 @@ Atorus
 CDISC
 CMD
 Codelist
+DM
 GlaxoSmithKline
 Hoffmann
 IDVAR
@@ -15,7 +16,9 @@ QEVAL
 QLABEL
 QNAM
 QORIG
-SDTM
+TRT
+VSSTRESN
+VSTESTCD
 codecov
 codelist
 codelists

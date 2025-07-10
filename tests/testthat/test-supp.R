@@ -60,10 +60,6 @@ test_that("make_supp_qual", {
       select(STUDYID, RDOMAIN, USUBJID, IDVAR,
              IDVARVAL, QNAM , QLABEL,QVAL,  QORIG, QEVAL) %>%
       distinct()
-   man_supp <- purrr::map_df(man_supp, function(x){
-      attr(x, "label") <-NULL
-      x
-   })
 
    #Testing normal circumstances
    expect_equal(metacore_supp, man_supp)
@@ -114,6 +110,7 @@ test_that("combine_supp", {
    supp_check <- safetyData::sdtm_suppae %>%
       select(USUBJID, AESEQ = IDVARVAL, AETRTEM = QVAL) %>%
       arrange(USUBJID, AESEQ)
+   attr(supp_check$AETRTEM, "label") <- 'TREATMENT EMERGENT FLAG'
    expect_equal(combo_ae, supp_check)
 
    ### No IDVAR and multiple QNAM
@@ -122,6 +119,12 @@ test_that("combine_supp", {
       select(USUBJID, QNAM, QVAL) %>%
       pivot_wider(names_from = QNAM, values_from = QVAL) %>%
       as.data.frame()
+   attr(out_test$COMPLT16, "label") <- 'Completers of Week 16 Population Flag'
+   attr(out_test$COMPLT24, "label") <- 'Completers of Week 24 Population Flag'
+   attr(out_test$COMPLT8, "label") <- 'Completers of Week 8 Population Flag'
+   attr(out_test$EFFICACY, "label") <- 'Efficacy Population Flag'
+   attr(out_test$ITT, "label") <- 'Intent to Treat Population Flag'
+   attr(out_test$SAFETY, "label") <- 'Safety Population Flag'
 
    full_dm <- combine_supp(safetyData::sdtm_dm, safetyData::sdtm_suppdm) %>%
       select(USUBJID, COMPLT16:SAFETY)
@@ -139,6 +142,7 @@ test_that("combine_supp", {
    original <- safetyData::sdtm_suppds %>%
       arrange(USUBJID) %>%
       pull(QVAL)
+   attr(original, "label") <- 'PROTOCOL ENTRY CRITERIA NOT MET'
    expect_equal(mostly_miss %>%
                    filter(!is.na(ENTCRIT)) %>%
                    arrange(USUBJID) %>%
@@ -154,6 +158,9 @@ test_that("combine_supp", {
          SUPPVAR3 = USUBJID,
          IDVAR = as.numeric(str_extract(USUBJID, "\\d{3}$"))
       )
+   attr(ae$SUPPVAR1, "label") <- "Supp Test 1"
+   attr(ae$SUPPVAR2, "label") <- "Supp Test 2"
+   attr(ae$SUPPVAR3, "label") <- "Supp Test 3"
    ### Mock up a metadata necessary to make the SUPP
    supp_meta <- tibble::tribble(
       ~qnam, ~qlabel, ~idvar, ~qeval, ~qorig,
@@ -177,7 +184,8 @@ test_that("combine_supp", {
 })
 
 test_that("combine_supp works with different IDVARVAL classes", {
-   expect_equal(
+    skip_if_not_installed("pharmaversesdtm")
+    expect_equal(
       combine_supp(pharmaversesdtm::ae, pharmaversesdtm::suppae) %>%
          pull(AESEQ),
       pharmaversesdtm::ae %>% pull(AESEQ)
@@ -185,7 +193,8 @@ test_that("combine_supp works with different IDVARVAL classes", {
 })
 
 test_that("combine_supp works with without QEVAL", {
-   expect_silent(combine_supp(pharmaversesdtm::tr_onco, pharmaversesdtm::supptr_onco))
+  skip_if_not_installed("pharmaversesdtm")
+  expect_silent(combine_supp(pharmaversesdtm::tr_onco, pharmaversesdtm::supptr_onco))
 })
 
 test_that("supp data that does not match the main data will raise a warning", {
@@ -209,6 +218,7 @@ test_that("Floating point correction works", {
    supp_check <- safetyData::sdtm_suppae %>%
       select(USUBJID, AESEQ = IDVARVAL, AETRTEM = QVAL) %>%
       arrange(USUBJID, AESEQ)
+   attr(supp_check$AETRTEM, "label") <- 'TREATMENT EMERGENT FLAG'
    expect_equal(combo_ae, supp_check)
 })
 
@@ -221,24 +231,42 @@ test_that("zero-row supp returns data unchanged with a warning (#45)", {
 })
 
 test_that("multiple different IDVAR map to the same QNAM works", {
-   simple_ae <-
-      safetyData::sdtm_ae |>
-      filter(USUBJID %in% c("01-701-1015", "01-701-1023"))
-   simple_suppae <- safetyData::sdtm_suppae[c(1, 4), ]
-   simple_suppae$IDVAR[2] <- "AEDTC"
-   simple_suppae$IDVARVAL[2] <- "2012-09-02"
-   expect_equal(
-      combine_supp(simple_ae, supp = simple_suppae)$AETRTEM,
-      c("Y", NA, NA, NA, NA, NA, "Y")
-   )
+  simple_ae <-
+    safetyData::sdtm_ae |>
+    filter(USUBJID %in% c("01-701-1015", "01-701-1023"))
+  simple_suppae <- safetyData::sdtm_suppae[c(1, 4), ]
+  simple_suppae$IDVAR[2] <- "AEDTC"
+  simple_suppae$IDVARVAL[2] <- "2012-09-02"
+  expect_equal(
+    combine_supp(simple_ae, supp = simple_suppae)$AETRTEM,
+    structure(c("Y", NA, NA, NA, NA, NA, "Y"), label = 'TREATMENT EMERGENT FLAG')
+  )
 
-   # Replace the value in error
-   simple_suppae <- safetyData::sdtm_suppae[c(1, 4, 7), ]
-   simple_suppae$IDVAR[2] <- "AEDTC"
-   simple_suppae$IDVARVAL[2] <- "2012-09-02"
+  # Replace the value in error
+  simple_suppae <- safetyData::sdtm_suppae[c(1, 4, 7), ]
+  simple_suppae$IDVAR[2] <- "AEDTC"
+  simple_suppae$IDVARVAL[2] <- "2012-09-02"
 
-   expect_error(
-      combine_supp(simple_ae, supp = simple_suppae),
-      regexp = "An unexpected number of rows were replaced while merging QNAM AETRTEM and IDVAR AESEQ"
-   )
+  expect_error(
+    combine_supp(simple_ae, supp = simple_suppae),
+    regexp = "An unexpected number of rows were replaced while merging QNAM AETRTEM and IDVAR AESEQ"
+  )
+})
+
+test_that("label is added in combine_supp() (#71)", {
+  simple_ae <-
+    safetyData::sdtm_ae |>
+    filter(USUBJID %in% c("01-701-1015", "01-701-1023"))
+  simple_suppae <- safetyData::sdtm_suppae[c(1, 4), ]
+  labelled <- combine_supp(simple_ae, simple_suppae)
+  expect_equal(attr(labelled$AETRTEM, "label"), "TREATMENT EMERGENT FLAG")
+})
+
+test_that("combine_supp() does not create an IDVARVAL column (#78)", {
+  simple_ae <-
+    safetyData::sdtm_ae |>
+    filter(USUBJID %in% c("01-701-1015", "01-701-1023"))
+  simple_suppae <- safetyData::sdtm_suppae[c(1, 4), ]
+  noidvarval <- combine_supp(simple_ae, simple_suppae)
+  expect_false("IDVARVAL" %in% names(noidvarval))
 })

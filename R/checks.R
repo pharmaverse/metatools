@@ -132,10 +132,10 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL){
 #' library(metacore)
 #' library(magrittr)
 #' load(metacore_example("pilot_ADaM.rda"))
-#' spec <- metacore %>% select_dataset("ADSL")
+#' spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #'
-#' check_ct_data(data, spec)
+#' check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N"))
 #' \dontrun{
 #' # These examples produce errors:
 #' check_ct_data(data, spec, na_acceptable = FALSE)
