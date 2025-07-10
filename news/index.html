@@ -33,6 +33,21 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0" id="metatools-020">metatools 0.2.0<a class="anchor" aria-label="anchor" href="#metatools-020"></a></h2>
+<ul><li>Functions now require a subsetted metacore object to be used i.e., created via <code><a href="https://atorus-research.github.io/metacore/reference/select_dataset.html" class="external-link">metacore::select_dataset()</a></code>.</li>
+<li>
+<code><a href="../reference/create_cat_var.html">create_cat_var()</a></code> now allows the new variable to be create using the <code>decode</code> part of the codelist as a label.(<a href="https://github.com/pharmaverse/metatools/issues/82" class="external-link">#82</a>)</li>
+<li>
+<code><a href="../reference/create_var_from_codelist.html">create_var_from_codelist()</a></code> now allows the user to specify a codelist to use to create the new variables. (<a href="https://github.com/pharmaverse/metatools/issues/83" class="external-link">#83</a>)</li>
+<li>
+<code><a href="../reference/check_variables.html">check_variables()</a></code> now provides a <code>strict</code> option that issues warnings rather than errors when <code>FALSE</code>. (<a href="https://github.com/pharmaverse/metatools/issues/86" class="external-link">#86</a>)</li>
+<li>
+<code><a href="../reference/combine_supp.html">combine_supp()</a></code> now adds labels from the “QLABEL” (<a href="https://github.com/pharmaverse/metatools/issues/71" class="external-link">#71</a>)</li>
+<li>
+<code><a href="../reference/combine_supp.html">combine_supp()</a></code> no longer creates an “IDVARVAL” column (<a href="https://github.com/pharmaverse/metatools/issues/78" class="external-link">#78</a>)</li>
+<li>Improved error reporting for <code>create_cat_var</code>, <code>create_var_from_codelist</code>, and <code>check_variables</code>.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.6" id="metatools-016">metatools 0.1.6<a class="anchor" aria-label="anchor" href="#metatools-016"></a></h2><p class="text-muted">CRAN release: 2024-07-23</p>
 <ul><li>Breaking change: <code><a href="../reference/combine_supp.html">combine_supp()</a></code> requires that the QNAM columns are not in the source dataset (<a href="https://github.com/pharmaverse/metatools/issues/64" class="external-link">#64</a>)</li>
 <li>Breaking change: <code><a href="../reference/build_from_derived.html">build_from_derived()</a></code> no longer requires all datasets with predecessors, but can run on a single dataset or multiple. It will also now accept unnamed datasets.</li>

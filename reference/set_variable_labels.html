@@ -42,7 +42,7 @@ labels to a data frame.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">set_variable_labels</span><span class="op">(</span><span class="va">data</span>, <span class="va">metacore</span>, dataset_name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">set_variable_labels</span><span class="op">(</span><span class="va">data</span>, <span class="va">metacore</span>, dataset_name <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -59,8 +59,12 @@ dataset of interest.</p></dd>
 
 
 <dt id="arg-dataset-name">dataset_name<a class="anchor" aria-label="anchor" href="#arg-dataset-name"></a></dt>
-<dd><p>Optional string to specify the dataset. This is only
-needed if the metacore object provided hasn't already been subsetted.</p></dd>
+<dd><p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> Optional string to
+specify the dataset that is being built. This is only needed if the metacore
+object provided hasn't already been subsetted.<br>
+Note: Deprecated in version 0.2.0. The <code>dataset_name</code> argument will be removed
+in a future release. Please use <code><a href="https://atorus-research.github.io/metacore/reference/select_dataset.html" class="external-link">metacore::select_dataset</a></code> to subset the
+<code>metacore</code> object to obtain metadata for a single dataset.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -82,6 +86,11 @@ needed if the metacore object provided hasn't already been subsetted.</p></dd>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="va">dm</span> <span class="op">&lt;-</span> <span class="fu">haven</span><span class="fu">::</span><span class="fu"><a href="https://haven.tidyverse.org/reference/read_xpt.html" class="external-link">read_xpt</a></span><span class="op">(</span><span class="fu"><a href="metatools_example.html">metatools_example</a></span><span class="op">(</span><span class="st">"dm.xpt"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">set_variable_labels</span><span class="op">(</span><span class="va">dm</span>, <span class="va">mc</span>, dataset_name <span class="op">=</span> <span class="st">"DM"</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> The `dataset_name` argument will be removed in a future release. Please use</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> metacore::select_dataset to subset the metacore object to obtain metadata for a</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> single dataset.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>The `dataset_name` argument of `build_from_derived()` is deprecated as of</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> metatools 0.2.0.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`core` from the `ds_vars` table only contains missing values.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`supp_flag` from the `ds_vars` table only contains missing values.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`format` from the `var_spec` table only contains missing values.</span>
