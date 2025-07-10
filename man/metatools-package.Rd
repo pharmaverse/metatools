@@ -18,10 +18,12 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Christina Fillmore \email{christina.e.fillmore@gsk.com} (\href{https://orcid.org/0000-0003-0595-2302}{ORCID})
+\strong{Maintainer}: Liam Hobby \email{liam.f.hobby@gsk.com}
 
 Authors:
 \itemize{
+  \item Christina Fillmore \email{christina.e.fillmore@gsk.com} (\href{https://orcid.org/0000-0003-0595-2302}{ORCID})
+  \item Bill Denney
   \item Mike Stackhouse \email{mike.stackhouse@atorusresearch.com} (\href{https://orcid.org/0000-0001-6030-723X}{ORCID})
   \item Jana Stoilova \email{jana.stoilova@roche.com}
   \item Tamara Senior \email{tamara.senior@roche.com}
