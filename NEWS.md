@@ -1,6 +1,11 @@
-# metatools development version
+# metatools 0.2.0
+* Functions now require a subsetted metacore object to be used i.e., created via `metacore::select_dataset()`.
+* `create_cat_var()` now allows the new variable to be create using the `decode` part of the codelist as a label.(#82)
+* `create_var_from_codelist()` now allows the user to specify a codelist to use to create the new variables. (#83)
+* `check_variables()` now provides a `strict` option that issues warnings rather than errors when `FALSE`. (#86)
 * `combine_supp()` now adds labels from the "QLABEL" (#71)
 * `combine_supp()` no longer creates an "IDVARVAL" column (#78)
+* Improved error reporting for `create_cat_var`, `create_var_from_codelist`, and `check_variables`.
 
 # metatools 0.1.6
 * Breaking change: `combine_supp()` requires that the QNAM columns are not in the source dataset (#64)
