@@ -1,5 +1,6 @@
 # metatools development version
 * `combine_supp()` now adds labels from the "QLABEL" (#71)
+* `combine_supp()` no longer creates an "IDVARVAL" column (#78)
 
 # metatools 0.1.6
 * Breaking change: `combine_supp()` requires that the QNAM columns are not in the source dataset (#64)

@@ -178,6 +178,7 @@ combine_supp <- function(dataset, supp){
 
    supp_wides <- purrr::pmap(.l = list(supp = supp_wides_prep), .f = combine_supp_make_wide)
    ret <- reduce(.x = append(list(dataset), supp_wides), .f = combine_supp_join)
+   ret$IDVARVAL <- NULL
 
    labels_to_add <- unique(supp[, c("QNAM", "QLABEL")])
    for (current_idx in seq_len(nrow(labels_to_add))) {
