@@ -45,7 +45,15 @@ version of that categorical variable.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_cat_var</span><span class="op">(</span><span class="va">data</span>, <span class="va">metacore</span>, <span class="va">ref_var</span>, <span class="va">grp_var</span>, num_grp_var <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_cat_var</span><span class="op">(</span></span>
+<span>  <span class="va">data</span>,</span>
+<span>  <span class="va">metacore</span>,</span>
+<span>  <span class="va">ref_var</span>,</span>
+<span>  <span class="va">grp_var</span>,</span>
+<span>  num_grp_var <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  create_from_decode <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  strict <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -75,6 +83,19 @@ creating AGEGR1</p></dd>
 <dd><p>Name of the new numeric decode for the grouped variable.
 This is optional if no value given no variable will be created</p></dd>
 
+
+<dt id="arg-create-from-decode">create_from_decode<a class="anchor" aria-label="anchor" href="#arg-create-from-decode"></a></dt>
+<dd><p>Sets the <code>decode</code> column of the codelist as the column
+from which the variable will be created. By default the column is <code>code</code>.</p></dd>
+
+
+<dt id="arg-strict">strict<a class="anchor" aria-label="anchor" href="#arg-strict"></a></dt>
+<dd><p>A logical value indicating whether to perform strict checking
+against the codelist. If <code>TRUE</code> will issue a warning if values in the <code>ref_var</code>
+column do not fit into the group definitions for the codelist in <code>grp_var</code>.
+If <code>FALSE</code> no warning is issued and values not defined by the codelist will
+likely result in <code>NA</code> results.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -88,6 +109,16 @@ This is optional if no value given no variable will be created</p></dd>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span><span class="fu"><a href="https://atorus-research.github.io/metacore/reference/metacore_example.html" class="external-link">metacore_example</a></span><span class="op">(</span><span class="st">"pilot_ADaM.rda"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="va">metacore</span> <span class="op"><a href="pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://atorus-research.github.io/metacore/reference/select_dataset.html" class="external-link">select_dataset</a></span><span class="op">(</span><span class="st">"ADSL"</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`core` from the `ds_vars` table only contains missing values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`supp_flag` from the `ds_vars` table only contains missing values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`common` from the `var_spec` table only contains missing values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`where` from the `value_spec` table only contains missing values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`dataset` from the `supp` table only contains missing values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`variable` from the `supp` table only contains missing values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`idvar` from the `supp` table only contains missing values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`qeval` from the `supp` table only contains missing values.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> ADSL dataset successfully selected</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="va">dm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://haven.tidyverse.org/reference/read_xpt.html" class="external-link">read_xpt</a></span><span class="op">(</span><span class="fu"><a href="metatools_example.html">metatools_example</a></span><span class="op">(</span><span class="st">"dm.xpt"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">USUBJID</span>, <span class="va">AGE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Grouping Column Only</span></span></span>

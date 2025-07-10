@@ -75,11 +75,24 @@ needed if the metacore object provided hasn't already been subsetted.</p></dd>
 <span class="r-in"><span>        <span class="fu">metacore</span><span class="fu">::</span><span class="fu"><a href="https://atorus-research.github.io/metacore/reference/metacore_example.html" class="external-link">metacore_example</a></span><span class="op">(</span><span class="st">"p21_mock.xlsx"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>        quiet<span class="op">=</span><span class="cn">TRUE</span></span></span>
 <span class="r-in"><span>        <span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Metadata successfully imported</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> <span style="color: #BB0000;">Dataset metadata imported with suppressed warnings</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> To use the Metacore object with <span style="color: #0000BB;">metatools</span> package, first subset a dataset</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   using `metacore::select_dataset()`</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  Metadata successfully imported</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading in metacore object with suppressed warnings</span>
 <span class="r-in"><span><span class="va">dm</span> <span class="op">&lt;-</span> <span class="fu">haven</span><span class="fu">::</span><span class="fu"><a href="https://haven.tidyverse.org/reference/read_xpt.html" class="external-link">read_xpt</a></span><span class="op">(</span><span class="fu"><a href="metatools_example.html">metatools_example</a></span><span class="op">(</span><span class="st">"dm.xpt"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">set_variable_labels</span><span class="op">(</span><span class="va">dm</span>, <span class="va">mc</span>, dataset_name <span class="op">=</span> <span class="st">"DM"</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`core` from the `ds_vars` table only contains missing values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`supp_flag` from the `ds_vars` table only contains missing values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`format` from the `var_spec` table only contains missing values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`sig_dig` from the `value_spec` table only contains missing values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`where` from the `value_spec` table only contains missing values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`dataset` from the `supp` table only contains missing values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`variable` from the `supp` table only contains missing values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`idvar` from the `supp` table only contains missing values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`qeval` from the `supp` table only contains missing values.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> DM dataset successfully selected</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 306 × 25</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    STUDYID      DOMAIN USUBJID  SUBJID RFSTDTC RFENDTC RFXSTDTC RFXENDTC RFICDTC</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span>
