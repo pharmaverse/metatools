@@ -7,7 +7,7 @@
 * `combine_supp()` no longer creates an "IDVARVAL" column (#78)
 * Improved error reporting for `create_cat_var`, `create_var_from_codelist`, and `check_variables`.
 * The `dataset_name` argument has been deprecated in various functions.
-* The `make_lone_dataset` sunction has been deprecated. 
+* The `make_lone_dataset` function has been deprecated. 
 
 # metatools 0.1.6
 * Breaking change: `combine_supp()` requires that the QNAM columns are not in the source dataset (#64)
