@@ -192,7 +192,8 @@ test_that("create_cat_var", {
      adsl_spec$derivations,
      codelist = codelist,
      supp = adsl_spec$supp
-  ))
+  )) %>%
+     select_dataset("ADSL")
 
   create_cat_var(dm, spec2, AGE, AGEGR1, AGEGR1N, TRUE) |>
      expect_error("Unable to decipher the following group definition: DUMMY. Please check your controlled terminology.")
@@ -215,7 +216,8 @@ test_that("create_cat_var", {
      adsl_spec$derivations,
      codelist = codelist,
      supp = adsl_spec$supp
-  ))
+  )) %>%
+     select_dataset("ADSL")
 
   create_cat_var(dm, spec2, AGE, AGEGR1, AGEGR1N, create_from_decode = TRUE) |>
      expect_error("Group definitions are not exclusive. Please check your controlled terminology")
