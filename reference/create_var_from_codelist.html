@@ -47,7 +47,9 @@ variables in the data</p>
 <span>  <span class="va">metacore</span>,</span>
 <span>  <span class="va">input_var</span>,</span>
 <span>  <span class="va">out_var</span>,</span>
-<span>  decode_to_code <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  codelist <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  decode_to_code <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  strict <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -60,9 +62,9 @@ variables in the data</p>
 
 
 <dt id="arg-metacore">metacore<a class="anchor" aria-label="anchor" href="#arg-metacore"></a></dt>
-<dd><p>A metacore object to get the codelist from. If the <code>out_var</code>
-has different codelists for different datasets the metacore object will
-need to be subsetted using <code>select_dataset</code> from the metacore package.</p></dd>
+<dd><p>A metacore object to get the codelist from. This should be a
+subsetted metacore object (of subclass <code>DatasetMeta</code>) created using
+<code><a href="https://atorus-research.github.io/metacore/reference/select_dataset.html" class="external-link">metacore::select_dataset</a></code>.</p></dd>
 
 
 <dt id="arg-input-var">input_var<a class="anchor" aria-label="anchor" href="#arg-input-var"></a></dt>
@@ -71,14 +73,30 @@ column</p></dd>
 
 
 <dt id="arg-out-var">out_var<a class="anchor" aria-label="anchor" href="#arg-out-var"></a></dt>
-<dd><p>Name of the output variable. Note: the grouping will always be
-from the code of the codelist associates with <code>out_var</code></p></dd>
+<dd><p>Name of the output variable. Note: Unless a codelist is provided
+the grouping will always be from the code of the codelist associates with
+<code>out_var</code>.</p></dd>
+
+
+<dt id="arg-codelist">codelist<a class="anchor" aria-label="anchor" href="#arg-codelist"></a></dt>
+<dd><p>Optional argument to supply a codelist. Must be a data.frame
+with <code>code</code> and <code>decode</code> columns such as those created by the function
+<code><a href="https://atorus-research.github.io/metacore/reference/get_control_term.html" class="external-link">metacore::get_control_term</a></code>. If no codelist is provided the codelist
+associated with the column supplied to <code>out_var</code> will be used. By default
+<code>codelist</code> is <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-decode-to-code">decode_to_code<a class="anchor" aria-label="anchor" href="#arg-decode-to-code"></a></dt>
-<dd><p>Direction of the translation. By default assumes the
-<code>input_var</code> is the decode column of the codelist. Set to <code>FALSE</code> if the
-<code>input_var</code> is the code column of the codelist</p></dd>
+<dd><p>Direction of the translation. Default value is <code>TRUE</code>,
+i.e., assumes the  <code>input_var</code> is the decode column of the codelist.
+Set to <code>FALSE</code> if the <code>input_var</code> is the code column of the codelist.</p></dd>
+
+
+<dt id="arg-strict">strict<a class="anchor" aria-label="anchor" href="#arg-strict"></a></dt>
+<dd><p>A logical value indicating whether to perform strict checking
+against the codelist. If <code>TRUE</code> will issue a warning if values in the <code>input_var</code>
+column are not present in the codelist. If <code>FALSE</code> no warning is issued and
+values not present in the codelist will likely result in <code>NA</code> results.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -98,25 +116,17 @@ from the code of the codelist associates with <code>out_var</code></p></dd>
 <span class="r-in"><span>  <span class="fl">4</span>, <span class="st">"U"</span>, <span class="st">"Unknown"</span>,</span></span>
 <span class="r-in"><span>  <span class="fl">5</span>, <span class="st">"M"</span>, <span class="st">"Male"</span>,</span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://atorus-research.github.io/metacore/reference/spec_to_metacore.html" class="external-link">spec_to_metacore</a></span><span class="op">(</span><span class="fu"><a href="https://atorus-research.github.io/metacore/reference/metacore_example.html" class="external-link">metacore_example</a></span><span class="op">(</span><span class="st">"p21_mock.xlsx"</span><span class="op">)</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://atorus-research.github.io/metacore/reference/select_dataset.html" class="external-link">select_dataset</a></span><span class="op">(</span><span class="st">"DM"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://atorus-research.github.io/metacore/reference/spec_to_metacore.html" class="external-link">spec_to_metacore</a></span><span class="op">(</span><span class="fu"><a href="https://atorus-research.github.io/metacore/reference/metacore_example.html" class="external-link">metacore_example</a></span><span class="op">(</span><span class="st">"p21_mock.xlsx"</span><span class="op">)</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Metadata successfully imported</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> <span style="color: #BB0000;">Dataset metadata imported with suppressed warnings</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> To use the Metacore object with <span style="color: #0000BB;">metatools</span> package, first subset a dataset</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   using `metacore::select_dataset()`</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`core` from the `ds_vars` table only contains missing values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`supp_flag` from the `ds_vars` table only contains missing values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`format` from the `var_spec` table only contains missing values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`sig_dig` from the `value_spec` table only contains missing values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`where` from the `value_spec` table only contains missing values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`dataset` from the `supp` table only contains missing values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`variable` from the `supp` table only contains missing values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`idvar` from the `supp` table only contains missing values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`qeval` from the `supp` table only contains missing values.</span>
+<span class="r-in"><span><span class="va">dm_spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://atorus-research.github.io/metacore/reference/select_dataset.html" class="external-link">select_dataset</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"DM"</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> DM dataset successfully selected</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> <span style="color: #BB0000;">Dataset metadata specification subsetted with suppressed warnings</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span><span class="fu">create_var_from_codelist</span><span class="op">(</span><span class="va">data</span>, <span class="va">spec</span>, <span class="va">VAR2</span>, <span class="va">SEX</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">create_var_from_codelist</span><span class="op">(</span><span class="va">data</span>, <span class="va">dm_spec</span>, <span class="va">VAR2</span>, <span class="va">SEX</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 5 × 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   USUBJID VAR1  VAR2    SEX  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span>
@@ -125,7 +135,7 @@ from the code of the codelist associates with <code>out_var</code></p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span>       3 F     Female  F    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span>       4 U     Unknown U    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span>       5 M     Male    M    </span>
-<span class="r-in"><span><span class="fu">create_var_from_codelist</span><span class="op">(</span><span class="va">data</span>, <span class="va">spec</span>, <span class="st">"VAR2"</span>, <span class="st">"SEX"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">create_var_from_codelist</span><span class="op">(</span><span class="va">data</span>, <span class="va">dm_spec</span>, <span class="st">"VAR2"</span>, <span class="st">"SEX"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 5 × 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   USUBJID VAR1  VAR2    SEX  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span>
@@ -134,7 +144,7 @@ from the code of the codelist associates with <code>out_var</code></p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span>       3 F     Female  F    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span>       4 U     Unknown U    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span>       5 M     Male    M    </span>
-<span class="r-in"><span><span class="fu">create_var_from_codelist</span><span class="op">(</span><span class="va">data</span>, <span class="va">spec</span>, <span class="va">VAR1</span>, <span class="va">SEX</span>, decode_to_code <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">create_var_from_codelist</span><span class="op">(</span><span class="va">data</span>, <span class="va">dm_spec</span>, <span class="va">VAR1</span>, <span class="va">SEX</span>, decode_to_code <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 5 × 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   USUBJID VAR1  VAR2    SEX    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span>
@@ -143,6 +153,45 @@ from the code of the codelist associates with <code>out_var</code></p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span>       3 F     Female  Female </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span>       4 U     Unknown Unknown</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span>       5 M     Male    Male   </span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Example providing a custom codelist</span></span></span>
+<span class="r-in"><span><span class="co"># This example also reverses the direction of translation</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span><span class="fu"><a href="https://atorus-research.github.io/metacore/reference/metacore_example.html" class="external-link">metacore_example</a></span><span class="op">(</span><span class="st">'pilot_ADaM.rda'</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">adlb_spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://atorus-research.github.io/metacore/reference/select_dataset.html" class="external-link">select_dataset</a></span><span class="op">(</span><span class="va">metacore</span>, <span class="st">"ADLBC"</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> ADLBC dataset successfully selected</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> <span style="color: #BB0000;">Dataset metadata specification subsetted with suppressed warnings</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span><span class="va">adlb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>PARAMCD <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ALB"</span>, <span class="st">"ALP"</span>, <span class="st">"ALT"</span>, <span class="st">"AST"</span>, <span class="st">"BILI"</span>, <span class="st">"BUN"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">create_var_from_codelist</span><span class="op">(</span></span></span>
+<span class="r-in"><span>   <span class="va">adlb</span>,</span></span>
+<span class="r-in"><span>   <span class="va">adlb_spec</span>,</span></span>
+<span class="r-in"><span>   <span class="va">PARAMCD</span>,</span></span>
+<span class="r-in"><span>   <span class="va">PARAM</span>,</span></span>
+<span class="r-in"><span>   codelist <span class="op">=</span> <span class="fu"><a href="https://atorus-research.github.io/metacore/reference/get_control_term.html" class="external-link">get_control_term</a></span><span class="op">(</span><span class="va">adlb_spec</span>, <span class="va">PARAMCD</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>   decode_to_code <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>   strict <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 6 × 2</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   PARAMCD PARAM                           </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                           </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> ALB     Albumin (g/L)                   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> ALP     Alkaline Phosphatase (U/L)      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> ALT     Alanine Aminotransferase (U/L)  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> AST     Aspartate Aminotransferase (U/L)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span> BILI    Bilirubin (umol/L)              </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span> BUN     Blood Urea Nitrogen (mmol/L)    </span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="co"># Example expecting warning where `strict` == `TRUE`</span></span></span>
+<span class="r-in"><span><span class="va">adlb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>PARAMCD <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ALB"</span>, <span class="st">"ALP"</span>, <span class="st">"ALT"</span>, <span class="st">"AST"</span>, <span class="st">"BILI"</span>, <span class="st">"BUN"</span>, <span class="st">"DUMMY1"</span>, <span class="st">"DUMMY2"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">create_var_from_codelist</span><span class="op">(</span></span></span>
+<span class="r-in"><span>   <span class="va">adlb</span>,</span></span>
+<span class="r-in"><span>   <span class="va">adlb_spec</span>,</span></span>
+<span class="r-in"><span>   <span class="va">PARAMCD</span>,</span></span>
+<span class="r-in"><span>   <span class="va">PARAM</span>,</span></span>
+<span class="r-in"><span>   codelist <span class="op">=</span> <span class="fu"><a href="https://atorus-research.github.io/metacore/reference/get_control_term.html" class="external-link">get_control_term</a></span><span class="op">(</span><span class="va">adlb_spec</span>, <span class="va">PARAMCD</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>   decode_to_code <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>   strict <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
