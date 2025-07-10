@@ -7,6 +7,8 @@
 #'
 #' @return data with variable labels applied
 #'
+#' @importFrom rlang list2 is_named
+#' @importFrom purrr map_lgl walk2
 #' @export
 #'
 #' @examples
@@ -42,6 +44,8 @@ add_labels <- function(data, ...) {
 #' @param data A data.frame or tibble
 #'
 #' @return data with variable labels applied
+#'
+#' @importFrom purrr map_dfr
 #' @export
 #'
 #' @examples

@@ -4,7 +4,7 @@
 \alias{check_unique_keys}
 \title{Check Uniqueness of Records by Key}
 \usage{
-check_unique_keys(data, metacore, dataset_name = deprecated())
+check_unique_keys(data, metacore, dataset_name = NULL)
 }
 \arguments{
 \item{data}{Dataset to check}
@@ -12,12 +12,8 @@ check_unique_keys(data, metacore, dataset_name = deprecated())
 \item{metacore}{metacore object that only contains the specifications for the
 dataset of interest.}
 
-\item{dataset_name}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Optional string to
-specify the dataset that is being built. This is only needed if the metacore
-object provided hasn't already been subsetted.\cr
-Note: Deprecated in version 1.0.0. The \code{dataset_name} argument will be removed
-in a future release. Please use \code{metacore::select_dataset} to subset the
-\code{metacore} object to obtain metadata for a single dataset.}
+\item{dataset_name}{Optional string to specify the dataset. This is only
+needed if the metacore object provided hasn't already been subsetted.}
 }
 \value{
 message if the key uniquely identifies each dataset record, and error otherwise

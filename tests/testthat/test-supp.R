@@ -16,8 +16,8 @@ test_that("build_qnam", {
    expect_equal(supp_fx, ex_supp)
    # Test without IDVAR making ambiguous output
    expect_error(build_qnam(full_ae, "AETRTEM", "TREATMENT EMERGENT FLAG",
-                           "", "CLINICAL STUDY SPONSOR", "DERIVED"),
-                "The combination of STUDYID, RDOMAIN, USUBJID, IDVARVAL, QNAM is ambiguous. Consider modifying the IDVAR")
+              "", "CLINICAL STUDY SPONSOR", "DERIVED"),
+              "The combination of STUDYID, RDOMAIN, USUBJID, IDVARVAL, QNAM is ambiguous. Consider modifying the IDVAR")
    # Test without IDVAR
    supp_sans_id <- full_ae %>%
       group_by(USUBJID) %>%
@@ -39,7 +39,7 @@ test_that("make_supp_qual", {
    load(metacore::metacore_example("pilot_SDTM.rda"))
 
    spec<- metacore %>%
-      select_dataset("AE", quiet = TRUE)
+      select_dataset("AE")
 
    # Add the mock supp variables
    ae <- combine_supp(safetyData::sdtm_ae, safetyData::sdtm_suppae)
@@ -53,51 +53,59 @@ test_that("make_supp_qual", {
       tidyr::pivot_longer(AETRTEM, names_to = "QNAM", values_to = "QVAL") %>%
       filter(!is.na(QVAL)) %>%
       mutate(IDVAR = "AESEQ",
-             QORIG = "derived",
+             QORIG = "DERIVED",
              QEVAL = "CLINICAL STUDY SPONSOR",
              QLABEL = "TREATMENT EMERGENT FLAG") %>%
       arrange(USUBJID, QNAM, IDVARVAL) %>%
       select(STUDYID, RDOMAIN, USUBJID, IDVAR,
              IDVARVAL, QNAM , QLABEL,QVAL,  QORIG, QEVAL) %>%
       distinct()
+   man_supp <- purrr::map_df(man_supp, function(x){
+      attr(x, "label") <-NULL
+      x
+   })
+
+
 
    #Testing normal circumstances
    expect_equal(metacore_supp, man_supp)
 
+
+
    # Add the supp without a idvar
-   dm_spec <- select_dataset(metacore, "DM", quiet = TRUE)
    dm <- combine_supp(safetyData::sdtm_dm, safetyData::sdtm_suppdm) %>%
       as_tibble()
-   dm_supp <- make_supp_qual(dm, dm_spec)
+   dm_supp <- make_supp_qual(dm, metacore, "DM")
    man_dm_supp <- safetyData::sdtm_suppdm %>%
       as_tibble() %>%
       mutate(IDVAR = as.character(IDVAR),
-             IDVARVAL = as.character(IDVARVAL),
-             QORIG = tolower(QORIG)) %>%
+             IDVARVAL = as.character(IDVARVAL)) %>%
       select(STUDYID, RDOMAIN, USUBJID, IDVAR, IDVARVAL, QNAM, QLABEL, QVAL, QORIG, QEVAL)
    expect_equal(dm_supp, man_dm_supp)
 
    #Testing with blank rows
    supp_with_miss <- dm %>%
       dplyr::bind_rows(tibble::tibble(STUDYID = "CDISCPILOT01",
-                                      DOMAIN = "DM",
-                                      USUBJID = "01-701-9999",
-                                      SUBJID = 9999,
-                                      ITT = ""))
-   expect_message(make_supp_qual(supp_with_miss, dm_spec),
+                      DOMAIN = "DM",
+                      USUBJID = "01-701-9999",
+                      SUBJID = 9999,
+                      ITT = ""))
+   expect_message(make_supp_qual(supp_with_miss, metacore, "DM"),
                   "Empty QVAL rows removed for QNAM = ITT")
 
-   suppressMessages(make_supp_qual(supp_with_miss, dm_spec)) %>%
+   suppressMessages(make_supp_qual(supp_with_miss, metacore, "DM")) %>%
       expect_equal(man_dm_supp)
 
 
+
    # Testing with too many datasets
-   expect_error(make_supp_qual(ae, metacore))
+   expect_error(make_supp_qual(ae, metacore),
+                "Requires either a subsetted metacore object or a dataset name")
    #Testing without supp columns specified
    metacore_old <- metacore::spec_to_metacore(metacore::metacore_example("SDTM_spec_CDISC_pilot.xlsx"), quiet = TRUE)
-   ae_spec <- select_dataset(metacore_old, "AE", quiet = TRUE)
-   expect_error(make_supp_qual(ae, ae_spec),
+   expect_error(make_supp_qual(ae, metacore_old, "AE"),
                 "No supplemental variables specified in metacore object. Please check your specifications")
+
 })
 
 
@@ -110,7 +118,6 @@ test_that("combine_supp", {
    supp_check <- safetyData::sdtm_suppae %>%
       select(USUBJID, AESEQ = IDVARVAL, AETRTEM = QVAL) %>%
       arrange(USUBJID, AESEQ)
-   attr(supp_check$AETRTEM, "label") <- 'TREATMENT EMERGENT FLAG'
    expect_equal(combo_ae, supp_check)
 
    ### No IDVAR and multiple QNAM
@@ -119,12 +126,6 @@ test_that("combine_supp", {
       select(USUBJID, QNAM, QVAL) %>%
       pivot_wider(names_from = QNAM, values_from = QVAL) %>%
       as.data.frame()
-   attr(out_test$COMPLT16, "label") <- 'Completers of Week 16 Population Flag'
-   attr(out_test$COMPLT24, "label") <- 'Completers of Week 24 Population Flag'
-   attr(out_test$COMPLT8, "label") <- 'Completers of Week 8 Population Flag'
-   attr(out_test$EFFICACY, "label") <- 'Efficacy Population Flag'
-   attr(out_test$ITT, "label") <- 'Intent to Treat Population Flag'
-   attr(out_test$SAFETY, "label") <- 'Safety Population Flag'
 
    full_dm <- combine_supp(safetyData::sdtm_dm, safetyData::sdtm_suppdm) %>%
       select(USUBJID, COMPLT16:SAFETY)
@@ -142,12 +143,11 @@ test_that("combine_supp", {
    original <- safetyData::sdtm_suppds %>%
       arrange(USUBJID) %>%
       pull(QVAL)
-   attr(original, "label") <- 'PROTOCOL ENTRY CRITERIA NOT MET'
    expect_equal(mostly_miss %>%
-                   filter(!is.na(ENTCRIT)) %>%
-                   arrange(USUBJID) %>%
-                   pull(ENTCRIT),
-                original)
+                      filter(!is.na(ENTCRIT)) %>%
+                      arrange(USUBJID) %>%
+                      pull(ENTCRIT),
+                   original)
 
    ### Multiple IDVARS and multiple QNAMS
    # Add some mock supp variables
@@ -158,9 +158,6 @@ test_that("combine_supp", {
          SUPPVAR3 = USUBJID,
          IDVAR = as.numeric(str_extract(USUBJID, "\\d{3}$"))
       )
-   attr(ae$SUPPVAR1, "label") <- "Supp Test 1"
-   attr(ae$SUPPVAR2, "label") <- "Supp Test 2"
-   attr(ae$SUPPVAR3, "label") <- "Supp Test 3"
    ### Mock up a metadata necessary to make the SUPP
    supp_meta <- tibble::tribble(
       ~qnam, ~qlabel, ~idvar, ~qeval, ~qorig,
@@ -184,17 +181,15 @@ test_that("combine_supp", {
 })
 
 test_that("combine_supp works with different IDVARVAL classes", {
-    skip_if_not_installed("pharmaversesdtm")
-    expect_equal(
+   expect_equal(
       combine_supp(pharmaversesdtm::ae, pharmaversesdtm::suppae) %>%
-         pull(AESEQ),
+      pull(AESEQ),
       pharmaversesdtm::ae %>% pull(AESEQ)
    )
 })
 
 test_that("combine_supp works with without QEVAL", {
-  skip_if_not_installed("pharmaversesdtm")
-  expect_silent(combine_supp(pharmaversesdtm::tr_onco, pharmaversesdtm::supptr_onco))
+   expect_silent(combine_supp(pharmaversesdtm::tr_onco, pharmaversesdtm::supptr_onco))
 })
 
 test_that("supp data that does not match the main data will raise a warning", {
@@ -218,16 +213,15 @@ test_that("Floating point correction works", {
    supp_check <- safetyData::sdtm_suppae %>%
       select(USUBJID, AESEQ = IDVARVAL, AETRTEM = QVAL) %>%
       arrange(USUBJID, AESEQ)
-   attr(supp_check$AETRTEM, "label") <- 'TREATMENT EMERGENT FLAG'
    expect_equal(combo_ae, supp_check)
 })
 
 test_that("zero-row supp returns data unchanged with a warning (#45)", {
-   expect_warning(
-      result <- combine_supp(safetyData::sdtm_ae, safetyData::sdtm_suppae[0,]),
-      regexp = "Zero rows in supp, returning original dataset unchanged"
-   )
-   expect_equal(result, safetyData::sdtm_ae)
+  expect_warning(
+    result <- combine_supp(safetyData::sdtm_ae, safetyData::sdtm_suppae[0,]),
+    regexp = "Zero rows in supp, returning original dataset unchanged"
+  )
+  expect_equal(result, safetyData::sdtm_ae)
 })
 
 test_that("multiple different IDVAR map to the same QNAM works", {
@@ -239,7 +233,7 @@ test_that("multiple different IDVAR map to the same QNAM works", {
   simple_suppae$IDVARVAL[2] <- "2012-09-02"
   expect_equal(
     combine_supp(simple_ae, supp = simple_suppae)$AETRTEM,
-    structure(c("Y", NA, NA, NA, NA, NA, "Y"), label = 'TREATMENT EMERGENT FLAG')
+    c("Y", NA, NA, NA, NA, NA, "Y")
   )
 
   # Replace the value in error
@@ -251,22 +245,4 @@ test_that("multiple different IDVAR map to the same QNAM works", {
     combine_supp(simple_ae, supp = simple_suppae),
     regexp = "An unexpected number of rows were replaced while merging QNAM AETRTEM and IDVAR AESEQ"
   )
-})
-
-test_that("label is added in combine_supp() (#71)", {
-  simple_ae <-
-    safetyData::sdtm_ae |>
-    filter(USUBJID %in% c("01-701-1015", "01-701-1023"))
-  simple_suppae <- safetyData::sdtm_suppae[c(1, 4), ]
-  labelled <- combine_supp(simple_ae, simple_suppae)
-  expect_equal(attr(labelled$AETRTEM, "label"), "TREATMENT EMERGENT FLAG")
-})
-
-test_that("combine_supp() does not create an IDVARVAL column (#78)", {
-  simple_ae <-
-    safetyData::sdtm_ae |>
-    filter(USUBJID %in% c("01-701-1015", "01-701-1023"))
-  simple_suppae <- safetyData::sdtm_suppae[c(1, 4), ]
-  noidvarval <- combine_supp(simple_ae, simple_suppae)
-  expect_false("IDVARVAL" %in% names(noidvarval))
 })

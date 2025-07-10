@@ -7,7 +7,7 @@
 build_from_derived(
   metacore,
   ds_list,
-  dataset_name = deprecated(),
+  dataset_name = NULL,
   predecessor_only = TRUE,
   keep = FALSE
 )
@@ -19,41 +19,19 @@ dataset of interest.}
 \item{ds_list}{Named list of datasets that are needed to build the from. If
 the list is unnamed,then it will use the names of the objects.}
 
-\item{dataset_name}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Optional string to
-specify the dataset that is being built. This is only needed if the metacore
-object provided hasn't already been subsetted.\cr
-Note: Deprecated in version 1.0.0. The \code{dataset_name} argument will be removed
-in a future release. Please use \code{metacore::select_dataset} to subset the
-\code{metacore} object to obtain metadata for a single dataset.}
+\item{dataset_name}{Optional string to specify the dataset that is being
+built. This is only needed if the metacore object provided hasn't already
+been subsetted.}
 
 \item{predecessor_only}{By default \code{TRUE}, so only variables with the origin
 of 'Predecessor' will be used. If \code{FALSE} any derivation matching the
 dataset.variable will be used.}
 
-\item{keep}{String to determine which columns from the original datasets
-should be kept
-\itemize{
-\item "FALSE" (default):  only columns that are also present in the ADaM
-specification are kept in the output.
-\item "ALL":              all original columns are carried through to the
-ADaM, including those that have been renamed.
-e.g. if DM.ARM is a predecessor to DM.TRT01P,
-both ARM and TRT01P will be present as columns
-in the ADaM output.
-\item "PREREQUISITE":     columns are retained if they are required for future
-derivations in the specification. Additional
-prerequisite columns are identified as columns
-that appear in the 'derivation' column of the
-metacore object in the format "DATASET.VARIABLE",
-but not as direct predecessors. Predecessors are
-defined as columns where the derivation is a 1:1
-copy of a column in a source dataset.
-e.g. derivation = "VS.VSTESTCD" is a predecessor,
-while derivation = "Value of VS.VSSTRESN where
-VS.VSTESTCD == 'Heart Rate'" contains both
-VS.VSTESTCD and VS.VSSTRESN as prerequisites, and
-these columns will be kept through to the ADaM.
-}}
+\item{keep}{Boolean to determine if the original columns should be kept. By
+default \code{FALSE}, so only the ADaM columns are kept. If \code{TRUE} the resulting
+dataset will have all the ADaM columns as well as any SDTM column that were
+renamed in the ADaM (i.e \code{ARM} and \code{TRT01P} will be in the resulting
+dataset)}
 }
 \value{
 dataset

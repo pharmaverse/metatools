@@ -14,6 +14,9 @@
 #'   if values are in the control terminology or are missing. If set to
 #'   `FALSE`then NA will not be acceptable.
 #'
+#' @importFrom metacore get_control_term
+#' @importFrom dplyr pull
+#' @importFrom stringr str_remove_all
 #' @return Given data if column only contains control terms. If not, will error
 #'   given the values which should not be in the column
 #' @export
@@ -28,7 +31,6 @@
 #' check_ct_col(data, spec, TRT01PN)
 #' check_ct_col(data, spec, "TRT01PN")
 check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
-   verify_DatasetMeta(metacore)
    bad_vals <- get_bad_ct(data = data, metacore = metacore,
                           var = {{var}}, na_acceptable = na_acceptable)
   if(length(bad_vals) == 0){
@@ -59,6 +61,9 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
 #'   `FALSE` then NA will not be acceptable.
 #'
 #' @return vector
+#' @importFrom metacore get_control_term
+#' @importFrom dplyr pull
+#' @importFrom stringr str_remove_all
 #' @export
 #'
 #' @examples
@@ -68,11 +73,10 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
 #' load(metacore_example("pilot_ADaM.rda"))
 #' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
-#' get_bad_ct(data, spec, "DCSREAS")
-#' get_bad_ct(data, spec, "DCSREAS", na_acceptable = FALSE)
+#' get_bad_ct(data, spec, "DISCONFL")
+#' get_bad_ct(data, spec, "DISCONFL", na_acceptable = FALSE)
 #'
 get_bad_ct <- function(data, metacore, var, na_acceptable = NULL){
-   verify_DatasetMeta(metacore)
    col_name_str <- as_label(enexpr(var)) %>%
       str_remove_all("\"")
    if (!col_name_str %in% names(data)) {
@@ -124,6 +128,9 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL){
 #'   when doing the controlled terminology checks. Internally, `omit_vars` is
 #'   evaluated before `na_acceptable`.
 #'
+#' @importFrom purrr map_lgl map map2 safely discard
+#' @importFrom dplyr filter pull select inner_join
+#' @importFrom stringr str_remove
 #' @return Given data if all columns pass. It will error otherwise
 #' @export
 #'
@@ -132,10 +139,10 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL){
 #' library(metacore)
 #' library(magrittr)
 #' load(metacore_example("pilot_ADaM.rda"))
-#' spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
+#' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #'
-#' check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N"))
+#' check_ct_data(data, spec)
 #' \dontrun{
 #' # These examples produce errors:
 #' check_ct_data(data, spec, na_acceptable = FALSE)
@@ -143,7 +150,6 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL){
 #' check_ct_data(data, spec, na_acceptable = c("DSRAEFL", "DCSREAS"), omit_vars = "DISCONFL")
 #'}
 check_ct_data <- function(data, metacore, na_acceptable = NULL, omit_vars = NULL) {
-   verify_DatasetMeta(metacore)
   codes_in_data <- metacore$value_spec %>%
     filter(variable %in% names(data), !is.na(code_id)) %>%
     pull(code_id) %>%
@@ -236,12 +242,8 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #' @param data Dataset to check
 #' @param metacore metacore object that only contains the specifications for the
 #'   dataset of interest.
-#' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
-#'   specify the dataset. This is only needed if the metacore object provided
-#'   hasn't already been subsetted.\cr
-#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
-#'   in a future release. Please use `metacore::select_dataset` to subset the
-#'   `metacore` object to obtain metadata for a single dataset.
+#' @param dataset_name Optional string to specify the dataset. This is only
+#'   needed if the metacore object provided hasn't already been subsetted.
 #' @param strict A logical value indicating whether to perform strict
 #'   validation on the input dataset. If \code{TRUE} (default), errors will be raised
 #'   if validation fails. If \code{FALSE}, warnings will be issued instead, allowing
@@ -249,6 +251,9 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #'
 #' @return message if the dataset matches the specification and the dataset, and error otherwise
 #' @export
+#' @importFrom metacore select_dataset
+#' @importFrom purrr discard
+#' @importFrom dplyr pull
 #'
 #' @examples
 #' library(haven)
@@ -260,18 +265,8 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #' check_variables(data, spec)
 #' data["DUMMY_COL"] <- NA
 #' check_variables(data, spec, strict = FALSE)
-check_variables <- function(data, metacore, dataset_name = deprecated(), strict = TRUE) {
-   if (is_present(dataset_name)) {
-      lifecycle::deprecate_warn(
-         when = "1.0.0",
-         what = "check_variables(dataset_name)",
-         details = cli_text("The {.arg dataset_name} argument will be removed in
-                            a future release. Please use {.fcn metacore::select_dataset}
-                            to subset the {.obj metacore} object to obtain metadata
-                            for a single dataset.")
-      )
-      metacore <- make_lone_dataset(metacore, dataset_name)
-   }
+check_variables <- function(data, metacore, dataset_name = NULL, strict = TRUE) {
+  metacore <- make_lone_dataset(metacore, dataset_name)
 
   var_list <- metacore$ds_vars %>%
      filter(is.na(supp_flag) | !(supp_flag)) %>%
@@ -353,15 +348,14 @@ print_to_console <- function(messages, data_list, strict = TRUE) {
 #' @param data Dataset to check
 #' @param metacore metacore object that only contains the specifications for the
 #'   dataset of interest.
-#' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
-#'   specify the dataset that is being built. This is only needed if the metacore
-#'   object provided hasn't already been subsetted.\cr
-#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
-#'   in a future release. Please use `metacore::select_dataset` to subset the
-#'   `metacore` object to obtain metadata for a single dataset.
+#' @param dataset_name Optional string to specify the dataset. This is only
+#'   needed if the metacore object provided hasn't already been subsetted.
 #'
 #' @return message if the key uniquely identifies each dataset record, and error otherwise
 #' @export
+#' @importFrom metacore get_keys
+#' @importFrom dplyr pull add_count pick
+#' @importFrom rlang expr
 #'
 #' @examples
 #' library(haven)
@@ -371,19 +365,8 @@ print_to_console <- function(messages, data_list, strict = TRUE) {
 #' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_unique_keys(data, spec)
-check_unique_keys <- function(data, metacore, dataset_name = deprecated()) {
-   if (is_present(dataset_name)) {
-      lifecycle::deprecate_warn(
-         when = "1.0.0",
-         what = "check_variables(dataset_name)",
-         details = cli_text("The {.arg dataset_name} argument will be removed in
-                            a future release. Please use {.fcn metacore::select_dataset}
-                            to subset the {.obj metacore} object to obtain metadata
-                            for a single dataset.")
-      )
-      metacore <- make_lone_dataset(metacore, dataset_name)
-   }
-   verify_DatasetMeta(metacore)
+check_unique_keys <- function(data, metacore, dataset_name = NULL) {
+  metacore <- make_lone_dataset(metacore, dataset_name)
   keys <- get_keys(metacore,expr(!!metacore$ds_spec$dataset))
   var_list <- keys %>%
     pull(variable)

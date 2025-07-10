@@ -4,17 +4,13 @@
 \alias{create_subgrps}
 \title{Create Subgroups}
 \usage{
-create_subgrps(ref_vec, grp_defs, grp_labs = NULL)
+create_subgrps(ref_vec, grp_defs)
 }
 \arguments{
 \item{ref_vec}{Vector of numeric values}
 
 \item{grp_defs}{Vector of strings with groupings defined. Format must be
 either: <00, >=00, 00-00, or  00-<00}
-
-\item{grp_labs}{Vector of strings with labels defined. The labels correspond
-to the associated \code{grp_defs}. i.e., "12-17" may translate to "12-17 years".
-If no \code{grp_labs} specified then \code{grp_defs} will be used.}
 }
 \value{
 Character vector of the values in the subgroups
@@ -26,5 +22,4 @@ Create Subgroups
 create_subgrps(c(1:10), c("<2", "2-5", ">5"))
 create_subgrps(c(1:10), c("<=2", ">2-5", ">5"))
 create_subgrps(c(1:10), c("<2", "2-<5", ">=5"))
-create_subgrps(c(1:10), c("<2", "2-<5", ">=5"), c("<2 years", "2-5 years", ">=5 years"))
 }

@@ -10,41 +10,27 @@
 #'   dataset of interest.
 #' @param ds_list Named list of datasets that are needed to build the from. If
 #'   the list is unnamed,then it will use the names of the objects.
-#' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
-#'   specify the dataset that is being built. This is only needed if the metacore
-#'   object provided hasn't already been subsetted.\cr
-#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
-#'   in a future release. Please use `metacore::select_dataset` to subset the
-#'   `metacore` object to obtain metadata for a single dataset.
+#' @param dataset_name Optional string to specify the dataset that is being
+#'   built. This is only needed if the metacore object provided hasn't already
+#'   been subsetted.
 #' @param predecessor_only By default `TRUE`, so only variables with the origin
 #'   of 'Predecessor' will be used. If `FALSE` any derivation matching the
 #'   dataset.variable will be used.
-#' @param keep String to determine which columns from the original datasets
-#'   should be kept
-#'   - "FALSE" (default):  only columns that are also present in the ADaM
-#'                            specification are kept in the output.
-#'   - "ALL":              all original columns are carried through to the
-#'                            ADaM, including those that have been renamed.
-#'                            e.g. if DM.ARM is a predecessor to DM.TRT01P,
-#'                            both ARM and TRT01P will be present as columns
-#'                            in the ADaM output.
-#'   - "PREREQUISITE":     columns are retained if they are required for future
-#'                            derivations in the specification. Additional
-#'                            prerequisite columns are identified as columns
-#'                            that appear in the 'derivation' column of the
-#'                            metacore object in the format "DATASET.VARIABLE",
-#'                            but not as direct predecessors. Predecessors are
-#'                            defined as columns where the derivation is a 1:1
-#'                            copy of a column in a source dataset.
-#'                            e.g. derivation = "VS.VSTESTCD" is a predecessor,
-#'                            while derivation = "Value of VS.VSSTRESN where
-#'                            VS.VSTESTCD == 'Heart Rate'" contains both
-#'                            VS.VSTESTCD and VS.VSSTRESN as prerequisites, and
-#'                            these columns will be kept through to the ADaM.
-#'
+#' @param keep Boolean to determine if the original columns should be kept. By
+#'   default `FALSE`, so only the ADaM columns are kept. If `TRUE` the resulting
+#'   dataset will have all the ADaM columns as well as any SDTM column that were
+#'   renamed in the ADaM (i.e `ARM` and `TRT01P` will be in the resulting
+#'   dataset)
 #'
 #' @return dataset
 #' @export
+#' @importFrom stringr str_to_lower str_detect str_extract str_to_upper
+#'   str_split
+#' @importFrom dplyr filter pull mutate group_by group_split inner_join select
+#'   full_join bind_rows
+#' @importFrom tidyr unnest
+#' @importFrom purrr map reduce
+#' @importFrom tibble tibble
 #'
 #' @examples
 #' library(metacore)
@@ -54,28 +40,9 @@
 #' spec <- metacore %>% select_dataset("ADSL")
 #' ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
 #' build_from_derived(spec, ds_list, predecessor_only = FALSE)
-build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
+build_from_derived <- function(metacore, ds_list, dataset_name = NULL,
                                predecessor_only = TRUE, keep = FALSE) {
-   if (is_present(dataset_name)) {
-      lifecycle::deprecate_warn(
-         when = "1.0.0",
-         what = "build_from_derived(dataset_name)",
-         details = cli_text("The {.arg dataset_name} argument will be removed in a future release.
-      Please use {.fcn metacore::select_dataset} to subset the {.obj metacore} object to obtain
-      metadata for a single dataset.")
-      )
-      metacore <- make_lone_dataset(metacore, dataset_name)
-   }
-   verify_DatasetMeta(metacore)
-
-   # Deprecate KEEP = TRUE
-   keep <- match.arg(as.character(keep), c("TRUE", "FALSE", "ALL", "PREREQUISITE"))
-   if (keep == "TRUE"){
-      cli_warn(paste0("Setting 'keep' = TRUE has been superseded",
-      ", and will be unavailable in future releases. Please consider setting ",
-      "'keep' equal to 'ALL' or 'PREREQUISITE'."))
-   }
-
+   metacore <- make_lone_dataset(metacore, dataset_name)
    derirvations <- metacore$derivations %>%
       mutate(derivation = trimws(derivation))
 
@@ -93,7 +60,6 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
 
    vars_to_pull_through <- derirvations %>%
       filter(str_detect(derivation, "^\\w*\\.[a-zA-Z0-9]*$"))
-
    # To lower so it is flexible about how people name their ds list
    vars_w_ds <- vars_to_pull_through %>%
       mutate(ds = str_extract(derivation, "^\\w*(?=\\.)") %>%
@@ -157,10 +123,11 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
       bind_rows(additional_vals) %>%
       group_by(ds) %>%
       group_split() %>%
-      map(get_variables, ds_list, keep, derirvations) %>%
-      prepare_join(join_by, names(ds_list)) %>%
+      map(get_variables, ds_list, keep) %>%
       reduce(full_join, by = join_by)
 }
+
+
 
 #' Internal functions to get variables from a dataset list
 #'
@@ -173,89 +140,22 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
 #'
 #' @return datasets
 #' @noRd
-get_variables <- function(x, ds_list, keep, derivations) {
+get_variables <- function(x, ds_list, keep) {
    ds_name <- unique(x$ds)
    data <- ds_list[[ds_name]]
    rename_vec <- set_names(x$col_name, x$variable)
-   if (keep == "TRUE") {
-      # Don't drop predecessor columns
+   if (keep) {
       out <- data %>%
          select(x$col_name) %>%
          mutate(across(all_of(rename_vec)))
-   } else if (keep == "FALSE") {
-      # Drop predecessor columns
+   } else {
       out <- data %>%
          select(x$col_name) %>%
-         mutate(across(all_of(rename_vec))) %>%
-         select(x$variable)
-   } else if (keep == "ALL") {
-      # Keep all cols from original datasets
-      out <- data %>%
-         mutate(across(all_of(rename_vec)))
-   } else if (keep == "PREREQUISITE") {
-      # Keep all columns required for future derivations
-      # Find all "XX.XXXXX"
-      future_derivations <- derivations %>%
-         select(derivation) %>%
-         filter(!str_detect(derivation,"^[A-Z0-9a-z]+\\.[A-Z0-9a-z]+$"))
-
-      prereq_vector <- str_match_all(future_derivations$derivation, "([A-Z0-9a-z]+)\\.([A-Z0-9a-z]+)")
-
-      # Bind into matrix + remove dups
-      prereq_matrix <- do.call(rbind,prereq_vector) %>%
-         unique()
-
-      # Subset to those present in current dataset
-      prereq_cols <- subset(prereq_matrix, tolower(prereq_matrix[,2]) == tolower(ds_name))[,3]
-
-      out <- data %>%
-         select(c(x$col_name, all_of(prereq_cols))) %>%
-         mutate(across(all_of(rename_vec))) %>%
-         select(c(x$variable, all_of(prereq_cols)))
+         rename(all_of(rename_vec))
    }
    out
 }
 
-#' Internal function to remove duplicated non-key variables prior to join
-#'
-#' This function is used with `build_from_derived` to drop columns that would
-#' cause a conflict on joining datasets, prioritising keeping columns in
-#' datasets earlier on in ds_list.
-#'
-#' e.g. if ds_list = ("AE", "ADSL") and there is a conflicting column
-#' "STUDYID", the column will be dropped from ADSL (index 2) rather than AE
-#' (index 1).
-#'
-#' @param x List of datasets with all columns added
-#' @param keys List of key values to join on
-#'
-#' @return datasets
-#' @noRd
-prepare_join <- function(x, keys, ds_names) {
-   out <- list(x[[1]])
-
-   if (length(x) > 1){
-      for (i in 2:length(x)){
-         # Drop non-key cols present in each previous dataset in order
-         drop_cols <- c()
-
-         for (j in 1:(i-1)){
-            conflicting_cols <- keep(names(x[[j]]), function(col) !(col %in% keys)) %>%
-               intersect(colnames(x[[i]]))
-            drop_cols <- c(drop_cols, conflicting_cols)
-
-            if(length(conflicting_cols) > 0){
-               cli_inform(c("i" = "Dropping column(s) from {ds_names[[i]]} due to \\
-                            conflict with {ds_names[[j]]}: {conflicting_cols}."))
-            }
-         }
-
-         out[[i]] <- x[[i]] %>%
-            select(-any_of(drop_cols))
-      }
-   }
-   out
-}
 
 #' Drop Unspecified Variables
 #'
@@ -264,13 +164,10 @@ prepare_join <- function(x, keys, ds_names) {
 #' @param dataset Dataset to change
 #' @param metacore metacore object that only contains the specifications for the
 #'   dataset of interest.
-#' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to specify
-#' the dataset. This is only needed if the metacore object provided hasn't already
-#' been subsetted.\cr
-#' Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
-#' in a future release. Please use `metacore::select_dataset` to subset the
-#' `metacore` object to obtain metadata for a single dataset.
-#'
+#' @param dataset_name Optional string to specify the dataset. This is only
+#'   needed if the metacore object provided hasn't already been subsetted.
+#' @importFrom dplyr pull across select filter
+#' @importFrom purrr discard
 #' @return Dataset with only specified columns
 #' @export
 #'
@@ -285,15 +182,6 @@ prepare_join <- function(x, keys, ds_names) {
 #'   mutate(foo = "Hello")
 #' drop_unspec_vars(data, spec)
 drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL) {
-   if (!missing(dataset_name)) {
-      lifecycle::deprecate_soft(
-         when = "1.0.0",
-         what = "drop_unspec_vars(dataset_name)",
-         details = "The `dataset_name` argument will be removed in a future release.
-      Please use `metacore::select_dataset` to subset the `metacore` object to obtain
-      metadata for a single dataset."
-      )}
-
    metacore <- make_lone_dataset(metacore, dataset_name)
    var_list <- metacore$ds_vars %>%
       filter(is.na(supp_flag) | !(supp_flag)) %>%
@@ -324,13 +212,15 @@ drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL) {
 #' @param metacore metacore object that only contains the specifications for the
 #'   dataset of interest.
 #' @param dataset_name Optional string to specify the dataset. This is only
-#'   needed if the metacore object provided hasn't already been subsetted.\cr
-#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
-#'   in a future release. Please use `metacore::select_dataset` to subset the
-#'   `metacore` object to obtain metadata for a single dataset.
+#'   needed if the metacore object provided hasn't already been subsetted.
 #'
 #' @return The given dataset with any additional columns added
 #' @export
+#'
+#' @importFrom dplyr filter pull mutate bind_cols as_tibble
+#' @importFrom purrr discard map
+#' @importFrom rlang !! :=
+#'
 #'
 #' @examples
 #' library(metacore)
@@ -342,15 +232,6 @@ drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL) {
 #'    select(-TRTSDT, -TRT01P, -TRT01PN)
 #' add_variables(data, spec)
 add_variables <- function(dataset, metacore, dataset_name = NULL){
-   if (!missing(dataset_name)) {
-      lifecycle::deprecate_soft(
-         when = "1.0.0",
-         what = "add_variables(dataset_name)",
-         details = "The `dataset_name` argument will be removed in a future release.
-      Please use `metacore::select_dataset` to subset the `metacore` object to obtain
-      metadata for a single dataset."
-      )}
-
    metacore <- make_lone_dataset(metacore, dataset_name)
    var_list <- metacore$ds_vars %>%
       filter(is.na(supp_flag) | !(supp_flag)) %>%

@@ -9,39 +9,25 @@ create_var_from_codelist(
   metacore,
   input_var,
   out_var,
-  codelist = NULL,
-  decode_to_code = TRUE,
-  strict = TRUE
+  decode_to_code = TRUE
 )
 }
 \arguments{
 \item{data}{Dataset that contains the input variable}
 
-\item{metacore}{A metacore object to get the codelist from. This should be a
-subsetted metacore object (of subclass \code{DatasetMeta}) created using
-\code{metacore::select_dataset}.}
+\item{metacore}{A metacore object to get the codelist from. If the \code{out_var}
+has different codelists for different datasets the metacore object will
+need to be subsetted using \code{select_dataset} from the metacore package.}
 
 \item{input_var}{Name of the variable that will be translated for the new
 column}
 
-\item{out_var}{Name of the output variable. Note: Unless a codelist is provided
-the grouping will always be from the code of the codelist associates with
-\code{out_var}.}
+\item{out_var}{Name of the output variable. Note: the grouping will always be
+from the code of the codelist associates with \code{out_var}}
 
-\item{codelist}{Optional argument to supply a codelist. Must be a data.frame
-with \code{code} and \code{decode} columns such as those created by the function
-\code{metacore::get_control_term}. If no codelist is provided the codelist
-associated with the column supplied to \code{out_var} will be used. By default
-\code{codelist} is \code{NULL}.}
-
-\item{decode_to_code}{Direction of the translation. Default value is \code{TRUE},
-i.e., assumes the  \code{input_var} is the decode column of the codelist.
-Set to \code{FALSE} if the \code{input_var} is the code column of the codelist.}
-
-\item{strict}{A logical value indicating whether to perform strict checking
-against the codelist. If \code{TRUE} will issue a warning if values in the \code{input_var}
-column are not present in the codelist. If \code{FALSE} no warning is issued and
-values not present in the codelist will likely result in \code{NA} results.}
+\item{decode_to_code}{Direction of the translation. By default assumes the
+\code{input_var} is the decode column of the codelist. Set to \code{FALSE} if the
+\code{input_var} is the code column of the codelist}
 }
 \value{
 Dataset with a new column added
@@ -62,35 +48,7 @@ data <- tribble(
   5, "M", "Male",
 )
 spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
-dm_spec <- select_dataset(spec, "DM", quiet = TRUE)
-create_var_from_codelist(data, dm_spec, VAR2, SEX)
-create_var_from_codelist(data, dm_spec, "VAR2", "SEX")
-create_var_from_codelist(data, dm_spec, VAR1, SEX, decode_to_code = FALSE)
-
-# Example providing a custom codelist
-# This example also reverses the direction of translation
-load(metacore_example('pilot_ADaM.rda'))
-adlb_spec <- select_dataset(metacore, "ADLBC", quiet = TRUE)
-adlb <- tibble(PARAMCD = c("ALB", "ALP", "ALT", "AST", "BILI", "BUN"))
-create_var_from_codelist(
-   adlb,
-   adlb_spec,
-   PARAMCD,
-   PARAM,
-   codelist = get_control_term(adlb_spec, PARAMCD),
-   decode_to_code = FALSE,
-   strict = FALSE)
-
-\dontrun{
-# Example expecting warning where `strict` == `TRUE`
-adlb <- tibble(PARAMCD = c("ALB", "ALP", "ALT", "AST", "BILI", "BUN", "DUMMY1", "DUMMY2"))
-create_var_from_codelist(
-   adlb,
-   adlb_spec,
-   PARAMCD,
-   PARAM,
-   codelist = get_control_term(adlb_spec, PARAMCD),
-   decode_to_code = FALSE,
-   strict = TRUE)
-}
+create_var_from_codelist(data, spec, VAR2, SEX)
+create_var_from_codelist(data, spec, "VAR2", "SEX")
+create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
 }

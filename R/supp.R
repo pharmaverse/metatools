@@ -7,6 +7,9 @@
 #' @param qeval QEVAL value to be populated for this QNAM
 #' @param qorig QORIG value to be populated for this QNAM
 #'
+#' @importFrom rlang sym
+#' @importFrom dplyr select rename filter mutate distinct
+#'
 #' @return Observations structured in SUPP format
 #' @export
 #'
@@ -68,15 +71,15 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
 #' @param dataset dataset the supp will be pulled from
 #' @param metacore A subsetted metacore object to get the supp information from.
 #'   If not already subsetted then a `dataset_name` will need to be provided
-#' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
-#'   specify the dataset that is being built. This is only needed if the metacore
-#'   object provided hasn't already been subsetted.\cr
-#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
-#'   in a future release. Please use `metacore::select_dataset` to subset the
-#'   `metacore` object to obtain metadata for a single dataset.
+#' @param dataset_name optional name of dataset
 #'
 #' @return a CDISC formatted SUPP dataset
 #' @export
+#'
+#' @importFrom rlang as_label
+#' @importFrom stringr str_remove_all
+#' @importFrom dplyr filter if_else distinct
+#' @importFrom purrr pmap_dfr
 #'
 #' @examples
 #'
@@ -87,19 +90,9 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
 #' spec <- metacore %>% select_dataset("AE")
 #' ae <- combine_supp(sdtm_ae, sdtm_suppae)
 #' make_supp_qual(ae, spec) %>% as_tibble()
-make_supp_qual <- function(dataset, metacore, dataset_name = deprecated()){
-   if (is_present(dataset_name)) {
-      lifecycle::deprecate_warn(
-         when = "1.0.0",
-         what = "check_variables(dataset_name)",
-         details = cli_text("The {.arg dataset_name} argument will be removed in
-                            a future release. Please use {.fcn metacore::select_dataset}
-                            to subset the {.obj metacore} object to obtain metadata
-                            for a single dataset.")
-      )
-      metacore <- make_lone_dataset(metacore, dataset_name)
-   }
-   verify_DatasetMeta(metacore)
+make_supp_qual <- function(dataset, metacore, dataset_name = NULL){
+   #Get a single metacore object
+   metacore <- make_lone_dataset(metacore, dataset_name)
 
    supp_vars <- metacore$ds_vars %>%
       filter(supp_flag)
@@ -129,7 +122,13 @@ make_supp_qual <- function(dataset, metacore, dataset_name = deprecated()){
 #'
 #' @return a dataset with the supp variables added to it
 #' @export
-#
+#'
+#' @importFrom purrr discard map reduce
+#' @importFrom dplyr if_else select group_by group_split pull rename left_join
+#'   any_of
+#' @importFrom tidyr pivot_wider
+#' @importFrom rlang sym
+#'
 #' @examples
 #' library(safetyData)
 #' library(tibble)
@@ -179,15 +178,6 @@ combine_supp <- function(dataset, supp){
 
    supp_wides <- purrr::pmap(.l = list(supp = supp_wides_prep), .f = combine_supp_make_wide)
    ret <- reduce(.x = append(list(dataset), supp_wides), .f = combine_supp_join)
-   ret$IDVARVAL <- NULL
-
-   labels_to_add <- unique(supp[, c("QNAM", "QLABEL")])
-   for (current_idx in seq_len(nrow(labels_to_add))) {
-     current_col <- labels_to_add$QNAM[current_idx]
-     current_label <- labels_to_add$QLABEL[current_idx]
-     attr(ret[[current_col]], "label") <- current_label
-   }
-
    ret
 }
 
@@ -282,6 +272,9 @@ combine_supp_join <- function(dataset, supp) {
 #'
 #' @return list of datasets
 #' @noRd
+#' @importFrom dplyr anti_join
+#' @importFrom utils capture.output
+#' @importFrom stringr str_trim
 combine_supp_by_idvar <- function(dataset, supp){
    # Get the IDVAR value to allow for renaming of IDVARVAL
    id_var <- unique(supp$IDVAR)
