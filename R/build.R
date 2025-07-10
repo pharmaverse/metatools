@@ -102,10 +102,10 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
       pull(ds) %>%
       unique()
    if(is.null(names(ds_list))){
-      names(ds_list) <- deparse(substitute(ds_list)) |>
-         str_remove("list\\s?\\(") |>
-         str_remove("\\)s?$") |>
-         str_split(",\\s?") |>
+      names(ds_list) <- deparse(substitute(ds_list)) %>%
+         str_remove("list\\s?\\(") %>%
+         str_remove("\\)s?$") %>%
+         str_split(",\\s?") %>%
          unlist()
    }
    names(ds_list) <- names(ds_list) %>%
@@ -117,8 +117,8 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
                  paste0(unknown, collapse = ", "),
                  call. = FALSE)
       }
-      ds_using <- discard(names(ds_list), ~. %in% unknown) |>
-         str_to_upper() |>
+      ds_using <- discard(names(ds_list), ~. %in% unknown) %>%
+         str_to_upper() %>%
          paste0(collapse = ", ")
 
       message(paste0(
@@ -128,7 +128,7 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
       ))
 
       # Filter out any variable that come from datasets that aren't present
-      vars_w_ds <- vars_w_ds |>
+      vars_w_ds <- vars_w_ds %>%
          filter(ds %in% names(ds_list))
 
    }
