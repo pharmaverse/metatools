@@ -5,7 +5,7 @@ load(metacore::metacore_example("pilot_ADaM.rda"))
 spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
 test_that("drop_unspec_vars", {
   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
-    mutate(foo = "Hello", foo2 = "world")
+    mutate(AGEGR2 = 'DUMMY', AGEGR2N = 99, foo = "Hello", foo2 = "world")
 
   man_vars <- metacore$ds_vars %>%
     filter(dataset == "ADSL") %>%
@@ -168,7 +168,8 @@ test_that("build_from_derived", {
 test_that("add_variables", {
    load(metacore::metacore_example("pilot_ADaM.rda"))
    spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
-   data <- haven::read_xpt(metatools_example("adsl.xpt"))
+   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
+      mutate(AGEGR2 = "DUMMY", AGEGR2N = 99)
    data_mis <- data %>%
       select(-TRTSDT, -TRT01P, -TRT01PN)
    #Check data when there is missing
