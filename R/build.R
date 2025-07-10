@@ -284,7 +284,7 @@ prepare_join <- function(x, keys, ds_names) {
 #'   select(USUBJID, SITEID) %>%
 #'   mutate(foo = "Hello")
 #' drop_unspec_vars(data, spec)
-drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL) {
+drop_unspec_vars <- function(dataset, metacore, dataset_name = deprecated()) {
    if (!missing(dataset_name)) {
       lifecycle::deprecate_soft(
          when = "1.0.0",
@@ -292,9 +292,12 @@ drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL) {
          details = "The `dataset_name` argument will be removed in a future release.
       Please use `metacore::select_dataset` to subset the `metacore` object to obtain
       metadata for a single dataset."
-      )}
 
-   metacore <- make_lone_dataset(metacore, dataset_name)
+      )
+      metacore <- make_lone_dataset(metacore, dataset_name)
+   }
+
+   verify_DatasetMeta(metacore)
    var_list <- metacore$ds_vars %>%
       filter(is.na(supp_flag) | !(supp_flag)) %>%
       pull(variable)
@@ -341,7 +344,7 @@ drop_unspec_vars <- function(dataset, metacore, dataset_name = NULL) {
 #' data <- read_xpt(metatools_example("adsl.xpt")) %>%
 #'    select(-TRTSDT, -TRT01P, -TRT01PN)
 #' add_variables(data, spec)
-add_variables <- function(dataset, metacore, dataset_name = NULL){
+add_variables <- function(dataset, metacore, dataset_name = deprecated()){
    if (!missing(dataset_name)) {
       lifecycle::deprecate_soft(
          when = "1.0.0",
@@ -349,9 +352,11 @@ add_variables <- function(dataset, metacore, dataset_name = NULL){
          details = "The `dataset_name` argument will be removed in a future release.
       Please use `metacore::select_dataset` to subset the `metacore` object to obtain
       metadata for a single dataset."
-      )}
+      )
+      metacore <- make_lone_dataset(metacore, dataset_name)
+   }
 
-   metacore <- make_lone_dataset(metacore, dataset_name)
+   verify_DatasetMeta(metacore)
    var_list <- metacore$ds_vars %>%
       filter(is.na(supp_flag) | !(supp_flag)) %>%
       pull(variable)

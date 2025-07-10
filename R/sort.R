@@ -36,7 +36,7 @@ order_cols <- function(data, metacore, dataset_name = deprecated()) {
       )
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
-verify_DatasetMeta(metacore)
+   verify_DatasetMeta(metacore)
    var_ord <- metacore$ds_vars %>%
       filter(!is.na(order)) %>%
       arrange(order) %>%

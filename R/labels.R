@@ -67,8 +67,12 @@ remove_labels <- function(data) {
 #' @param data A dataframe or tibble upon which labels will be applied
 #' @param metacore metacore object that contains the specifications for the
 #'   dataset of interest.
-#' @param dataset_name Optional string to specify the dataset. This is only
-#'   needed if the metacore object provided hasn't already been subsetted.
+#' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
+#'   specify the dataset that is being built. This is only needed if the metacore
+#'   object provided hasn't already been subsetted.\cr
+#'   Note: Deprecated in version 1.0.0. The `dataset_name` argument will be removed
+#'   in a future release. Please use `metacore::select_dataset` to subset the
+#'   `metacore` object to obtain metadata for a single dataset.
 #'
 #' @return Dataframe with labels applied
 #' @export
@@ -81,8 +85,18 @@ remove_labels <- function(data) {
 #'         )
 #' dm <- haven::read_xpt(metatools_example("dm.xpt"))
 #' set_variable_labels(dm, mc, dataset_name = "DM")
-set_variable_labels <- function(data, metacore, dataset_name = NULL) {
-   metacore <- make_lone_dataset(metacore, dataset_name)
+set_variable_labels <- function(data, metacore, dataset_name = deprecated()) {
+   if (is_present(dataset_name)) {
+      lifecycle::deprecate_warn(
+         when = "1.0.0",
+         what = "build_from_derived(dataset_name)",
+         details = cli_text("The {.arg dataset_name} argument will be removed in a future release.
+      Please use {.fcn metacore::select_dataset} to subset the {.obj metacore} object to obtain
+      metadata for a single dataset.")
+      )
+      metacore <- make_lone_dataset(metacore, dataset_name)
+   }
+   verify_DatasetMeta(metacore)
 
    # Grab out the var names and labels
    var_spec <- metacore$var_spec %>%
