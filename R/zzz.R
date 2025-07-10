@@ -26,7 +26,8 @@ globalVariables(c(
   "qeval",
   "supp_flag",
   "type",
-  "variable"
+  "variable",
+  "merge_on"
 ))
 
 

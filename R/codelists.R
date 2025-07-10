@@ -88,16 +88,26 @@ create_subgrps <- function(ref_vec, grp_defs, grp_labs = NULL) {
 #' variables in the data
 #'
 #' @param data Dataset that contains the input variable
-#' @param metacore A metacore object to get the codelist from. If the `out_var`
-#'   has different codelists for different datasets the metacore object will
-#'   need to be subsetted using `select_dataset` from the metacore package.
+#' @param metacore A metacore object to get the codelist from. This should be a
+#'   subsetted metacore object (of subclass `DatasetMeta`) created using
+#'   `metacore::select_dataset`.
 #' @param input_var Name of the variable that will be translated for the new
 #'   column
-#' @param out_var Name of the output variable. Note: the grouping will always be
-#'   from the code of the codelist associates with `out_var`
-#' @param decode_to_code Direction of the translation. By default assumes the
-#'   `input_var` is the decode column of the codelist. Set to `FALSE` if the
-#'   `input_var` is the code column of the codelist
+#' @param out_var Name of the output variable. Note: Unless a codelist is provided
+#'   the grouping will always be from the code of the codelist associates with
+#'   `out_var`.
+#' @param codelist Optional argument to supply a codelist. Must be a data.frame
+#'   with `code` and `decode` columns such as those created by the function
+#'   `metacore::get_control_term`. If no codelist is provided the codelist
+#'   associated with the column supplied to `out_var` will be used. By default
+#'   `codelist` is `NULL`.
+#' @param decode_to_code Direction of the translation. Default value is `TRUE`,
+#'    i.e., assumes the  `input_var` is the decode column of the codelist.
+#'    Set to `FALSE` if the `input_var` is the code column of the codelist.
+#' @param strict A logical value indicating whether to perform strict checking
+#'   against the codelist. If `TRUE` will issue a warning if values in the `input_var`
+#'   column are not present in the codelist. If `FALSE` no warning is issued and
+#'   values not present in the codelist will likely result in `NA` results.
 #'
 #' @return Dataset with a new column added
 #' @export
@@ -113,39 +123,93 @@ create_subgrps <- function(ref_vec, grp_defs, grp_labs = NULL) {
 #'   4, "U", "Unknown",
 #'   5, "M", "Male",
 #' )
-#' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE) %>%
-#'   select_dataset("DM")
-#' create_var_from_codelist(data, spec, VAR2, SEX)
-#' create_var_from_codelist(data, spec, "VAR2", "SEX")
-#' create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
-create_var_from_codelist <- function(data, metacore, input_var, out_var,
-                                     decode_to_code = TRUE) {
+#' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
+#' dm_spec <- select_dataset(spec, "DM", quiet = TRUE)
+#' create_var_from_codelist(data, dm_spec, VAR2, SEX)
+#' create_var_from_codelist(data, dm_spec, "VAR2", "SEX")
+#' create_var_from_codelist(data, dm_spec, VAR1, SEX, decode_to_code = FALSE)
+#'
+#' # Example providing a custom codelist
+#' # This example also reverses the direction of translation
+#' load(metacore_example('pilot_ADaM.rda'))
+#' adlb_spec <- select_dataset(metacore, "ADLBC", quiet = TRUE)
+#' adlb <- tibble(PARAMCD = c("ALB", "ALP", "ALT", "AST", "BILI", "BUN"))
+#' create_var_from_codelist(
+#'    adlb,
+#'    adlb_spec,
+#'    PARAMCD,
+#'    PARAM,
+#'    codelist = get_control_term(adlb_spec, PARAMCD),
+#'    decode_to_code = FALSE,
+#'    strict = FALSE)
+#'
+#'\dontrun{
+#' # Example expecting warning where `strict` == `TRUE`
+#' adlb <- tibble(PARAMCD = c("ALB", "ALP", "ALT", "AST", "BILI", "BUN", "DUMMY1", "DUMMY2"))
+#' create_var_from_codelist(
+#'    adlb,
+#'    adlb_spec,
+#'    PARAMCD,
+#'    PARAM,
+#'    codelist = get_control_term(adlb_spec, PARAMCD),
+#'    decode_to_code = FALSE,
+#'    strict = TRUE)
+#' }
+create_var_from_codelist <- function(data, metacore, input_var, out_var, codelist = NULL,
+                                     decode_to_code = TRUE, strict = TRUE) {
    verify_DatasetMeta(metacore)
-   code_translation <- get_control_term(metacore, {{ out_var }})
-   input_var_str <- as_label(enexpr(input_var)) %>%
-      str_remove_all("\"")
+
+   # Use codelist if provided, else use codelist of the out_var
+   if (!missing(codelist)) { code_translation <- codelist }
+   else { code_translation <- get_control_term(metacore, {{ out_var }}) }
+
    if (is.vector(code_translation) | !("decode" %in% names(code_translation))) {
-      stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
+      cli_abort("Expecting 'code_decode' type of control terminology. Actual \\
+type is {typeof(code_translation)}. Check the structure of the codelist in the \\
+{.obj metacore} object using {.fn View}.")
    }
-   if (decode_to_code) {
-      out <- data %>%
-         left_join(code_translation, by = set_names("decode", input_var_str)) %>%
-         rename({{ out_var }} := code)
-      if(all(str_detect(code_translation$code, "^\\d*$"))){
-         out <- out %>%
-            mutate({{ out_var }} := as.numeric({{ out_var }}))
-      }
-   } else if (!decode_to_code) {
-      out <- data %>%
-         left_join(code_translation, by = set_names("code", input_var_str)) %>%
-         rename({{ out_var }} := decode)
-      if(all(str_detect(code_translation$decode, "^\\d*$"))){
-         out <- out %>%
-            mutate({{ out_var }} := as.numeric({{ out_var }}))
-      }
-   } else {
-      stop("decode_to_code must be either TRUE or FALSE")
+
+   # Check decode_to_code is logical and set direction of translation
+   if (!is_logical(decode_to_code)) {
+      cli_abort("{.arg decode_to_code} must be either TRUE or FALSE.")
    }
+
+   ref_var <- if (decode_to_code) "decode" else "code"
+   new_var <- if (decode_to_code) "code"   else "decode"
+
+   # Pull data values and codelist values to check inconsistent overlap
+   values   <- data |> pull({{ input_var }})
+   codelist <- code_translation |> pull(ref_var)
+
+   miss <- setdiff(values, codelist)
+   if (strict == TRUE && length(miss) > 0) {
+      cli_warn(
+         "In {.fn create_var_from_codelist}: The following value{?s} present in the
+input dataset {?is/are} not present in the codelist: {miss}")
+   }
+
+   input_var_str <- as_label(enexpr(input_var)) |>
+      str_remove_all("\"")
+
+   # Coerce join column to character to ensure join if input var is numeric
+   data <- data |> mutate(merge_on := as.character(.data[[input_var_str]]))
+   code_translation <- code_translation |>
+      mutate(
+         decode = as.character(decode),
+         code = as.character(code)
+      )
+
+   out <- data |>
+      left_join(code_translation, by = set_names(ref_var, "merge_on")) |>
+      rename({{ out_var }} := !!sym(new_var)) |>
+      select(-merge_on)
+
+   # Optionally coerce to numeric if the output values are numeric
+   if (all(str_detect(code_translation[[new_var]], "^\\d*$"))) {
+      out <- out |>
+         mutate({{ out_var }} := as.numeric({{ out_var }}))
+   }
+
    out
 }
 
@@ -191,6 +255,7 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var,
 #' create_cat_var(dm, spec, AGE, AGEGR1, AGEGR1N)
 create_cat_var <- function(data, metacore, ref_var, grp_var, num_grp_var = NULL,
                            create_from_decode = FALSE, strict = TRUE) {
+   verify_DatasetMeta(metacore)
    ct <- get_control_term(metacore, {{ grp_var }})
    if (is.vector(ct) | !("decode" %in% names(ct))) {
       cli_abort("Expecting 'code_decode' type of control terminology. Please check metacore object")
@@ -199,7 +264,7 @@ create_cat_var <- function(data, metacore, ref_var, grp_var, num_grp_var = NULL,
    # Assign group definitions and labels
    grp_defs <- pull(ct, code)
    grp_labs <- if (create_from_decode) pull(ct, decode) else grp_defs
-
+     
    out <- data %>%
       mutate({{ grp_var }} := create_subgrps({{ ref_var }}, grp_defs, grp_labs))
 

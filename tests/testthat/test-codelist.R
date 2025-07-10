@@ -1,3 +1,5 @@
+# Suppress cli output during testing
+options(cli.default_handler = function(...) { })
 
 spec <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet = TRUE)
 dm_spec <- select_dataset(spec, "DM", quiet = TRUE)
@@ -57,6 +59,74 @@ test_that("create_var_from_codelist", {
      head() %>%
      pull(TRT01PN)
   expect_equal(num_out, c(0,  0, 81, 54, 81,0))
+
+  # Test provide custom codelist
+  load(metacore::metacore_example('pilot_ADaM.rda'))
+  adlb_spec <- metacore::select_dataset(metacore, "ADLBC", quiet = TRUE)
+  data <- tibble::tibble(
+     PARAMCD = c("ALB", "ALP", "ALT", "DUMMY", "DUMMY2")
+  )
+  compare <- tibble::tibble(
+     PARAMCD = c("ALB", "ALP", "ALT", "DUMMY", "DUMMY2"),
+     PARAM = c("Albumin (g/L)", "Alkaline Phosphatase (U/L)", "Alanine Aminotransferase (U/L)", NA, NA)
+  )
+
+  create_var_from_codelist(
+     data = data,
+     metacore = adlb_spec,
+     input_var = PARAMCD,
+     out_var = PARAM,
+     codelist = get_control_term(adlb_spec, PARAMCD),
+     decode_to_code = FALSE,
+     strict = FALSE
+  ) |>
+     select(PARAMCD, PARAM) |>
+     expect_equal(compare)
+
+  # Test warning where arg `strict == TRUE`
+  create_var_from_codelist(
+     data = data,
+     metacore = adlb_spec,
+     input_var = PARAMCD,
+     out_var = PARAM,
+     codelist = get_control_term(adlb_spec, PARAMCD),
+     decode_to_code = FALSE,
+     strict = TRUE
+  ) |>
+     expect_warning()
+
+  # Test numeric variable used as input_var (strict == FALSE)
+  data2 <- tibble::tibble(
+     PARAMN = c(18, 19, 20, 99)
+  )
+  compare2 <- tibble::tibble(
+     PARAMN = c(18, 19, 20, 99),
+     PARAM = c("Sodium (mmol/L)", "Potassium (mmol/L)", "Chloride (mmol/L)", NA)
+  )
+
+  create_var_from_codelist(
+     data = data2,
+     metacore = adlb_spec,
+     input_var = PARAMN,
+     out_var = PARAM,
+     codelist = get_control_term(adlb_spec, PARAMN),
+     decode_to_code = FALSE,
+     strict = FALSE
+  ) |>
+     select(PARAMN, PARAM) |>
+     expect_equal(compare2)
+
+  # Test numeric variable used as input_var (strict == TRUE)
+  create_var_from_codelist(
+     data = data2,
+     metacore = adlb_spec,
+     input_var = PARAMN,
+     out_var = PARAM,
+     codelist = get_control_term(adlb_spec, PARAMN),
+     decode_to_code = FALSE,
+     strict = TRUE
+  ) |>
+     expect_warning()
 
   # Test for Variable not in specs
   expect_error(create_var_from_codelist(data, spec, VAR2, FOO))
@@ -122,7 +192,8 @@ test_that("create_cat_var", {
      adsl_spec$derivations,
      codelist = codelist,
      supp = adsl_spec$supp
-  ))
+  )) %>%
+     select_dataset("ADSL")
 
   create_cat_var(dm, spec2, AGE, AGEGR1, AGEGR1N, TRUE) |>
      expect_error("Unable to decipher the following group definition: DUMMY. Please check your controlled terminology.")
@@ -145,7 +216,8 @@ test_that("create_cat_var", {
      adsl_spec$derivations,
      codelist = codelist,
      supp = adsl_spec$supp
-  ))
+  )) %>%
+     select_dataset("ADSL")
 
   create_cat_var(dm, spec2, AGE, AGEGR1, AGEGR1N, create_from_decode = TRUE) |>
      expect_error("Group definitions are not exclusive. Please check your controlled terminology")
