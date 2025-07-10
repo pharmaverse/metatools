@@ -64,7 +64,7 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">safetyData</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tibble.tidyverse.org/" class="external-link">tibble</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">combine_supp</span><span class="op">(</span><span class="va">sdtm_ae</span>, <span class="va">sdtm_suppae</span><span class="op">)</span>  <span class="op"><a href="pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1,191 × 37</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1,191 × 36</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    STUDYID DOMAIN USUBJID AESEQ AESPID AETERM AELLT AELLTCD AEDECOD AEPTCD AEHLT</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> CDISCP… AE     01-701…     1 E07    APPLI… APPL… <span style="color: #BB0000;">NA</span>      APPLIC… <span style="color: #BB0000;">NA</span>     HLT_…</span>
@@ -78,12 +78,12 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> CDISCP… AE     01-701…     2 E05    APPLI… APPL… <span style="color: #BB0000;">NA</span>      APPLIC… <span style="color: #BB0000;">NA</span>     HLT_…</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> CDISCP… AE     01-701…     1 E08    APPLI… APPL… <span style="color: #BB0000;">NA</span>      APPLIC… <span style="color: #BB0000;">NA</span>     HLT_…</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 1,181 more rows</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 26 more variables: AEHLTCD &lt;lgl&gt;, AEHLGT &lt;chr&gt;, AEHLGTCD &lt;lgl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 25 more variables: AEHLTCD &lt;lgl&gt;, AEHLGT &lt;chr&gt;, AEHLGTCD &lt;lgl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   AEBODSYS &lt;chr&gt;, AEBDSYCD &lt;lgl&gt;, AESOC &lt;chr&gt;, AESOCCD &lt;lgl&gt;, AESEV &lt;chr&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   AESER &lt;chr&gt;, AEACN &lt;lgl&gt;, AEREL &lt;chr&gt;, AEOUT &lt;chr&gt;, AESCAN &lt;chr&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   AESCONG &lt;chr&gt;, AESDISAB &lt;chr&gt;, AESDTH &lt;chr&gt;, AESHOSP &lt;chr&gt;, AESLIFE &lt;chr&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   AESOD &lt;chr&gt;, AEDTC &lt;chr&gt;, AESTDTC &lt;chr&gt;, AEENDTC &lt;chr&gt;, AESTDY &lt;int&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   AEENDY &lt;int&gt;, IDVARVAL &lt;chr&gt;, AETRTEM &lt;chr&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   AEENDY &lt;int&gt;, AETRTEM &lt;chr&gt;</span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
