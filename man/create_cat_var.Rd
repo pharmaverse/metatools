@@ -4,7 +4,15 @@
 \alias{create_cat_var}
 \title{Create Categorical Variable from Codelist}
 \usage{
-create_cat_var(data, metacore, ref_var, grp_var, num_grp_var = NULL)
+create_cat_var(
+  data,
+  metacore,
+  ref_var,
+  grp_var,
+  num_grp_var = NULL,
+  create_from_decode = FALSE,
+  strict = TRUE
+)
 }
 \arguments{
 \item{data}{Dataset with reference variable in it}
@@ -20,6 +28,15 @@ creating AGEGR1}
 
 \item{num_grp_var}{Name of the new numeric decode for the grouped variable.
 This is optional if no value given no variable will be created}
+
+\item{create_from_decode}{Sets the \code{decode} column of the codelist as the column
+from which the variable will be created. By default the column is \code{code}.}
+
+\item{strict}{A logical value indicating whether to perform strict checking
+against the codelist. If \code{TRUE} will issue a warning if values in the \code{ref_var}
+column do not fit into the group definitions for the codelist in \code{grp_var}.
+If \code{FALSE} no warning is issued and values not defined by the codelist will
+likely result in \code{NA} results.}
 }
 \value{
 dataset with new column added

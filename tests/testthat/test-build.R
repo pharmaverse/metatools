@@ -1,9 +1,11 @@
+# Suppress cli output during testing
+options(cli.default_handler = function(...) { })
 
 load(metacore::metacore_example("pilot_ADaM.rda"))
-spec <- metacore %>% select_dataset("ADSL")
+spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
 test_that("drop_unspec_vars", {
   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
-    mutate(foo = "Hello", foo2 = "world")
+    mutate(AGEGR2 = 'DUMMY', AGEGR2N = 99, foo = "Hello", foo2 = "world")
 
   man_vars <- metacore$ds_vars %>%
     filter(dataset == "ADSL") %>%
@@ -47,7 +49,7 @@ test_that("build_from_derived", {
     c(., "TRT01P") %>%
     sort()
 
-  expect_message(
+  expect_warning(
      build_from_derived(spec, ds_list,
        predecessor_only = FALSE,
        keep = TRUE
@@ -55,13 +57,13 @@ test_that("build_from_derived", {
        names() %>%
        sort() %>%
        expect_equal(man_vars),
-     label = paste0("! Setting 'keep' = TRUE has been superseded, and will be",
+     label = paste0("Setting 'keep' = TRUE has been superseded, and will be",
         " unavailable in future releases. Please consider setting",
         " 'keep' equal to 'ALL' or 'PREREQUISITE'.")
   )
 
   # Pulling through from more than one dataset
-  spec2 <- metacore %>% select_dataset("ADAE")
+  spec2 <- metacore %>% select_dataset("ADAE", quiet = TRUE)
   adae_auto <- build_from_derived(spec2,
      ds_list = list("AE" = safetyData::sdtm_ae,
                  "ADSL" = safetyData::adam_adsl),
@@ -130,34 +132,34 @@ test_that("build_from_derived", {
   expect_equal(adae_full,adae_all_man)
 
   # Pulling through columns required for future derivations
-  spec3 <- metacore %>% select_dataset("ADVS")
+  spec3 <- metacore %>% select_dataset("ADAE", quiet = TRUE)
 
-  advs_prereq <- build_from_derived(spec3,
-                                  ds_list = list("VS" = safetyData::sdtm_vs,
+  adae_prereq <- build_from_derived(spec3,
+                                  ds_list = list("AE" = safetyData::sdtm_ae,
                                                  "ADSL" = safetyData::adam_adsl),
                                   predecessor_only = FALSE,
                                   keep = "PREREQUISITE"
   )
 
-  advs_auto <- build_from_derived(spec3,
-                                    ds_list = list("VS" = safetyData::sdtm_vs,
+  adae_auto <- build_from_derived(spec3,
+                                    ds_list = list("AE" = safetyData::sdtm_ae,
                                                    "ADSL" = safetyData::adam_adsl),
                                     predecessor_only = FALSE,
                                     keep = "PREREQUISITE"
   )
 
 
-  advs_all <- build_from_derived(spec3,
-                                 ds_list = list("VS" = safetyData::sdtm_vs,
+  adae_all <- build_from_derived(spec3,
+                                 ds_list = list("AE" = safetyData::sdtm_ae,
                                                 "ADSL" = safetyData::adam_adsl),
                                  predecessor_only = FALSE,
                                  keep = "ALL"
   )
 
-  advs_prereq_man <- advs_all %>%
-     select(c(names(advs_auto), VSDTC, VSSTRESN))
+  adae_prereq_man <- adae_all %>%
+     select(c(names(adae_auto)))
 
-  expect_equal(advs_prereq, advs_prereq_man)
+  expect_equal(adae_prereq, adae_prereq_man)
 
 })
 
@@ -165,8 +167,9 @@ test_that("build_from_derived", {
 
 test_that("add_variables", {
    load(metacore::metacore_example("pilot_ADaM.rda"))
-   spec <- metacore %>% select_dataset("ADSL")
-   data <- haven::read_xpt(metatools_example("adsl.xpt"))
+   spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
+   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
+      mutate(AGEGR2 = "DUMMY", AGEGR2N = 99)
    data_mis <- data %>%
       select(-TRTSDT, -TRT01P, -TRT01PN)
    #Check data when there is missing

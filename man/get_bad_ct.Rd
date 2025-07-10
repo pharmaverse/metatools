@@ -36,7 +36,7 @@ library(magrittr)
 load(metacore_example("pilot_ADaM.rda"))
 spec <- metacore \%>\% select_dataset("ADSL")
 data <- read_xpt(metatools_example("adsl.xpt"))
-get_bad_ct(data, spec, "DISCONFL")
-get_bad_ct(data, spec, "DISCONFL", na_acceptable = FALSE)
+get_bad_ct(data, spec, "DCSREAS")
+get_bad_ct(data, spec, "DCSREAS", na_acceptable = FALSE)
 
 }

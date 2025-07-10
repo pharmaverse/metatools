@@ -6,14 +6,12 @@
 #'
 #' @return string
 #' @noRd
-#' @importFrom stringr str_extract str_detect
-#' @importFrom dplyr if_else
 dash_to_eq <- function(string) {
-  front <- str_extract(string, "^.*(?=\\-)")
-  front_eq <- if_else(str_detect(front, "<|>|="), front, paste0(">=", front))
-  back <- str_extract(string, "(?<=\\-).*$")
-  back_eq <- if_else(str_detect(back, "<|>|="), back, paste0("<=", back))
-  paste0("x", front_eq, " & x", back_eq)
+   front <- str_extract(string, "^.*(?=\\-)")
+   front_eq <- if_else(str_detect(front, "<|>|="), front, paste0(">=", front))
+   back <- str_extract(string, "(?<=\\-).*$")
+   back_eq <- if_else(str_detect(back, "<|>|="), back, paste0("<=", back))
+   paste0("x", front_eq, " & x", back_eq)
 }
 
 
@@ -22,44 +20,64 @@ dash_to_eq <- function(string) {
 #' @param ref_vec Vector of numeric values
 #' @param grp_defs Vector of strings with groupings defined. Format must be
 #'   either: <00, >=00, 00-00, or  00-<00
+#' @param grp_labs Vector of strings with labels defined. The labels correspond
+#'   to the associated `grp_defs`. i.e., "12-17" may translate to "12-17 years".
+#'   If no `grp_labs` specified then `grp_defs` will be used.
 #'
 #' @return Character vector of the values in the subgroups
 #' @export
-#' @importFrom  stringr str_detect str_c str_count
-#' @importFrom purrr map reduce keep
-#' @importFrom  dplyr case_when
 #'
 #' @examples
 #' create_subgrps(c(1:10), c("<2", "2-5", ">5"))
 #' create_subgrps(c(1:10), c("<=2", ">2-5", ">5"))
 #' create_subgrps(c(1:10), c("<2", "2-<5", ">=5"))
-create_subgrps <- function(ref_vec, grp_defs) {
-  if (!is.numeric(ref_vec)) {
-    stop("ref_vec must be numeric")
-  }
+#' create_subgrps(c(1:10), c("<2", "2-<5", ">=5"), c("<2 years", "2-5 years", ">=5 years"))
+create_subgrps <- function(ref_vec, grp_defs, grp_labs = NULL) {
+   if (!is.numeric(ref_vec)) { cli_abort("ref_vec must be numeric") }
+   if (is.null(grp_labs)) { grp_labs <- grp_defs }
 
-  equations <- case_when(
-    str_detect(grp_defs, "-") ~ paste0("function(x){if_else(", dash_to_eq(grp_defs), ", '", grp_defs, "','')}"),
-    str_detect(grp_defs, "^(<\\s?=|>\\s?=|<|>)\\s?\\d+") ~ paste0("function(x){if_else(x", grp_defs, ",'", grp_defs, "', '')}"),
-    TRUE ~ NA_character_
-  )
+   # Create equations used to derive the subgroups
+   equations <- case_when(
+      str_detect(grp_defs, "-") ~ paste0("function(x){if_else(", dash_to_eq(grp_defs), ", '", grp_labs, "', '')}"),
+      str_detect(grp_defs, "^(<\\s?=|>\\s?=|<|>)\\s?\\d+") ~ paste0("function(x){if_else(x", grp_defs, ",'", grp_labs, "', '')}"),
+      TRUE ~ NA_character_
+   )
 
-  if (all(!is.na(equations))) {
-    functions <- equations %>%
-      map(~ eval(parse(text = .)))
-    out <- functions %>%
-      map(~ .(ref_vec)) %>%
-      reduce(str_c)
-  } else {
-    stop("Unable to decipher all groups please update and try again")
-  }
-  all_options <- str_c(grp_defs, collapse = "|")
-  too_many_grps <- str_count(out, all_options) %>%
-    keep(~ !is.na(.) && . > 1 )
-  if (length(too_many_grps) > 0) {
-    stop("Grouping is not exclusive. Please look at the groups and try again")
-  }
-  out
+   # Apply equations
+   if (all(!is.na(equations))) {
+      functions <- equations %>%
+         map(~ eval(parse(text = .)))
+      out <- functions %>%
+         map(~ .(ref_vec)) %>%
+         reduce(str_c) %>%
+         replace(. == "", NA)
+   } else {
+      na_index <- which(is.na(equations))
+      bad_defs <- grp_defs[na_index]
+      cli_abort(paste("Unable to decipher the following group definition{?s}: {bad_defs}.",
+                      "Please check your controlled terminology."))
+   }
+   # Find non-exclusive subgroups i.e., values that have been mapped to two groups
+   non_excl <- out |>
+      discard(is.na) |>
+      map(~ grp_labs[str_detect(.x, grp_labs)]) |>
+      keep(~ length(.) > 1) |>
+      unique()
+
+   # Throw error if groups are not exclusive
+   if (length(non_excl) > 0) {
+      msg <- map_chr(non_excl, ~ {
+         items <- paste(.x, collapse = ", ")
+      }) %>%
+         paste0(seq_along(.), ". ", .)
+
+      cli_abort(c(
+         "Group definitions are not exclusive. Please check your controlled terminology",
+         "The following group definitions overlap:",
+         msg
+      ))
+   }
+   out
 }
 
 
@@ -84,11 +102,6 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #' @return Dataset with a new column added
 #' @export
 #'
-#' @importFrom rlang enexpr as_label set_names := as_name
-#' @importFrom dplyr left_join rename
-#' @importFrom metacore get_control_term
-#' @importFrom stringr str_remove_all
-#'
 #' @examples
 #' library(metacore)
 #' library(tibble)
@@ -100,12 +113,14 @@ create_subgrps <- function(ref_vec, grp_defs) {
 #'   4, "U", "Unknown",
 #'   5, "M", "Male",
 #' )
-#' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
+#' spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE) %>%
+#'   select_dataset("DM")
 #' create_var_from_codelist(data, spec, VAR2, SEX)
 #' create_var_from_codelist(data, spec, "VAR2", "SEX")
 #' create_var_from_codelist(data, spec, VAR1, SEX, decode_to_code = FALSE)
 create_var_from_codelist <- function(data, metacore, input_var, out_var,
                                      decode_to_code = TRUE) {
+   verify_DatasetMeta(metacore)
    code_translation <- get_control_term(metacore, {{ out_var }})
    input_var_str <- as_label(enexpr(input_var)) %>%
       str_remove_all("\"")
@@ -152,9 +167,13 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var,
 #' @param grp_var Name of the new grouped variable
 #' @param num_grp_var Name of the new numeric decode for the grouped variable.
 #'   This is optional if no value given no variable will be created
-#' @importFrom rlang enexpr :=
-#' @importFrom dplyr %>% pull mutate
-#' @importFrom metacore get_control_term
+#' @param create_from_decode Sets the `decode` column of the codelist as the column
+#'   from which the variable will be created. By default the column is `code`.
+#' @param strict A logical value indicating whether to perform strict checking
+#'   against the codelist. If `TRUE` will issue a warning if values in the `ref_var`
+#'   column do not fit into the group definitions for the codelist in `grp_var`.
+#'   If `FALSE` no warning is issued and values not defined by the codelist will
+#'   likely result in `NA` results.
 #'
 #' @return dataset with new column added
 #' @export
@@ -170,23 +189,35 @@ create_var_from_codelist <- function(data, metacore, input_var, out_var,
 #' create_cat_var(dm, spec, AGE, AGEGR1)
 #' # Grouping Column and Numeric Decode
 #' create_cat_var(dm, spec, AGE, AGEGR1, AGEGR1N)
-create_cat_var <- function(data, metacore, ref_var, grp_var,
-                           num_grp_var = NULL) {
-  ct <- get_control_term(metacore, {{ grp_var }})
-  if (is.vector(ct) | !("decode" %in% names(ct))) {
-    stop("Expecting 'code_decode' type of control terminology. Please check metacore object")
-  }
-  grp_defs <- ct %>%
-    pull(code)
+create_cat_var <- function(data, metacore, ref_var, grp_var, num_grp_var = NULL,
+                           create_from_decode = FALSE, strict = TRUE) {
+   ct <- get_control_term(metacore, {{ grp_var }})
+   if (is.vector(ct) | !("decode" %in% names(ct))) {
+      cli_abort("Expecting 'code_decode' type of control terminology. Please check metacore object")
+   }
 
-  out <- data %>%
-    mutate({{ grp_var }} := create_subgrps({{ ref_var }}, grp_defs))
+   # Assign group definitions and labels
+   grp_defs <- pull(ct, code)
+   grp_labs <- if (create_from_decode) pull(ct, decode) else grp_defs
 
-  if (!is.null(enexpr(num_grp_var))) {
-    out <- out %>%
-      create_var_from_codelist(metacore, {{ grp_var }}, {{ num_grp_var }})
-  }
-  out
+   out <- data %>%
+      mutate({{ grp_var }} := create_subgrps({{ ref_var }}, grp_defs, grp_labs))
+
+   if (!is.null(enexpr(num_grp_var))) {
+      out <- out %>%
+         create_var_from_codelist(metacore, {{ grp_var }}, {{ num_grp_var }})
+   }
+
+   missing <- out |> pull({{ grp_var }}) |> is.na() |> which()|> length()
+   if (strict && missing > 0) {
+      cli_warn(paste(
+         "There {qty(missing)} {?is/are} {missing} {qty(missing)} observation{?s}",
+         "in {as_name(enquo(ref_var))} that {qty(missing)} {?does/do} not fit into",
+         "the provided categories for {as_name(enquo(grp_var))}. Please check your",
+         "controlled terminology.")
+      )
+   }
+   out
 }
 
 
@@ -202,9 +233,6 @@ create_cat_var <- function(data, metacore, ref_var, grp_var,
 #'   variable has different codelists for different datasets the metacore object
 #'   will need to be subsetted using `select_dataset` from the metacore package
 #' @param var Name of variable to change
-#' @importFrom rlang as_label enexpr
-#' @importFrom stringr str_remove_all
-#' @importFrom dplyr mutate
 #'
 #' @return Dataset with variable changed to a factor
 #' @export
@@ -222,6 +250,7 @@ create_cat_var <- function(data, metacore, ref_var, grp_var,
 #' # Variable with permitted value control terms
 #' convert_var_to_fct(dm, spec, ARM)
 convert_var_to_fct <- function(data, metacore, var) {
+   verify_DatasetMeta(metacore)
   code_translation <- get_control_term(metacore, {{ var }})
   var_str <- as_label(enexpr(var)) %>%
     str_remove_all("\"")
@@ -238,3 +267,4 @@ convert_var_to_fct <- function(data, metacore, var) {
   data %>%
     mutate({{ var }} := factor({{ var }}, levels = levels))
 }
+
