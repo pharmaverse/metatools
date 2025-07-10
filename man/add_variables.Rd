@@ -4,7 +4,7 @@
 \alias{add_variables}
 \title{Add Missing Variables}
 \usage{
-add_variables(dataset, metacore, dataset_name = NULL)
+add_variables(dataset, metacore, dataset_name = deprecated())
 }
 \arguments{
 \item{dataset}{Dataset to add columns to. If all variables are present no
@@ -15,7 +15,7 @@ dataset of interest.}
 
 \item{dataset_name}{Optional string to specify the dataset. This is only
 needed if the metacore object provided hasn't already been subsetted.\cr
-Note: Deprecated in version 1.0.0. The \code{dataset_name} argument will be removed
+Note: Deprecated in version 0.2.0. The \code{dataset_name} argument will be removed
 in a future release. Please use \code{metacore::select_dataset} to subset the
 \code{metacore} object to obtain metadata for a single dataset.}
 }
