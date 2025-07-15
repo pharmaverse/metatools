@@ -345,7 +345,13 @@ drop_unspec_vars <- function(dataset, metacore, dataset_name = deprecated()) {
 #' add_variables(data, spec)
 add_variables <- function(dataset, metacore, dataset_name = deprecated()){
    if (is_present(dataset_name)) {
-      handle_deprecate_dataset_name("add_variables(dataset_name)")
+      lifecycle::deprecate_warn(
+         when = "0.2.0",
+         what = "add_variables(dataset_name)",
+         details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
+      Please use {.fn metacore::select_dataset} to subset the {.obj metacore} object to obtain
+      metadata for a single dataset.")))
+      )
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
 
