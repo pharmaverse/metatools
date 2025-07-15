@@ -26,14 +26,7 @@
 #' order_cols(data, spec)
 order_cols <- function(data, metacore, dataset_name = deprecated()) {
    if (is_present(dataset_name)) {
-      lifecycle::deprecate_warn(
-         when = "0.2.0",
-         what = "check_variables(dataset_name)",
-         details = cli_text("The {.arg dataset_name} argument will be removed in
-                            a future release. Please use {.fcn metacore::select_dataset}
-                            to subset the {.obj metacore} object to obtain metadata
-                            for a single dataset.")
-      )
+      handle_deprecate_dataset_name("order_cols(dataset_name)")
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
    verify_DatasetMeta(metacore)
@@ -75,14 +68,7 @@ order_cols <- function(data, metacore, dataset_name = deprecated()) {
 #' sort_by_key(data, spec)
 sort_by_key <- function(data, metacore, dataset_name = deprecated()) {
    if (is_present(dataset_name)) {
-      lifecycle::deprecate_warn(
-         when = "0.2.0",
-         what = "check_variables(dataset_name)",
-         details = cli_text("The {.arg dataset_name} argument will be removed in
-                            a future release. Please use {.fcn metacore::select_dataset}
-                            to subset the {.obj metacore} object to obtain metadata
-                            for a single dataset.")
-      )
+      handle_deprecate_dataset_name("sort_by_key(dataset_name)")
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
    verify_DatasetMeta(metacore)

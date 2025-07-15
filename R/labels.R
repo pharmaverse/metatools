@@ -87,13 +87,7 @@ remove_labels <- function(data) {
 #' set_variable_labels(dm, mc, dataset_name = "DM")
 set_variable_labels <- function(data, metacore, dataset_name = deprecated()) {
    if (is_present(dataset_name)) {
-      lifecycle::deprecate_warn(
-         when = "0.2.0",
-         what = "build_from_derived(dataset_name)",
-         details = cli_text("The {.arg dataset_name} argument will be removed in a future release.
-      Please use {.fcn metacore::select_dataset} to subset the {.obj metacore} object to obtain
-      metadata for a single dataset.")
-      )
+      handle_deprecate_dataset_name("set_variable_labels(dataset_name)")
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
    verify_DatasetMeta(metacore)

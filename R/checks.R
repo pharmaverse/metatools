@@ -262,14 +262,7 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #' check_variables(data, spec, strict = FALSE)
 check_variables <- function(data, metacore, dataset_name = deprecated(), strict = TRUE) {
    if (is_present(dataset_name)) {
-      lifecycle::deprecate_warn(
-         when = "0.2.0",
-         what = "check_variables(dataset_name)",
-         details = cli_text("The {.arg dataset_name} argument will be removed in
-                            a future release. Please use {.fcn metacore::select_dataset}
-                            to subset the {.obj metacore} object to obtain metadata
-                            for a single dataset.")
-      )
+      handle_deprecate_dataset_name("check_variables(dataset_name)")
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
    verify_DatasetMeta(metacore)
@@ -374,14 +367,7 @@ print_to_console <- function(messages, data_list, strict = TRUE) {
 #' check_unique_keys(data, spec)
 check_unique_keys <- function(data, metacore, dataset_name = deprecated()) {
    if (is_present(dataset_name)) {
-      lifecycle::deprecate_warn(
-         when = "0.2.0",
-         what = "check_variables(dataset_name)",
-         details = cli_text("The {.arg dataset_name} argument will be removed in
-                            a future release. Please use {.fcn metacore::select_dataset}
-                            to subset the {.obj metacore} object to obtain metadata
-                            for a single dataset.")
-      )
+      handle_deprecate_dataset_name("check_unique_keys(dataset_name)")
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
    verify_DatasetMeta(metacore)

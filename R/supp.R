@@ -89,14 +89,7 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
 #' make_supp_qual(ae, spec) %>% as_tibble()
 make_supp_qual <- function(dataset, metacore, dataset_name = deprecated()){
    if (is_present(dataset_name)) {
-      lifecycle::deprecate_warn(
-         when = "0.2.0",
-         what = "check_variables(dataset_name)",
-         details = cli_text("The {.arg dataset_name} argument will be removed in
-                            a future release. Please use {.fcn metacore::select_dataset}
-                            to subset the {.obj metacore} object to obtain metadata
-                            for a single dataset.")
-      )
+      handle_deprecate_dataset_name("make_supp_qual(dataset_name)")
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
    verify_DatasetMeta(metacore)
