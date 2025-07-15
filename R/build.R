@@ -60,9 +60,9 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
       lifecycle::deprecate_warn(
          when = "0.2.0",
          what = "build_from_derived(dataset_name)",
-         details = cli_text("The {.arg dataset_name} argument will be removed in a future release.
-      Please use {.fcn metacore::select_dataset} to subset the {.obj metacore} object to obtain
-      metadata for a single dataset.")
+         details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
+      Please use {.fn metacore::select_dataset} to subset the {.obj metacore} object to obtain
+      metadata for a single dataset.")))
       )
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
@@ -285,14 +285,13 @@ prepare_join <- function(x, keys, ds_names) {
 #'   mutate(foo = "Hello")
 #' drop_unspec_vars(data, spec)
 drop_unspec_vars <- function(dataset, metacore, dataset_name = deprecated()) {
-   if (!missing(dataset_name)) {
-      lifecycle::deprecate_soft(
+   if (is_present(dataset_name)) {
+      lifecycle::deprecate_warn(
          when = "0.2.0",
          what = "drop_unspec_vars(dataset_name)",
-         details = "The `dataset_name` argument will be removed in a future release.
-      Please use `metacore::select_dataset` to subset the `metacore` object to obtain
-      metadata for a single dataset."
-
+         details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
+      Please use {.fn metacore::select_dataset} to subset the {.obj metacore} object to obtain
+      metadata for a single dataset.")))
       )
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
@@ -345,13 +344,13 @@ drop_unspec_vars <- function(dataset, metacore, dataset_name = deprecated()) {
 #'    select(-TRTSDT, -TRT01P, -TRT01PN)
 #' add_variables(data, spec)
 add_variables <- function(dataset, metacore, dataset_name = deprecated()){
-   if (!missing(dataset_name)) {
-      lifecycle::deprecate_soft(
+   if (is_present(dataset_name)) {
+      lifecycle::deprecate_warn(
          when = "0.2.0",
          what = "add_variables(dataset_name)",
-         details = "The `dataset_name` argument will be removed in a future release.
-      Please use `metacore::select_dataset` to subset the `metacore` object to obtain
-      metadata for a single dataset."
+         details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
+      Please use {.fn metacore::select_dataset} to subset the {.obj metacore} object to obtain
+      metadata for a single dataset.")))
       )
       metacore <- make_lone_dataset(metacore, dataset_name)
    }

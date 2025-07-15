@@ -1,7 +1,7 @@
 #' @keywords internal
 #' @family internal
 #'
-#' @importFrom cli cli_abort cli_inform cli_text cli_warn qty
+#' @importFrom cli cli_abort cli_inform cli_text cli_warn qty col_red
 #' @importFrom dplyr across add_count all_of anti_join any_of arrange as_tibble
 #'   bind_cols bind_rows case_when distinct enquo everything filter full_join group_by
 #'   group_split if_else inner_join left_join mutate pick pull rename select
