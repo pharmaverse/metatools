@@ -57,7 +57,13 @@
 build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
                                predecessor_only = TRUE, keep = FALSE) {
    if (is_present(dataset_name)) {
-      handle_deprecate_dataset_name("build_from_derived(dataset_name)")
+      lifecycle::deprecate_warn(
+         when = "0.2.0",
+         what = "build_from_derived(dataset_name)",
+         details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
+      Please use {.fn metacore::select_dataset} to subset the {.obj metacore} object to obtain
+      metadata for a single dataset.")))
+      )
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
    verify_DatasetMeta(metacore)
@@ -280,7 +286,13 @@ prepare_join <- function(x, keys, ds_names) {
 #' drop_unspec_vars(data, spec)
 drop_unspec_vars <- function(dataset, metacore, dataset_name = deprecated()) {
    if (is_present(dataset_name)) {
-      handle_deprecate_dataset_name("drop_unspec_vars(dataset_name)")
+      lifecycle::deprecate_warn(
+         when = "0.2.0",
+         what = "drop_unspec_vars(dataset_name)",
+         details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
+      Please use {.fn metacore::select_dataset} to subset the {.obj metacore} object to obtain
+      metadata for a single dataset.")))
+      )
       metacore <- make_lone_dataset(metacore, dataset_name)
    }
 
