@@ -259,7 +259,7 @@ prepare_join <- function(x, keys, ds_names) {
 
 #' Drop Unspecified Variables
 #'
-#' This function drops all unspecified variables. 
+#' This function drops all unspecified variables.
 #' @param dataset Dataset to change
 #' @param metacore metacore object that only contains the specifications for the
 #'   dataset of interest.
