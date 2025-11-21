@@ -182,10 +182,11 @@ type is {typeof(code_translation)}. Check the structure of the codelist in the \
    codelist <- code_translation |> pull(ref_var)
 
    miss <- setdiff(values, codelist)
-   if (strict == TRUE && length(miss) > 0) {
+   n_miss <- length(miss)
+   if (strict == TRUE && n_miss > 0) {
       cli_warn(
-         "In {.fn create_var_from_codelist}: The following value{?s} present in the
-input dataset {?is/are} not present in the codelist: {miss}")
+         "In {.fn create_var_from_codelist}: The following {qty(n_miss)}value{?s}
+present in the input dataset {qty(n_miss)}{?is/are} not present in the codelist: {miss}")
    }
 
    input_var_str <- as_label(enexpr(input_var)) |>
@@ -264,7 +265,7 @@ create_cat_var <- function(data, metacore, ref_var, grp_var, num_grp_var = NULL,
    # Assign group definitions and labels
    grp_defs <- pull(ct, code)
    grp_labs <- if (create_from_decode) pull(ct, decode) else grp_defs
-     
+
    out <- data %>%
       mutate({{ grp_var }} := create_subgrps({{ ref_var }}, grp_defs, grp_labs))
 
