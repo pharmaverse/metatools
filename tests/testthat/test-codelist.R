@@ -65,11 +65,11 @@ test_that("create_var_from_codelist", {
   load(metacore::metacore_example('pilot_ADaM.rda'))
   adlb_spec <- metacore::select_dataset(metacore, "ADLBC", quiet = TRUE)
   data <- tibble::tibble(
-     PARAMCD = c("ALB", "ALP", "ALT", "DUMMY", "DUMMY2")
+     PARAMCD = c("ALB", "ALP", "ALT", "DUMMY")
   )
   compare <- tibble::tibble(
-     PARAMCD = c("ALB", "ALP", "ALT", "DUMMY", "DUMMY2"),
-     PARAM = c("Albumin (g/L)", "Alkaline Phosphatase (U/L)", "Alanine Aminotransferase (U/L)", NA, NA)
+     PARAMCD = c("ALB", "ALP", "ALT", "DUMMY"),
+     PARAM = c("Albumin (g/L)", "Alkaline Phosphatase (U/L)", "Alanine Aminotransferase (U/L)", NA)
   )
 
   create_var_from_codelist(
@@ -84,7 +84,23 @@ test_that("create_var_from_codelist", {
      select(PARAMCD, PARAM) |>
      expect_equal(compare)
 
-  # Test warning where arg `strict == TRUE`
+  # Test character variable warning where arg `strict == TRUE` / single issue case
+  create_var_from_codelist(
+     data = data,
+     metacore = adlb_spec,
+     input_var = PARAMCD,
+     out_var = PARAM,
+     codelist = get_control_term(adlb_spec, PARAMCD),
+     decode_to_code = FALSE,
+     strict = TRUE
+  ) |>
+     expect_warning()
+
+  # Test character variable warning where arg `strict == TRUE` / multiple issue case
+  data <- tibble::tibble(
+     PARAMCD = c("ALB", "ALP", "ALT", "DUMMY", "DUMMY2")
+  )
+
   create_var_from_codelist(
      data = data,
      metacore = adlb_spec,
@@ -117,9 +133,25 @@ test_that("create_var_from_codelist", {
      select(PARAMN, PARAM) |>
      expect_equal(compare2)
 
-  # Test numeric variable used as input_var (strict == TRUE)
+  # Test numeric variable used as input_var / single issue case (strict == TRUE)
   create_var_from_codelist(
      data = data2,
+     metacore = adlb_spec,
+     input_var = PARAMN,
+     out_var = PARAM,
+     codelist = get_control_term(adlb_spec, PARAMN),
+     decode_to_code = FALSE,
+     strict = TRUE
+  ) |>
+     expect_warning()
+
+  # Test numeric variable used as input_var / multiple issue case (strict == TRUE)
+  data3 <- tibble::tibble(
+     PARAMN = c(18, 19, 20, 99, 999)
+  )
+
+  create_var_from_codelist(
+     data = data3,
      metacore = adlb_spec,
      input_var = PARAMN,
      out_var = PARAM,
