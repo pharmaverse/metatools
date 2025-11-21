@@ -1,3 +1,5 @@
+# metatools 0.3.0
+
 # metatools 0.2.0
 * Functions now require a subsetted metacore object to be used i.e., created via `metacore::select_dataset()`.
 * `create_cat_var()` now allows the new variable to be create using the `decode` part of the codelist as a label.(#82)
