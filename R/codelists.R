@@ -205,7 +205,7 @@ input dataset {?is/are} not present in the codelist: {miss}")
       select(-merge_on)
 
    # Optionally coerce to numeric if the output values are numeric
-   if (all(str_detect(code_translation[[new_var]], "^\\d*$"))) {
+   if (all(str_detect(code_translation[[new_var]], "^-?\\d*$"))) {
       out <- out |>
          mutate({{ out_var }} := as.numeric({{ out_var }}))
    }
@@ -264,7 +264,7 @@ create_cat_var <- function(data, metacore, ref_var, grp_var, num_grp_var = NULL,
    # Assign group definitions and labels
    grp_defs <- pull(ct, code)
    grp_labs <- if (create_from_decode) pull(ct, decode) else grp_defs
-     
+
    out <- data %>%
       mutate({{ grp_var }} := create_subgrps({{ ref_var }}, grp_defs, grp_labs))
 
