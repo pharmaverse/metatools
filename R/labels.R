@@ -23,8 +23,10 @@ add_labels <- function(data, ...) {
    # Check params
    if (!inherits(data, 'data.frame')) stop("Labels must be applied to a data.frame or tibble")
    if (!is_named(args)) stop("Must provide variable name and label as named arguments")
-   if (!all(names(args) %in% names(data))) {
-      stop("All variable names supplied to label must be variables in data")
+   
+   vars_not_ex <- setdiff(names(args), names(data))
+   if (length(vars_not_ex) > 0) {
+      stop(sprintf("The following variables do not exist in the data frame:\n\t%s", paste(vars_not_ex, collapse = "\n\t")))
    }
    if (!all(map_lgl(args, is.character))) stop("All labels must be character")
 
