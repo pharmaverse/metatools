@@ -1,0 +1,4 @@
+# License
+
+    YEAR: 2022
+    COPYRIGHT HOLDER: GlaxoSmithKline Research & Development Limited/F. Hoffmann-La Roche AG/Atorus Research LLC
