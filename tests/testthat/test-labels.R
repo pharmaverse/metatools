@@ -203,6 +203,6 @@ test_that("set_variable_labels verbose parameter", {
   # Test invalid verbose value
   expect_error(
     set_variable_labels(dm, spec, verbose = "invalid"),
-    "'arg' should be one of"
+    "should be one of: message, warn, silent"
   )
 })

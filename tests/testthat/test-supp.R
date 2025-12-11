@@ -349,6 +349,6 @@ test_that("build_qnam verbose parameter", {
       qorig = "CRF",
       verbose = "invalid"
     ),
-    "'arg' should be one of"
+    "should be one of: message, warn, silent"
   )
 })

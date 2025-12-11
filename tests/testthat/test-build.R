@@ -238,7 +238,7 @@ test_that("drop_unspec_vars verbose parameter", {
   # Test invalid verbose value
   expect_error(
     drop_unspec_vars(data, spec, verbose = "invalid"),
-    "'arg' should be one of"
+    "should be one of: message, warn, silent"
   )
 })
 
