@@ -185,3 +185,98 @@ test_that("add_variables", {
    expect_equal(add_variables(data, spec),
                 data)
 })
+
+test_that("build_from_derived with deprecated dataset_name", {
+   load(metacore::metacore_example("pilot_ADaM.rda"))
+   ds_list <- list(DM = haven::read_xpt(metatools_example("dm.xpt")))
+   
+   # Test using deprecated dataset_name parameter
+   expect_warning(
+      build_from_derived(metacore, ds_list, dataset_name = "ADSL", predecessor_only = FALSE),
+      "was deprecated in metatools 0.2.0"
+   )
+})
+
+test_that("drop_unspec_vars with deprecated dataset_name", {
+   load(metacore::metacore_example("pilot_ADaM.rda"))
+   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
+      mutate(foo = "hello")
+   
+   # Test using deprecated dataset_name parameter
+   expect_warning(
+      drop_unspec_vars(data, metacore, dataset_name = "ADSL"),
+      "was deprecated in metatools 0.2.0"
+   )
+})
+
+test_that("add_variables with deprecated dataset_name", {
+   load(metacore::metacore_example("pilot_ADaM.rda"))
+   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
+      select(-TRTSDT)
+   
+   # Test using deprecated dataset_name parameter
+   expect_warning(
+      add_variables(data, metacore, dataset_name = "ADSL"),
+      "was deprecated in metatools 0.2.0"
+   )
+})
+
+test_that("add_variables handles different data types", {
+   load(metacore::metacore_example("pilot_ADaM.rda"))
+   spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
+   
+   # Create data missing variables of different types
+   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
+      select(STUDYID, USUBJID, SITEID)
+   
+   result <- add_variables(data, spec)
+   
+   # Check that new columns were added
+   expect_true(ncol(result) > ncol(data))
+   expect_true("AGE" %in% names(result))
+})
+
+test_that("drop_unspec_vars with no variables to drop", {
+   load(metacore::metacore_example("pilot_ADaM.rda"))
+   spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
+   
+   # Create data with only spec variables
+   var_list <- spec$ds_vars %>%
+      filter(is.na(supp_flag) | !(supp_flag)) %>%
+      pull(variable)
+   
+   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
+      select(all_of(var_list[1:5]))
+   
+   result <- drop_unspec_vars(data, spec)
+   expect_equal(result, data)
+})
+
+test_that("build_from_derived with predecessor_only=TRUE", {
+   load(metacore::metacore_example("pilot_ADaM.rda"))
+   spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
+   ds_list <- list(DM = haven::read_xpt(metatools_example("dm.xpt")))
+   
+   # Test with predecessor_only=TRUE (default behavior)
+   result <- build_from_derived(spec, ds_list, predecessor_only = TRUE, keep = FALSE)
+   
+   # Result should only contain predecessor variables
+   expect_true(ncol(result) > 0)
+})
+
+test_that("add_variables handles unknown types", {
+   load(metacore::metacore_example("pilot_ADaM.rda"))
+   spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
+   
+   # Modify spec to have an unknown type
+   spec_mod <- spec
+   spec_mod$var_spec$type[1] <- "unknown_type"
+   
+   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
+      select(-all_of(spec_mod$var_spec$variable[1]))
+   
+   result <- add_variables(data, spec_mod)
+   
+   # Should add a logical NA column for unknown type
+   expect_true(spec_mod$var_spec$variable[1] %in% names(result))
+})

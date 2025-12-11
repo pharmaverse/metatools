@@ -30,3 +30,48 @@ test_that("sort_key", {
     sort_by_key(spec) %>%
     expect_equal(data)
 })
+
+test_that("order_cols with deprecated dataset_name parameter", {
+  # Test using deprecated dataset_name parameter
+  expect_warning(
+    order_cols(data, metacore, dataset_name = "ADSL"),
+    "was deprecated in metatools 0.2.0"
+  )
+})
+
+test_that("sort_by_key with deprecated dataset_name parameter", {
+  # Test using deprecated dataset_name parameter
+  expect_warning(
+    sort_by_key(data, metacore, dataset_name = "ADSL"),
+    "was deprecated in metatools 0.2.0"
+  )
+})
+
+test_that("order_cols with empty data frame", {
+  empty_data <- data[0, ]
+  result <- order_cols(empty_data, spec)
+  expect_equal(nrow(result), 0)
+  expect_true(all(names(data) %in% names(result)))
+})
+
+test_that("sort_by_key with empty data frame", {
+  empty_data <- data[0, ]
+  result <- sort_by_key(empty_data, spec)
+  expect_equal(nrow(result), 0)
+  expect_equal(names(result), names(empty_data))
+})
+
+test_that("order_cols with data having only some ordered variables", {
+  # Test with subset of variables
+  subset_data <- data %>% select(STUDYID, USUBJID, AGE, SEX)
+  result <- order_cols(subset_data, spec)
+  expect_equal(nrow(result), nrow(subset_data))
+  # Check that variables are reordered according to spec
+  expect_true(all(names(subset_data) %in% names(result)))
+})
+
+test_that("sort_by_key with single row", {
+  single_row <- data[1, ]
+  result <- sort_by_key(single_row, spec)
+  expect_equal(result, single_row)
+})

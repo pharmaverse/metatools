@@ -132,3 +132,48 @@ test_that("removal_labels works to remvoe all labels", {
 
    expect_error(remove_labels(c(1:10)))
 })
+
+test_that("set_variable_labels with deprecated dataset_name parameter", {
+   # Load in the metacore test object and example data
+   suppressMessages(
+      mc <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet=TRUE)
+   )
+   dm <- haven::read_xpt(metatools_example("dm.xpt"))
+   
+   # Test using deprecated dataset_name parameter
+   expect_warning(
+      set_variable_labels(dm, mc, dataset_name = "DM"),
+      "was deprecated in metatools 0.2.0"
+   )
+})
+
+test_that("set_variable_labels handles all matching variables", {
+   # Load in the metacore test object and example data
+   suppressMessages(
+      mc <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet=TRUE) %>%
+         metacore::select_dataset("DM", quiet = TRUE)
+   )
+   dm <- haven::read_xpt(metatools_example("dm.xpt"))
+   
+   # Set the variable labels
+   dm_labeled <- set_variable_labels(dm, mc)
+   
+   # Check that all variables in both data and metadata have labels
+   common_vars <- intersect(names(dm), mc$var_spec$variable)
+   for (var in common_vars) {
+      expect_true(!is.null(attr(dm_labeled[[var]], "label")))
+   }
+})
+
+test_that("add_labels with empty ellipsis", {
+   # Test that add_labels with no additional arguments returns data unchanged
+   result <- add_labels(mtcars)
+   expect_equal(result, mtcars)
+})
+
+test_that("remove_labels on data without labels", {
+   # Test removing labels from data that has no labels
+   data_no_labels <- tibble::tibble(x = 1:5, y = 6:10)
+   result <- remove_labels(data_no_labels)
+   expect_equal(result, data_no_labels)
+})

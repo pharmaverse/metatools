@@ -129,3 +129,57 @@ test_that("check_unique_keys works as expected", {
                               keep = FALSE)
    expect_error(check_unique_keys(test, adae))
 })
+
+test_that("check_variables with strict=FALSE", {
+   # Test that strict=FALSE produces warnings instead of errors
+   data_extra <- data %>% mutate(foo = "hello")
+   expect_warning(check_variables(data_extra, spec, strict = FALSE))
+   
+   data_miss <- data %>% select(-STUDYID)
+   expect_warning(check_variables(data_miss, spec, strict = FALSE))
+})
+
+test_that("check_variables with deprecated dataset_name", {
+   # Test using deprecated dataset_name parameter
+   expect_warning(
+      check_variables(data, metacore, dataset_name = "ADSL"),
+      "was deprecated in metatools 0.2.0"
+   )
+})
+
+test_that("check_unique_keys with deprecated dataset_name", {
+   # Test using deprecated dataset_name parameter
+   expect_warning(
+      check_unique_keys(data, metacore, dataset_name = "ADSL"),
+      "was deprecated in metatools 0.2.0"
+   )
+})
+
+test_that("get_bad_ct with character vs numeric columns", {
+   # Test with numeric column that has NA
+   data_num_na <- data %>%
+      mutate(TRT01PN = if_else(row_number() == 1, NA_real_, TRT01PN))
+   
+   result <- get_bad_ct(data_num_na, spec, "TRT01PN", TRUE)
+   expect_equal(length(result), 0)
+   
+   result_no_na <- get_bad_ct(data_num_na, spec, "TRT01PN", FALSE)
+   expect_true(NA_real_ %in% result_no_na)
+})
+
+test_that("check_ct_data with mixed column types", {
+   # Create test data with various CT issues
+   data_mixed <- data
+   
+   # This should pass with appropriate omit_vars
+   result <- check_ct_data(data_mixed, spec, omit_vars = c("AGEGR2", "AGEGR2N"))
+   expect_equal(result, data)
+})
+
+test_that("check_vars_in_data helper function", {
+   # This is an internal function but we can test its behavior through check_ct_data
+   expect_error(
+      check_ct_data(data, spec, omit_vars = c("NONEXISTENT_VAR")),
+      "Not all variables from omit_vars are in the data"
+   )
+})

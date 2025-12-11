@@ -272,3 +272,54 @@ test_that("combine_supp() does not create an IDVARVAL column (#78)", {
   noidvarval <- combine_supp(simple_ae, simple_suppae)
   expect_false("IDVARVAL" %in% names(noidvarval))
 })
+
+test_that("make_supp_qual with deprecated dataset_name parameter", {
+  load(metacore::metacore_example("pilot_SDTM.rda"))
+  ae <- combine_supp(safetyData::sdtm_ae, safetyData::sdtm_suppae)
+  
+  # Test using deprecated dataset_name parameter
+  expect_warning(
+    make_supp_qual(ae, metacore, dataset_name = "AE"),
+    "was deprecated in metatools 0.2.0"
+  )
+})
+
+test_that("combine_supp handles invalid inputs correctly", {
+  # Test with non-data.frame inputs
+  expect_error(
+    combine_supp("not a dataframe", safetyData::sdtm_suppae),
+    "You must supply a domain and supplemental dataset"
+  )
+  
+  expect_error(
+    combine_supp(safetyData::sdtm_ae, "not a dataframe"),
+    "You must supply a domain and supplemental dataset"
+  )
+})
+
+test_that("combine_supp detects column conflicts", {
+  # Create a dataset that already has a column that would be added from supp
+  ae_with_conflict <- safetyData::sdtm_ae
+  ae_with_conflict$AETRTEM <- "existing"
+  
+  expect_error(
+    combine_supp(ae_with_conflict, safetyData::sdtm_suppae),
+    "already in the original dataset"
+  )
+})
+
+test_that("build_qnam handles NA IDVAR correctly", {
+  # Test with NA IDVAR
+  test_data <- tibble::tibble(
+    STUDYID = "TEST",
+    DOMAIN = "DM",
+    USUBJID = "TEST-001",
+    TESTVAR = "value1"
+  )
+  
+  result <- build_qnam(test_data, "TESTVAR", "Test Label", 
+                      NA, "TEST EVAL", "TEST ORIG")
+  
+  expect_equal(result$IDVAR, NA_character_)
+  expect_equal(result$QNAM, "TESTVAR")
+})
