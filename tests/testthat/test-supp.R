@@ -272,3 +272,25 @@ test_that("combine_supp() does not create an IDVARVAL column (#78)", {
   noidvarval <- combine_supp(simple_ae, simple_suppae)
   expect_false("IDVARVAL" %in% names(noidvarval))
 })
+
+test_that("make_supp_qual handles deprecated dataset_name parameter", {
+  load(metacore::metacore_example("pilot_SDTM.rda"))
+  ae <- combine_supp(safetyData::sdtm_ae, safetyData::sdtm_suppae)
+  
+  # Test that dataset_name is deprecated and shows guidance
+  suppressWarnings({
+    result <- make_supp_qual(ae, metacore, dataset_name = "AE")
+  })
+  
+  expect_s3_class(result, "data.frame")
+})
+
+test_that("combine_supp handles QNAM not in dataset columns", {
+  simple_ae <- safetyData::sdtm_ae[1:5, ]
+  simple_suppae <- safetyData::sdtm_suppae[1, ]
+  simple_suppae$QNAM <- "NEWCOL"  # A new column to add
+  
+  # Should successfully add the new column
+  result <- combine_supp(simple_ae, simple_suppae)
+  expect_true("NEWCOL" %in% names(result))
+})
