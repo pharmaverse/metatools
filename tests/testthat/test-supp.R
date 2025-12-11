@@ -328,3 +328,55 @@ test_that("combine_supp errors when QNAM already exists in dataset", {
     "already in the original dataset"
   )
 })
+
+test_that("combine_supp handles IDVAR not in dataset", {
+  simple_ae <- safetyData::sdtm_ae[1:5, ]
+  simple_suppae <- safetyData::sdtm_suppae[1, ]
+  simple_suppae$IDVAR <- "FAKEIDVAR"  # IDVAR that doesn't exist
+  
+  expect_error(
+    combine_supp(simple_ae, simple_suppae),
+    "replacement has 0 rows"
+  )
+})
+
+test_that("combine_supp_by_idvar detects conflicting replacements across IDVARs", {
+  simple_ae <- safetyData::sdtm_ae %>%
+    filter(USUBJID %in% c("01-701-1015", "01-701-1023")) %>%
+    mutate(NEWID = dplyr::row_number())
+  
+  # Create supp with same QNAM but different IDVARs that would cause conflicts
+  suppae_conflict <- bind_rows(
+    data.frame(
+      STUDYID = "CDISCPILOT01",
+      RDOMAIN = "AE",
+      USUBJID = "01-701-1015",
+      IDVAR = "AESEQ",
+      IDVARVAL = "1",
+      QNAM = "TESTVAR",
+      QLABEL = "Test Variable",
+      QVAL = "ValueA",
+      QORIG = "CRF",
+      QEVAL = "",
+      stringsAsFactors = FALSE
+    ),
+    data.frame(
+      STUDYID = "CDISCPILOT01",
+      RDOMAIN = "AE",
+      USUBJID = "01-701-1015",
+      IDVAR = "NEWID", 
+      IDVARVAL = "1",
+      QNAM = "TESTVAR",
+      QLABEL = "Test Variable",
+      QVAL = "ValueB",  # Different value for same subject/QNAM
+      QORIG = "CRF",
+      QEVAL = "",
+      stringsAsFactors = FALSE
+    )
+  )
+  
+  expect_error(
+    combine_supp(simple_ae, suppae_conflict),
+    "unexpected number of rows"
+  )
+})
