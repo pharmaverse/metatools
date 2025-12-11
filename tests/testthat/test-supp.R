@@ -317,3 +317,14 @@ test_that("combine_supp handles QNAM not in dataset columns", {
   result <- combine_supp(simple_ae, simple_suppae)
   expect_true("NEWCOL" %in% names(result))
 })
+
+test_that("combine_supp errors when QNAM already exists in dataset", {
+  simple_ae <- safetyData::sdtm_ae[1:5, ]
+  simple_ae$AETRTEM <- "existing"  # Add column that matches QNAM
+  simple_suppae <- safetyData::sdtm_suppae[1, ]
+  
+  expect_error(
+    combine_supp(simple_ae, simple_suppae),
+    "already in the original dataset"
+  )
+})
