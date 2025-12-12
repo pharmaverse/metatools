@@ -220,13 +220,17 @@ test_that("combine_supp works with without QEVAL", {
   expect_silent(combine_supp(pharmaversesdtm::tr_onco, pharmaversesdtm::supptr_onco))
 })
 
-test_that("supp data that does not match the main data will raise a warning", {
-  sdtm_suppae_extra <- safetyData::sdtm_suppae
-  sdtm_suppae_extra$IDVARVAL[1] <- 99
-  expect_error(
-    combine_supp(safetyData::sdtm_ae, sdtm_suppae_extra)
-  )
+test_that("supp data that does not match the main data will raise a warning but return a dataset", {
+   sdtm_suppae_extra <- safetyData::sdtm_suppae
+   sdtm_suppae_extra$IDVARVAL[1] <- 99
+
+   expect_warning(
+      out <- combine_supp(safetyData::sdtm_ae, sdtm_suppae_extra),
+      "Not all rows of SUPP were merged"
+   )
+   expect_s3_class(out, "data.frame")
 })
+
 
 test_that("Floating point correction works", {
   fp1 <- 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1
@@ -294,4 +298,102 @@ test_that("combine_supp() does not create an IDVARVAL column (#78)", {
   simple_suppae <- safetyData::sdtm_suppae[c(1, 4), ]
   noidvarval <- combine_supp(simple_ae, simple_suppae)
   expect_false("IDVARVAL" %in% names(noidvarval))
+})
+
+test_that("combine_supp: all SUPP rows merge cleanly (#98)", {
+   pc <- tibble::tibble(
+      STUDYID = "STUDY123",
+      DOMAIN = "PC",
+      USUBJID = c("01-001", "01-002", "01-003"),
+      PCSEQ   = c(1, 2, 3),
+      PCTESTCD = "CONC",
+      PCTEST   = "Concentration",
+      PCORRES  = c("5.1", "7.3", "4.8"),
+      PCORRESU = "ng/mL",
+      PCSTRESC = c("5.1", "7.3", "4.8"),
+      PCSTRESN = c(5.1, 7.3, 4.8),
+      PCSTRESU = "ng/mL",
+      PCPOS    = "PLASMA",
+      PCDTC    = c("2025-07-15T08:00", "2025-07-15T09:00", "2025-07-15T10:00"),
+      VISITNUM = 1,
+      VISIT    = "Visit 1",
+      ARM      = "Drug A",
+      ACTARM   = "Drug A"
+   )
+
+   supppc <- tibble::tibble(
+      STUDYID  = "STUDY123",
+      RDOMAIN  = "PC",
+      USUBJID  = c("01-001", "01-002", "01-003"),
+      IDVAR    = "PCSEQ",
+      IDVARVAL = c(1, 2, 3),
+      QNAM     = "PCREASND",
+      QLABEL   = "Reason Not Done",
+      QVAL     = c("NA", "NA", "NA"),
+      QORIG    = "SPONSOR",
+      QEVAL    = "INVESTIGATOR"
+   )
+      expect_no_warning(
+      out <- combine_supp(pc, supppc)
+   )
+
+   expect_s3_class(out, "data.frame")
+   expect_equal(nrow(out), nrow(pc))
+   expect_true("PCREASND" %in% names(out))
+   expect_equal(unname(as.character(out$PCREASND)),
+      c("NA", "NA", "NA")
+   )
+})
+
+test_that("combine_supp: extra SUPP rows that do not match core raise a warning but return a dataset(#98)", {
+   pc <- tibble::tibble(
+      STUDYID = "STUDY123",
+      DOMAIN = "PC",
+      USUBJID = c("01-001", "01-002", "01-003"),
+      PCSEQ   = c(1, 2, 3),
+      PCTESTCD = "CONC",
+      PCTEST   = "Concentration",
+      PCORRES  = c("5.1", "7.3", "4.8"),
+      PCORRESU = "ng/mL",
+      PCSTRESC = c("5.1", "7.3", "4.8"),
+      PCSTRESN = c(5.1, 7.3, 4.8),
+      PCSTRESU = "ng/mL",
+      PCPOS    = "PLASMA",
+      PCDTC    = c("2025-07-15T08:00", "2025-07-15T09:00", "2025-07-15T10:00"),
+      VISITNUM = 1,
+      VISIT    = "Visit 1",
+      ARM      = "Drug A",
+      ACTARM   = "Drug A"
+   )
+
+   supppc <- tibble::tibble(
+      STUDYID  = "STUDY123",
+      RDOMAIN  = "PC",
+      USUBJID  = c("01-001", "01-002", "01-003"),
+      IDVAR    = "PCSEQ",
+      IDVARVAL = c(1, 2, 3),
+      QNAM     = "PCREASND",
+      QLABEL   = "Reason Not Done",
+      QVAL     = c("NA", "NA", "NA"),
+      QORIG    = "SPONSOR",
+      QEVAL    = "INVESTIGATOR"
+   )
+   supppc_extra <- dplyr::bind_rows(
+      supppc,
+      dplyr::mutate(supppc[3, ], IDVARVAL = 99),
+      dplyr::mutate(supppc[3, ], IDVARVAL = 101)
+   )
+
+   expect_warning(
+      out <- combine_supp(pc, supppc_extra),
+      "Not all rows of SUPP were merged"
+   )
+   expect_s3_class(out, "data.frame")
+   expect_equal(nrow(out), nrow(pc))
+   expect_true("PCREASND" %in% names(out))
+   expect_equal(
+      unname(as.character(out$PCREASND)),
+      c("NA", "NA", "NA")
+   )
+   expect_false(any(out$PCSEQ %in% c(99, 101)))
 })
