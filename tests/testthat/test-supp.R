@@ -299,20 +299,20 @@ test_that("combine_supp() does not create an IDVARVAL column (#78)", {
 test_that("make_supp_qual handles deprecated dataset_name parameter", {
   load(metacore::metacore_example("pilot_SDTM.rda"))
   ae <- combine_supp(safetyData::sdtm_ae, safetyData::sdtm_suppae)
-  
+
   # Test that dataset_name is deprecated and shows guidance
   suppressWarnings({
     result <- make_supp_qual(ae, metacore, dataset_name = "AE")
   })
-  
+
   expect_s3_class(result, "data.frame")
 })
 
 test_that("combine_supp handles QNAM not in dataset columns", {
   simple_ae <- safetyData::sdtm_ae[1:5, ]
   simple_suppae <- safetyData::sdtm_suppae[1, ]
-  simple_suppae$QNAM <- "NEWCOL"  # A new column to add
-  
+  simple_suppae$QNAM <- "NEWCOL" # A new column to add
+
   # Should successfully add the new column
   result <- combine_supp(simple_ae, simple_suppae)
   expect_true("NEWCOL" %in% names(result))
@@ -320,9 +320,9 @@ test_that("combine_supp handles QNAM not in dataset columns", {
 
 test_that("combine_supp errors when QNAM already exists in dataset", {
   simple_ae <- safetyData::sdtm_ae[1:5, ]
-  simple_ae$AETRTEM <- "existing"  # Add column that matches QNAM
+  simple_ae$AETRTEM <- "existing" # Add column that matches QNAM
   simple_suppae <- safetyData::sdtm_suppae[1, ]
-  
+
   expect_error(
     combine_supp(simple_ae, simple_suppae),
     "already in the original dataset"
@@ -332,8 +332,8 @@ test_that("combine_supp errors when QNAM already exists in dataset", {
 test_that("combine_supp handles IDVAR not in dataset", {
   simple_ae <- safetyData::sdtm_ae[1:5, ]
   simple_suppae <- safetyData::sdtm_suppae[1, ]
-  simple_suppae$IDVAR <- "FAKEIDVAR"  # IDVAR that doesn't exist
-  
+  simple_suppae$IDVAR <- "FAKEIDVAR" # IDVAR that doesn't exist
+
   expect_error(
     combine_supp(simple_ae, simple_suppae),
     "replacement has 0 rows"
@@ -344,7 +344,7 @@ test_that("combine_supp_by_idvar detects conflicting replacements across IDVARs"
   simple_ae <- safetyData::sdtm_ae %>%
     filter(USUBJID %in% c("01-701-1015", "01-701-1023")) %>%
     mutate(NEWID = dplyr::row_number())
-  
+
   # Create supp with same QNAM but different IDVARs that would cause conflicts
   suppae_conflict <- bind_rows(
     data.frame(
@@ -364,17 +364,17 @@ test_that("combine_supp_by_idvar detects conflicting replacements across IDVARs"
       STUDYID = "CDISCPILOT01",
       RDOMAIN = "AE",
       USUBJID = "01-701-1015",
-      IDVAR = "NEWID", 
+      IDVAR = "NEWID",
       IDVARVAL = "1",
       QNAM = "TESTVAR",
       QLABEL = "Test Variable",
-      QVAL = "ValueB",  # Different value for same subject/QNAM
+      QVAL = "ValueB", # Different value for same subject/QNAM
       QORIG = "CRF",
       QEVAL = "",
       stringsAsFactors = FALSE
     )
   )
-  
+
   expect_error(
     combine_supp(simple_ae, suppae_conflict),
     "unexpected number of rows"
