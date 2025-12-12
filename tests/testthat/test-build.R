@@ -245,28 +245,28 @@ test_that("drop_unspec_vars verbose parameter", {
 test_that("build_from_derived verbose controls prepare_join messages", {
   load(metacore::metacore_example("pilot_ADaM.rda"))
   spec2 <- metacore %>% select_dataset("ADAE", quiet = TRUE)
-  
+
   # Use safetyData datasets and add a conflicting non-key column
   # STUDYID is a key column, so add a different column that will conflict
   ae <- safetyData::sdtm_ae %>%
-    mutate(TESTCOL = "AE_VALUE")  # Add a non-key column
-  
+    mutate(TESTCOL = "AE_VALUE") # Add a non-key column
+
   adsl <- safetyData::adam_adsl %>%
-    mutate(TESTCOL = "ADSL_VALUE")  # Same column with different value
-  
+    mutate(TESTCOL = "ADSL_VALUE") # Same column with different value
+
   ds_list <- list(AE = ae, ADSL = adsl)
-  
+
   # Test that conflicting column messages are shown with verbose = "message"
   expect_message(
     build_from_derived(spec2, ds_list, predecessor_only = FALSE, verbose = "message", keep = "ALL"),
     "Dropping column\\(s\\) from"
   )
-  
+
   # Test that messages are suppressed with verbose = "warn" and "silent"
   expect_silent(
     build_from_derived(spec2, ds_list, predecessor_only = FALSE, verbose = "warn", keep = "ALL")
   )
-  
+
   expect_silent(
     build_from_derived(spec2, ds_list, predecessor_only = FALSE, verbose = "silent", keep = "ALL")
   )

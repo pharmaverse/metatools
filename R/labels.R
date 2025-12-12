@@ -95,19 +95,19 @@ remove_labels <- function(data) {
 #' set_variable_labels(dm, mc, dataset_name = "DM")
 set_variable_labels <- function(data, metacore, dataset_name = deprecated(),
                                 verbose = c("message", "warn", "silent")) {
-   if (is_present(dataset_name)) {
-      lifecycle::deprecate_warn(
-         when = "0.2.0",
-         what = "check_unique_keys(dataset_name)",
-         details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
+  if (is_present(dataset_name)) {
+    lifecycle::deprecate_warn(
+      when = "0.2.0",
+      what = "check_unique_keys(dataset_name)",
+      details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
       Please use {.fn metacore::select_dataset} to subset the {.obj metacore} object to obtain
       metadata for a single dataset.")))
-      )
-      metacore <- make_lone_dataset(metacore, dataset_name)
-   }
-   verify_DatasetMeta(metacore)
-   
-   verbose <- validate_verbose(verbose)
+    )
+    metacore <- make_lone_dataset(metacore, dataset_name)
+  }
+  verify_DatasetMeta(metacore)
+
+  verbose <- validate_verbose(verbose)
 
   # Grab out the var names and labels
   var_spec <- metacore$var_spec %>%
@@ -123,15 +123,15 @@ set_variable_labels <- function(data, metacore, dataset_name = deprecated(),
   in_meta <- ns[which(ns %in% mismatch)]
   in_data <- dns[which(dns %in% mismatch)]
 
-   if (length(in_meta) > 0 && should_warn(verbose)) {
-      wrn <- paste0("Variables in metadata not in data:\n\t", paste0(in_meta, collapse="\n\t"))
-      warning(wrn, call. = FALSE)
-   }
+  if (length(in_meta) > 0 && should_warn(verbose)) {
+    wrn <- paste0("Variables in metadata not in data:\n\t", paste0(in_meta, collapse = "\n\t"))
+    warning(wrn, call. = FALSE)
+  }
 
-   if (length(in_data) > 0 && should_warn(verbose)) {
-      wrn <- paste0("Variables in data not in metadata:\n\t", paste0(in_data, collapse="\n\t"))
-      warning(wrn, call. = FALSE)
-   }
+  if (length(in_data) > 0 && should_warn(verbose)) {
+    wrn <- paste0("Variables in data not in metadata:\n\t", paste0(in_data, collapse = "\n\t"))
+    warning(wrn, call. = FALSE)
+  }
 
   # Pick out only the variables which exist in both and build list
   match <- intersect(ns, dns)

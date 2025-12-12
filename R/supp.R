@@ -17,12 +17,12 @@
 #' @export
 #'
 #'
-build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig, 
+build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig,
                        verbose = c("message", "warn", "silent")) {
-   verbose <- validate_verbose(verbose)
-   
-   # Need QNAM as a variable
-   qval <- as.symbol(qnam)
+  verbose <- validate_verbose(verbose)
+
+  # Need QNAM as a variable
+  qval <- as.symbol(qnam)
 
   # DM won't have an IDVAR so handle that
   if (is.na(idvar) || idvar == "") {
@@ -64,16 +64,16 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig,
     )
   }
 
-   blank_test <- out %>%
-      pull(QVAL)
-   if(any(blank_test == "")){
-      if (should_message(verbose)) {
-         message(paste0("Empty QVAL rows removed for QNAM = ", unique(out$QNAM)))
-      }
-      out <- out %>%
-         filter(QVAL != "")
-   }
-   out
+  blank_test <- out %>%
+    pull(QVAL)
+  if (any(blank_test == "")) {
+    if (should_message(verbose)) {
+      message(paste0("Empty QVAL rows removed for QNAM = ", unique(out$QNAM)))
+    }
+    out <- out %>%
+      filter(QVAL != "")
+  }
+  out
 }
 
 

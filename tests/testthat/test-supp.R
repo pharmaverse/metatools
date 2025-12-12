@@ -300,8 +300,8 @@ test_that("build_qnam verbose parameter", {
   # Create simple test data with a column that will be used as QNAM
   ae <- safetyData::sdtm_ae %>%
     head(10) %>%
-    mutate(TESTVAR = c("", "", "Y", "Y", "N", "", "Y", "N", "Y", ""))  # Some empty strings
-  
+    mutate(TESTVAR = c("", "", "Y", "Y", "N", "", "Y", "N", "Y", "")) # Some empty strings
+
   # Test verbose = "message" (default) - should show message about empty QVAL
   expect_message(
     build_qnam(
@@ -315,7 +315,7 @@ test_that("build_qnam verbose parameter", {
     ),
     "Empty QVAL rows removed for QNAM = TESTVAR"
   )
-  
+
   # Test verbose = "warn" - suppress messages
   expect_silent(
     result_warn <- build_qnam(
@@ -328,7 +328,7 @@ test_that("build_qnam verbose parameter", {
       verbose = "warn"
     )
   )
-  
+
   # Test verbose = "silent" - suppress all output
   expect_silent(
     result_silent <- build_qnam(
@@ -341,7 +341,7 @@ test_that("build_qnam verbose parameter", {
       verbose = "silent"
     )
   )
-  
+
   # Verify all verbose levels return same result
   result_message <- suppressMessages(
     build_qnam(
@@ -354,13 +354,13 @@ test_that("build_qnam verbose parameter", {
       verbose = "message"
     )
   )
-  
+
   expect_equal(result_message, result_warn)
   expect_equal(result_message, result_silent)
-  
+
   # Verify empty strings were actually removed
   expect_false("" %in% result_message$QVAL)
-  
+
   # Test invalid verbose value
   expect_error(
     build_qnam(

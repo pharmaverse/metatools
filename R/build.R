@@ -73,14 +73,9 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
     metacore <- make_lone_dataset(metacore, dataset_name)
   }
   verify_DatasetMeta(metacore)
-  
+
   verbose <- validate_verbose(verbose)
 
-  # Deprecate KEEP = TRUE
-  keep <- match.arg(as.character(keep), c("TRUE", "FALSE", "ALL", "PREREQUISITE"))
-  if (keep == "TRUE") {
-    cli_warn(paste0(
-      "Setting 'keep' = TRUE has been superseded",
   # Deprecate KEEP = TRUE
   keep <- match.arg(as.character(keep), c("TRUE", "FALSE", "ALL", "PREREQUISITE"))
   if (keep == "TRUE") {
@@ -268,8 +263,6 @@ prepare_join <- function(x, keys, ds_names, verbose = "message") {
         if (length(conflicting_cols) > 0 && should_message(verbose)) {
           cli_inform(c("i" = "Dropping column(s) from {ds_names[[i]]} due to \
                             conflict with {ds_names[[j]]}: {conflicting_cols}."))
-        }
-      }
         }
       }
 
