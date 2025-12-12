@@ -11,7 +11,7 @@ test_that("order_cols reorders columns to match spec", {
     select(AGE, SITEID, everything()) %>%
     order_cols(spec) %>%
     expect_equal(data)
-    
+
   # Should handle missing columns from spec
   data %>%
     select(AGE, everything(), -SITEID) %>%
@@ -39,7 +39,7 @@ test_that("order_cols works with deprecated dataset_name parameter", {
   result <- suppressMessages(suppressWarnings(
     order_cols(data, metacore, dataset_name = "ADSL")
   ))
-  
+
   # Verify it produces same result as non-deprecated approach
   expected <- order_cols(data, spec)
   expect_equal(result, expected)
@@ -48,11 +48,11 @@ test_that("order_cols works with deprecated dataset_name parameter", {
 test_that("sort_by_key works with deprecated dataset_name parameter", {
   # Test that deprecated parameter still functions correctly
   shuffled_data <- data %>% arrange(TRT01P, AGE)
-  
+
   result <- suppressMessages(suppressWarnings(
     sort_by_key(shuffled_data, metacore, dataset_name = "ADSL")
   ))
-  
+
   # Verify it produces same result as non-deprecated approach
   expected <- sort_by_key(shuffled_data, spec)
   expect_equal(result, expected)
