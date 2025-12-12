@@ -4,18 +4,21 @@ options(cli.default_handler = function(...) {})
 load(metacore::metacore_example("pilot_ADaM.rda"))
 spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
 data <- haven::read_xpt(metatools_example("adsl.xpt"))
-test_that("sort_order", {
+
+test_that("order_cols reorders columns to match spec", {
+  # Verify columns are reordered to match spec
   data %>%
     select(AGE, SITEID, everything()) %>%
     order_cols(spec) %>%
     expect_equal(data)
-  # Check when too many columns
+    
+  # Should handle missing columns from spec
   data %>%
     select(AGE, everything(), -SITEID) %>%
     order_cols(spec) %>%
     expect_equal(select(data, -SITEID))
 
-  # Check when there are too few columns
+  # Should handle extra columns not in spec
   data %>%
     select(AGE, SITEID, everything()) %>%
     mutate(foo = "game") %>%
@@ -23,7 +26,8 @@ test_that("sort_order", {
     expect_equal(mutate(data, foo = "game"))
 })
 
-test_that("sort_key", {
+test_that("sort_by_key sorts data by key variables", {
+  # Verify unsorted data is sorted to match original
   data %>%
     arrange(TRT01P, AGE) %>%
     sort_by_key(spec) %>%
