@@ -175,7 +175,7 @@ test_that("build_from_derived", {
 })
 
 
-test_that("add_variables", {
+test_that("add_variables add missing variables to the metacore object", {
   load(metacore::metacore_example("pilot_ADaM.rda"))
   spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
