@@ -118,18 +118,21 @@ test_that("set_variable_labels raises warnings properly", {
 })
 
 test_that("remove_labels works to remove all labels", {
-   data <- tibble::tibble(a = 1:5,
-test_that("remove_labels works to remove all labels", {
-   data_lab <- data %>%
-      purrr::map2_dfr(c("apple", "pear"), function(x, y ){
-         attr(x, "label") <- y
-         x
-      })
-   remove_labels(data_lab) %>%
-      expect_equal(., data)
+  # Create test data as tibble to match what remove_labels returns
+  data <- tibble::as_tibble(mtcars[1:2, 1:2], rownames = NULL)
+  
+  data_lab <- data %>%
+    purrr::map2_dfc(c("apple", "pear"), function(x, y) {
+      attr(x, "label") <- y
+      x
+    })
+  
+  remove_labels(data_lab) %>%
+    expect_equal(., data)
 
   expect_error(remove_labels(c(1:10)))
 })
+
 test_that("set_variable_labels correctly identifies variable mismatches", {
   load(metacore::metacore_example("pilot_SDTM.rda"))
   spec <- metacore %>% select_dataset("DM", quiet = TRUE)

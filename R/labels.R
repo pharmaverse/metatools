@@ -109,9 +109,9 @@ set_variable_labels <- function(data, metacore, dataset_name = deprecated()) {
   labs <- var_spec$label
   dns <- names(data)
 
-   # Are there any variables in data not in the metadata
-   in_meta <- setdiff(ns, dns)  # Variables in metadata not in data
-   in_data <- setdiff(dns, ns)  # Variables in data not in metadata
+  # Are there any variables in data not in the metadata
+  in_meta <- setdiff(ns, dns) # Variables in metadata not in data
+  in_data <- setdiff(dns, ns) # Variables in data not in metadata
 
   if (length(in_meta) > 0) {
     wrn <- paste0("Variables in metadata not in data:\n\t", paste0(in_meta, collapse = "\n\t"))
