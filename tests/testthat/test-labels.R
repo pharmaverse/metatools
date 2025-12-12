@@ -117,7 +117,7 @@ test_that("set_variable_labels raises warnings properly", {
   expect_warning(set_variable_labels(starwars_short, mc))
 })
 
-test_that("removal_labels works to remove all labels", {
+test_that("remove_labels works to remove all labels", {
    data <- tibble::tibble(a = 1:5,
 test_that("remove_labels works to remove all labels", {
    data_lab <- data %>%
