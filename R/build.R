@@ -122,7 +122,7 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
     str_to_lower()
   if (!all(ds_names %in% names(ds_list))) {
     unknown <- keep(names(ds_list), ~ !. %in% ds_names)
-    if (length(unknown) > 0 && should_warn(verbose)) {
+    if (length(unknown) > 0 && check_warn(verbose)) {
       warning(paste0("The following dataset(s) have no predecessors and will be ignored:\n"),
         paste0(unknown, collapse = ", "),
         call. = FALSE
@@ -132,7 +132,7 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
       str_to_upper() %>%
       paste0(collapse = ", ")
 
-    if (should_message(verbose)) {
+    if (check_message(verbose)) {
       message(paste0(
         "Not all datasets provided. Only variables from ",
         ds_using,
@@ -260,7 +260,7 @@ prepare_join <- function(x, keys, ds_names, verbose = "message") {
           intersect(colnames(x[[i]]))
         drop_cols <- c(drop_cols, conflicting_cols)
 
-        if (length(conflicting_cols) > 0 && should_message(verbose)) {
+        if (length(conflicting_cols) > 0 && check_message(verbose)) {
           cli_inform(c("i" = "Dropping column(s) from {ds_names[[i]]} due to \
                             conflict with {ds_names[[j]]}: {conflicting_cols}."))
         }
@@ -329,7 +329,7 @@ drop_unspec_vars <- function(dataset, metacore, dataset_name = deprecated(),
   if (length(to_drop) > 0) {
     out <- dataset %>%
       select(-all_of(to_drop))
-    if (should_message(verbose)) {
+    if (check_message(verbose)) {
       message(paste0(
         "The following variable(s) were dropped:\n  ",
         paste0(to_drop, collapse = "\n  ")

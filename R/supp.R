@@ -67,7 +67,7 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig,
   blank_test <- out %>%
     pull(QVAL)
   if (any(blank_test == "")) {
-    if (should_message(verbose)) {
+    if (check_message(verbose)) {
       message(paste0("Empty QVAL rows removed for QNAM = ", unique(out$QNAM)))
     }
     out <- out %>%

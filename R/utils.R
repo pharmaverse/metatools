@@ -48,14 +48,14 @@ make_lone_dataset <- function(metacore, dataset_name) {
 #' Check if messages should be displayed
 #' @param verbose Verbosity level
 #' @noRd
-should_message <- function(verbose) {
+check_message <- function(verbose) {
   verbose == "message"
 }
 
 #' Check if warnings should be displayed
 #' @param verbose Verbosity level
 #' @noRd
-should_warn <- function(verbose) {
+check_warn <- function(verbose) {
   verbose %in% c("message", "warn")
 }
 

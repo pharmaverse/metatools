@@ -123,12 +123,12 @@ set_variable_labels <- function(data, metacore, dataset_name = deprecated(),
   in_meta <- ns[which(ns %in% mismatch)]
   in_data <- dns[which(dns %in% mismatch)]
 
-  if (length(in_meta) > 0 && should_warn(verbose)) {
+  if (length(in_meta) > 0 && check_warn(verbose)) {
     wrn <- paste0("Variables in metadata not in data:\n\t", paste0(in_meta, collapse = "\n\t"))
     warning(wrn, call. = FALSE)
   }
 
-  if (length(in_data) > 0 && should_warn(verbose)) {
+  if (length(in_data) > 0 && check_warn(verbose)) {
     wrn <- paste0("Variables in data not in metadata:\n\t", paste0(in_data, collapse = "\n\t"))
     warning(wrn, call. = FALSE)
   }
