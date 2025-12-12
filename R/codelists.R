@@ -1,4 +1,3 @@
-
 #' Dash to Equation
 #'
 #' Converts strings that are #-# style to a logical expression (but in a string format)
@@ -7,11 +6,11 @@
 #' @return string
 #' @noRd
 dash_to_eq <- function(string) {
-   front <- str_extract(string, "^.*(?=\\-)")
-   front_eq <- if_else(str_detect(front, "<|>|="), front, paste0(">=", front))
-   back <- str_extract(string, "(?<=\\-).*$")
-   back_eq <- if_else(str_detect(back, "<|>|="), back, paste0("<=", back))
-   paste0("x", front_eq, " & x", back_eq)
+  front <- str_extract(string, "^.*(?=\\-)")
+  front_eq <- if_else(str_detect(front, "<|>|="), front, paste0(">=", front))
+  back <- str_extract(string, "(?<=\\-).*$")
+  back_eq <- if_else(str_detect(back, "<|>|="), back, paste0("<=", back))
+  paste0("x", front_eq, " & x", back_eq)
 }
 
 
@@ -33,53 +32,58 @@ dash_to_eq <- function(string) {
 #' create_subgrps(c(1:10), c("<2", "2-<5", ">=5"))
 #' create_subgrps(c(1:10), c("<2", "2-<5", ">=5"), c("<2 years", "2-5 years", ">=5 years"))
 create_subgrps <- function(ref_vec, grp_defs, grp_labs = NULL) {
-   if (!is.numeric(ref_vec)) { cli_abort("ref_vec must be numeric") }
-   if (is.null(grp_labs)) { grp_labs <- grp_defs }
+  if (!is.numeric(ref_vec)) {
+    cli_abort("ref_vec must be numeric")
+  }
+  if (is.null(grp_labs)) {
+    grp_labs <- grp_defs
+  }
 
-   # Create equations used to derive the subgroups
-   equations <- case_when(
-      str_detect(grp_defs, "-") ~ paste0("function(x){if_else(", dash_to_eq(grp_defs), ", '", grp_labs, "', '')}"),
-      str_detect(grp_defs, "^(<\\s?=|>\\s?=|<|>)\\s?\\d+") ~ paste0("function(x){if_else(x", grp_defs, ",'", grp_labs, "', '')}"),
-      TRUE ~ NA_character_
-   )
+  # Create equations used to derive the subgroups
+  equations <- case_when(
+    str_detect(grp_defs, "-") ~ paste0("function(x){if_else(", dash_to_eq(grp_defs), ", '", grp_labs, "', '')}"),
+    str_detect(grp_defs, "^(<\\s?=|>\\s?=|<|>)\\s?\\d+") ~ paste0("function(x){if_else(x", grp_defs, ",'", grp_labs, "', '')}"),
+    TRUE ~ NA_character_
+  )
 
-   # Apply equations
-   if (all(!is.na(equations))) {
-      functions <- equations %>%
-         map(~ eval(parse(text = .)))
-      out <- functions %>%
-         map(~ .(ref_vec)) %>%
-         reduce(str_c) %>%
-         replace(. == "", NA)
-   } else {
-      na_index <- which(is.na(equations))
-      bad_defs <- grp_defs[na_index]
-      cli_abort(paste("Unable to decipher the following group definition{?s}: {bad_defs}.",
-                      "Please check your controlled terminology."))
-   }
-   # Find non-exclusive subgroups i.e., values that have been mapped to two groups
-   non_excl <- out |>
-      discard(is.na) |>
-      map(~ grp_labs[str_detect(.x, grp_labs)]) |>
-      keep(~ length(.) > 1) |>
-      unique()
+  # Apply equations
+  if (all(!is.na(equations))) {
+    functions <- equations %>%
+      map(~ eval(parse(text = .)))
+    out <- functions %>%
+      map(~ .(ref_vec)) %>%
+      reduce(str_c) %>%
+      replace(. == "", NA)
+  } else {
+    na_index <- which(is.na(equations))
+    bad_defs <- grp_defs[na_index]
+    cli_abort(paste(
+      "Unable to decipher the following group definition{?s}: {bad_defs}.",
+      "Please check your controlled terminology."
+    ))
+  }
+  # Find non-exclusive subgroups i.e., values that have been mapped to two groups
+  non_excl <- out |>
+    discard(is.na) |>
+    map(~ grp_labs[str_detect(.x, grp_labs)]) |>
+    keep(~ length(.) > 1) |>
+    unique()
 
-   # Throw error if groups are not exclusive
-   if (length(non_excl) > 0) {
-      msg <- map_chr(non_excl, ~ {
-         items <- paste(.x, collapse = ", ")
-      }) %>%
-         paste0(seq_along(.), ". ", .)
+  # Throw error if groups are not exclusive
+  if (length(non_excl) > 0) {
+    msg <- map_chr(non_excl, ~ {
+      items <- paste(.x, collapse = ", ")
+    }) %>%
+      paste0(seq_along(.), ". ", .)
 
-      cli_abort(c(
-         "Group definitions are not exclusive. Please check your controlled terminology",
-         "The following group definitions overlap:",
-         msg
-      ))
-   }
-   out
+    cli_abort(c(
+      "Group definitions are not exclusive. Please check your controlled terminology",
+      "The following group definitions overlap:",
+      msg
+    ))
+  }
+  out
 }
-
 
 
 #' Create Variable from Codelist
@@ -131,89 +135,93 @@ create_subgrps <- function(ref_vec, grp_defs, grp_labs = NULL) {
 #'
 #' # Example providing a custom codelist
 #' # This example also reverses the direction of translation
-#' load(metacore_example('pilot_ADaM.rda'))
+#' load(metacore_example("pilot_ADaM.rda"))
 #' adlb_spec <- select_dataset(metacore, "ADLBC", quiet = TRUE)
 #' adlb <- tibble(PARAMCD = c("ALB", "ALP", "ALT", "AST", "BILI", "BUN"))
 #' create_var_from_codelist(
-#'    adlb,
-#'    adlb_spec,
-#'    PARAMCD,
-#'    PARAM,
-#'    codelist = get_control_term(adlb_spec, PARAMCD),
-#'    decode_to_code = FALSE,
-#'    strict = FALSE)
+#'   adlb,
+#'   adlb_spec,
+#'   PARAMCD,
+#'   PARAM,
+#'   codelist = get_control_term(adlb_spec, PARAMCD),
+#'   decode_to_code = FALSE,
+#'   strict = FALSE
+#' )
 #'
-#'\dontrun{
+#' \dontrun{
 #' # Example expecting warning where `strict` == `TRUE`
 #' adlb <- tibble(PARAMCD = c("ALB", "ALP", "ALT", "AST", "BILI", "BUN", "DUMMY1", "DUMMY2"))
 #' create_var_from_codelist(
-#'    adlb,
-#'    adlb_spec,
-#'    PARAMCD,
-#'    PARAM,
-#'    codelist = get_control_term(adlb_spec, PARAMCD),
-#'    decode_to_code = FALSE,
-#'    strict = TRUE)
+#'   adlb,
+#'   adlb_spec,
+#'   PARAMCD,
+#'   PARAM,
+#'   codelist = get_control_term(adlb_spec, PARAMCD),
+#'   decode_to_code = FALSE,
+#'   strict = TRUE
+#' )
 #' }
 create_var_from_codelist <- function(data, metacore, input_var, out_var, codelist = NULL,
                                      decode_to_code = TRUE, strict = TRUE) {
-   verify_DatasetMeta(metacore)
+  verify_DatasetMeta(metacore)
 
-   # Use codelist if provided, else use codelist of the out_var
-   if (!missing(codelist)) { code_translation <- codelist }
-   else { code_translation <- get_control_term(metacore, {{ out_var }}) }
+  # Use codelist if provided, else use codelist of the out_var
+  if (!missing(codelist)) {
+    code_translation <- codelist
+  } else {
+    code_translation <- get_control_term(metacore, {{ out_var }})
+  }
 
-   if (is.vector(code_translation) | !("decode" %in% names(code_translation))) {
-      cli_abort("Expecting 'code_decode' type of control terminology. Actual \\
+  if (is.vector(code_translation) | !("decode" %in% names(code_translation))) {
+    cli_abort("Expecting 'code_decode' type of control terminology. Actual \\
 type is {typeof(code_translation)}. Check the structure of the codelist in the \\
 {.obj metacore} object using {.fn View}.")
-   }
+  }
 
-   # Check decode_to_code is logical and set direction of translation
-   if (!is_logical(decode_to_code)) {
-      cli_abort("{.arg decode_to_code} must be either TRUE or FALSE.")
-   }
+  # Check decode_to_code is logical and set direction of translation
+  if (!is_logical(decode_to_code)) {
+    cli_abort("{.arg decode_to_code} must be either TRUE or FALSE.")
+  }
 
-   ref_var <- if (decode_to_code) "decode" else "code"
-   new_var <- if (decode_to_code) "code"   else "decode"
+  ref_var <- if (decode_to_code) "decode" else "code"
+  new_var <- if (decode_to_code) "code" else "decode"
 
-   # Pull data values and codelist values to check inconsistent overlap
-   values   <- data |> pull({{ input_var }})
-   codelist <- code_translation |> pull(ref_var)
+  # Pull data values and codelist values to check inconsistent overlap
+  values <- data |> pull({{ input_var }})
+  codelist <- code_translation |> pull(ref_var)
 
-   miss <- setdiff(values, codelist)
-   if (strict == TRUE && length(miss) > 0) {
-      cli_warn(
-         "In {.fn create_var_from_codelist}: The following value{?s} present in the
-input dataset {?is/are} not present in the codelist: {miss}")
-   }
+  miss <- setdiff(values, codelist)
+  if (strict == TRUE && length(miss) > 0) {
+    cli_warn(
+      "In {.fn create_var_from_codelist}: The following value{?s} present in the
+input dataset {?is/are} not present in the codelist: {miss}"
+    )
+  }
 
-   input_var_str <- as_label(enexpr(input_var)) |>
-      str_remove_all("\"")
+  input_var_str <- as_label(enexpr(input_var)) |>
+    str_remove_all("\"")
 
-   # Coerce join column to character to ensure join if input var is numeric
-   data <- data |> mutate(merge_on := as.character(.data[[input_var_str]]))
-   code_translation <- code_translation |>
-      mutate(
-         decode = as.character(decode),
-         code = as.character(code)
-      )
+  # Coerce join column to character to ensure join if input var is numeric
+  data <- data |> mutate(merge_on := as.character(.data[[input_var_str]]))
+  code_translation <- code_translation |>
+    mutate(
+      decode = as.character(decode),
+      code = as.character(code)
+    )
 
-   out <- data |>
-      left_join(code_translation, by = set_names(ref_var, "merge_on")) |>
-      rename({{ out_var }} := !!sym(new_var)) |>
-      select(-merge_on)
+  out <- data |>
+    left_join(code_translation, by = set_names(ref_var, "merge_on")) |>
+    rename({{ out_var }} := !!sym(new_var)) |>
+    select(-merge_on)
 
-   # Optionally coerce to numeric if the output values are numeric
-   if (all(str_detect(code_translation[[new_var]], "^\\d*$"))) {
-      out <- out |>
-         mutate({{ out_var }} := as.numeric({{ out_var }}))
-   }
+  # Optionally coerce to numeric if the output values are numeric
+  if (all(str_detect(code_translation[[new_var]], "^\\d*$"))) {
+    out <- out |>
+      mutate({{ out_var }} := as.numeric({{ out_var }}))
+  }
 
-   out
+  out
 }
-
-
 
 
 #' Create Categorical Variable from Codelist
@@ -255,34 +263,38 @@ input dataset {?is/are} not present in the codelist: {miss}")
 #' create_cat_var(dm, spec, AGE, AGEGR1, AGEGR1N)
 create_cat_var <- function(data, metacore, ref_var, grp_var, num_grp_var = NULL,
                            create_from_decode = FALSE, strict = TRUE) {
-   verify_DatasetMeta(metacore)
-   ct <- get_control_term(metacore, {{ grp_var }})
-   if (is.vector(ct) | !("decode" %in% names(ct))) {
-      cli_abort("Expecting 'code_decode' type of control terminology. Please check metacore object")
-   }
+  verify_DatasetMeta(metacore)
+  ct <- get_control_term(metacore, {{ grp_var }})
+  if (is.vector(ct) | !("decode" %in% names(ct))) {
+    cli_abort("Expecting 'code_decode' type of control terminology. Please check metacore object")
+  }
 
-   # Assign group definitions and labels
-   grp_defs <- pull(ct, code)
-   grp_labs <- if (create_from_decode) pull(ct, decode) else grp_defs
-     
-   out <- data %>%
-      mutate({{ grp_var }} := create_subgrps({{ ref_var }}, grp_defs, grp_labs))
+  # Assign group definitions and labels
+  grp_defs <- pull(ct, code)
+  grp_labs <- if (create_from_decode) pull(ct, decode) else grp_defs
 
-   if (!is.null(enexpr(num_grp_var))) {
-      out <- out %>%
-         create_var_from_codelist(metacore, {{ grp_var }}, {{ num_grp_var }})
-   }
+  out <- data %>%
+    mutate({{ grp_var }} := create_subgrps({{ ref_var }}, grp_defs, grp_labs))
 
-   missing <- out |> pull({{ grp_var }}) |> is.na() |> which()|> length()
-   if (strict && missing > 0) {
-      cli_warn(paste(
-         "There {qty(missing)} {?is/are} {missing} {qty(missing)} observation{?s}",
-         "in {as_name(enquo(ref_var))} that {qty(missing)} {?does/do} not fit into",
-         "the provided categories for {as_name(enquo(grp_var))}. Please check your",
-         "controlled terminology.")
-      )
-   }
-   out
+  if (!is.null(enexpr(num_grp_var))) {
+    out <- out %>%
+      create_var_from_codelist(metacore, {{ grp_var }}, {{ num_grp_var }})
+  }
+
+  missing <- out |>
+    pull({{ grp_var }}) |>
+    is.na() |>
+    which() |>
+    length()
+  if (strict && missing > 0) {
+    cli_warn(paste(
+      "There {qty(missing)} {?is/are} {missing} {qty(missing)} observation{?s}",
+      "in {as_name(enquo(ref_var))} that {qty(missing)} {?does/do} not fit into",
+      "the provided categories for {as_name(enquo(grp_var))}. Please check your",
+      "controlled terminology."
+    ))
+  }
+  out
 }
 
 
@@ -315,7 +327,7 @@ create_cat_var <- function(data, metacore, ref_var, grp_var, num_grp_var = NULL,
 #' # Variable with permitted value control terms
 #' convert_var_to_fct(dm, spec, ARM)
 convert_var_to_fct <- function(data, metacore, var) {
-   verify_DatasetMeta(metacore)
+  verify_DatasetMeta(metacore)
   code_translation <- get_control_term(metacore, {{ var }})
   var_str <- as_label(enexpr(var)) %>%
     str_remove_all("\"")
@@ -332,4 +344,3 @@ convert_var_to_fct <- function(data, metacore, var) {
   data %>%
     mutate({{ var }} := factor({{ var }}, levels = levels))
 }
-

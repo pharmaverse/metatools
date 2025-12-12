@@ -1,5 +1,5 @@
 # Suppress cli output during testing
-options(cli.default_handler = function(...) { })
+options(cli.default_handler = function(...) {})
 
 load(metacore::metacore_example("pilot_ADaM.rda"))
 spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
@@ -9,19 +9,18 @@ test_that("sort_order", {
     select(AGE, SITEID, everything()) %>%
     order_cols(spec) %>%
     expect_equal(data)
-   # Check when too many columns
-   data %>%
-      select(AGE, everything(), -SITEID) %>%
-      order_cols(spec) %>%
-      expect_equal(select(data, -SITEID))
+  # Check when too many columns
+  data %>%
+    select(AGE, everything(), -SITEID) %>%
+    order_cols(spec) %>%
+    expect_equal(select(data, -SITEID))
 
-   # Check when there are too few columns
-   data %>%
-      select(AGE, SITEID, everything()) %>%
-      mutate(foo = "game") %>%
-      order_cols(spec) %>%
-      expect_equal(mutate(data, foo = "game"))
-
+  # Check when there are too few columns
+  data %>%
+    select(AGE, SITEID, everything()) %>%
+    mutate(foo = "game") %>%
+    order_cols(spec) %>%
+    expect_equal(mutate(data, foo = "game"))
 })
 
 test_that("sort_key", {
@@ -34,10 +33,10 @@ test_that("sort_key", {
 test_that("order_cols warns about deprecated dataset_name parameter", {
   library(metacore)
   library(haven)
-  
+
   load(metacore_example("pilot_ADaM.rda"))
   data <- read_xpt(metatools_example("adsl.xpt"))
-  
+
   # Test that using dataset_name triggers deprecation warning
   lifecycle::expect_deprecated(
     order_cols(data, metacore, dataset_name = "ADSL")
@@ -47,25 +46,25 @@ test_that("order_cols warns about deprecated dataset_name parameter", {
 test_that("order_cols still works with deprecated dataset_name parameter", {
   library(metacore)
   library(haven)
-  
+
   load(metacore_example("pilot_ADaM.rda"))
   data <- read_xpt(metatools_example("adsl.xpt"))
-  
+
   # Suppress warning to test functionality
   suppressWarnings({
     result <- order_cols(data, metacore, dataset_name = "ADSL")
   })
-  
+
   expect_s3_class(result, "data.frame")
 })
 
 test_that("sort_by_key warns about deprecated dataset_name parameter", {
   library(metacore)
   library(haven)
-  
+
   load(metacore_example("pilot_ADaM.rda"))
   data <- read_xpt(metatools_example("adsl.xpt"))
-  
+
   lifecycle::expect_deprecated(
     sort_by_key(data, metacore, dataset_name = "ADSL")
   )
@@ -74,13 +73,13 @@ test_that("sort_by_key warns about deprecated dataset_name parameter", {
 test_that("sort_by_key still works with deprecated dataset_name parameter", {
   library(metacore)
   library(haven)
-  
+
   load(metacore_example("pilot_ADaM.rda"))
   data <- read_xpt(metatools_example("adsl.xpt"))
-  
+
   suppressWarnings({
     result <- sort_by_key(data, metacore, dataset_name = "ADSL")
   })
-  
+
   expect_s3_class(result, "data.frame")
 })
