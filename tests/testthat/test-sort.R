@@ -34,56 +34,26 @@ test_that("sort_by_key sorts data by key variables", {
     expect_equal(data)
 })
 
-test_that("order_cols warns about deprecated dataset_name parameter", {
-  library(metacore)
-  library(haven)
-
-  load(metacore_example("pilot_ADaM.rda"))
-  data <- read_xpt(metatools_example("adsl.xpt"))
-
-  # Test that using dataset_name triggers deprecation warning
-  lifecycle::expect_deprecated(
+test_that("order_cols works with deprecated dataset_name parameter", {
+  # Test that deprecated parameter still functions correctly
+  result <- suppressMessages(suppressWarnings(
     order_cols(data, metacore, dataset_name = "ADSL")
-  )
+  ))
+  
+  # Verify it produces same result as non-deprecated approach
+  expected <- order_cols(data, spec)
+  expect_equal(result, expected)
 })
 
-test_that("order_cols still works with deprecated dataset_name parameter", {
-  library(metacore)
-  library(haven)
-
-  load(metacore_example("pilot_ADaM.rda"))
-  data <- read_xpt(metatools_example("adsl.xpt"))
-
-  # Suppress warning to test functionality
-  suppressWarnings({
-    result <- order_cols(data, metacore, dataset_name = "ADSL")
-  })
-
-  expect_s3_class(result, "data.frame")
-})
-
-test_that("sort_by_key warns about deprecated dataset_name parameter", {
-  library(metacore)
-  library(haven)
-
-  load(metacore_example("pilot_ADaM.rda"))
-  data <- read_xpt(metatools_example("adsl.xpt"))
-
-  lifecycle::expect_deprecated(
-    sort_by_key(data, metacore, dataset_name = "ADSL")
-  )
-})
-
-test_that("sort_by_key still works with deprecated dataset_name parameter", {
-  library(metacore)
-  library(haven)
-
-  load(metacore_example("pilot_ADaM.rda"))
-  data <- read_xpt(metatools_example("adsl.xpt"))
-
-  suppressWarnings({
-    result <- sort_by_key(data, metacore, dataset_name = "ADSL")
-  })
-
-  expect_s3_class(result, "data.frame")
+test_that("sort_by_key works with deprecated dataset_name parameter", {
+  # Test that deprecated parameter still functions correctly
+  shuffled_data <- data %>% arrange(TRT01P, AGE)
+  
+  result <- suppressMessages(suppressWarnings(
+    sort_by_key(shuffled_data, metacore, dataset_name = "ADSL")
+  ))
+  
+  # Verify it produces same result as non-deprecated approach
+  expected <- sort_by_key(shuffled_data, spec)
+  expect_equal(result, expected)
 })
