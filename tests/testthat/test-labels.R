@@ -119,7 +119,7 @@ test_that("set_variable_labels raises warnings properly", {
 
 })
 
-test_that("removal_labels works to remove all labels", {
+test_that("remove_labels works to remove all labels", {
    data <- tibble::tibble(a = 1:5,
                           b = letters[1:5])
    data_lab <- data %>%
