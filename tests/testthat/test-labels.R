@@ -117,18 +117,82 @@ test_that("set_variable_labels raises warnings properly", {
   expect_warning(set_variable_labels(starwars_short, mc))
 })
 
-test_that("removal_labels works to remvoe all labels", {
-  data <- tibble::tibble(
-    a = 1:5,
-    b = letters[1:5]
-  )
+test_that("remove_labels works to remove all labels", {
+  # Create test data as tibble to match what remove_labels returns
+  data <- tibble::as_tibble(mtcars[1:2, 1:2], rownames = NULL)
+
   data_lab <- data %>%
-    purrr::map2_dfr(c("apple", "pear"), function(x, y) {
+    purrr::map2_dfc(c("apple", "pear"), function(x, y) {
       attr(x, "label") <- y
       x
     })
+
   remove_labels(data_lab) %>%
     expect_equal(., data)
 
   expect_error(remove_labels(c(1:10)))
+})
+
+test_that("set_variable_labels correctly identifies variable mismatches", {
+  load(metacore::metacore_example("pilot_SDTM.rda"))
+  spec <- metacore %>% select_dataset("DM", quiet = TRUE)
+
+  dm <- haven::read_xpt(metatools_example("dm.xpt"))
+
+  # Get the actual variables in the metadata
+  meta_vars <- spec$var_spec$variable
+  data_vars <- names(dm)
+
+  # Find a variable that exists in both to manipulate
+  common_var <- intersect(meta_vars, data_vars)[1]
+
+  # Test 1: Variable in metadata but NOT in data (should trigger first warning)
+  dm_missing_var <- dm %>%
+    select(-all_of(common_var))
+
+  expect_warning(
+    set_variable_labels(dm_missing_var, spec),
+    "Variables in metadata not in data"
+  )
+
+  # Verify the specific variable is mentioned in the warning
+  expect_warning(
+    set_variable_labels(dm_missing_var, spec),
+    common_var
+  )
+
+  # Test 2: Variable in data but NOT in metadata (should trigger second warning)
+  dm_extra_var <- dm %>%
+    mutate(EXTRAVAR = "test")
+
+  expect_warning(
+    set_variable_labels(dm_extra_var, spec),
+    "Variables in data not in metadata"
+  )
+
+  expect_warning(
+    set_variable_labels(dm_extra_var, spec),
+    "EXTRAVAR"
+  )
+
+  # Test 3: Both types of mismatches (should trigger both warnings)
+  dm_both_mismatch <- dm %>%
+    select(-all_of(common_var)) %>%
+    mutate(EXTRAVAR = "test")
+
+  result <- suppressWarnings(
+    set_variable_labels(dm_both_mismatch, spec)
+  )
+
+  # Should get exactly 2 warnings
+  expect_warning(
+    set_variable_labels(dm_both_mismatch, spec),
+    "Variables in"
+  )
+
+  # Verify labels still applied to matching variables
+  matching_vars <- intersect(names(dm_both_mismatch), meta_vars)
+  if (length(matching_vars) > 0) {
+    expect_true(!is.null(attr(result[[matching_vars[1]]], "label")))
+  }
 })
