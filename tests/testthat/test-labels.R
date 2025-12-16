@@ -121,29 +121,29 @@ test_that("set_variable_labels respects verbose parameter", {
   load(metacore::metacore_example("pilot_SDTM.rda"))
   spec <- metacore |> select_dataset("DM", quiet = TRUE)
   dm <- haven::read_xpt(metatools_example("dm.xpt"))
-  
+
   # Create data with mismatch to trigger warnings
-  dm_mismatch <- dm |> 
-    select(-RACE) |>  
+  dm_mismatch <- dm |>
+    select(-RACE) |>
     mutate(EXTRAVAR = "test")
-  
+
   # verbose = "silent" suppresses warnings
   expect_silent(
     set_variable_labels(dm_mismatch, spec, verbose = "silent")
   )
-  
-  # verbose = "message" shows warnings  
+
+  # verbose = "message" shows warnings
   expect_warning(
     set_variable_labels(dm_mismatch, spec, verbose = "message"),
     "Variables in"
   )
-  
+
   # verbose = "warn" shows warnings
   expect_warning(
     set_variable_labels(dm_mismatch, spec, verbose = "warn"),
     "Variables in"
   )
-  
+
   # Invalid verbose value errors
   expect_error(
     set_variable_labels(dm, spec, verbose = "invalid"),
@@ -158,14 +158,14 @@ test_that("remove_labels removes labels properly", {
       mpg = "Miles Per Gallon",
       cyl = "Cylinders"
     )
-  
+
   # Verify labels exist
   expect_equal(attr(x$mpg, "label"), "Miles Per Gallon")
   expect_equal(attr(x$cyl, "label"), "Cylinders")
-  
+
   # Remove labels
   x_no_labels <- remove_labels(x)
-  
+
   # Verify labels are gone
   expect_null(attr(x_no_labels$mpg, "label"))
   expect_null(attr(x_no_labels$cyl, "label"))
