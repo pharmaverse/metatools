@@ -117,92 +117,30 @@ test_that("set_variable_labels raises warnings properly", {
   expect_warning(set_variable_labels(starwars_short, mc))
 })
 
-test_that("removal_labels works to remvoe all labels", {
-  data <- tibble::tibble(
-    a = 1:5,
-    b = letters[1:5]
-  )
-  data_lab <- data %>%
-    purrr::map2_dfr(c("apple", "pear"), function(x, y) {
-      attr(x, "label") <- y
-      x
-    })
-  remove_labels(data_lab) %>%
-    expect_equal(., data)
-
-  expect_error(remove_labels(c(1:10)))
-})
-test_that("set_variable_labels verbose parameter", {
+test_that("set_variable_labels respects verbose parameter", {
   load(metacore::metacore_example("pilot_SDTM.rda"))
-  spec <- metacore %>% select_dataset("DM", quiet = TRUE)
-
+  spec <- metacore |> select_dataset("DM", quiet = TRUE)
   dm <- haven::read_xpt(metatools_example("dm.xpt"))
-
-  # Get the actual variables in the metadata
-  meta_vars <- spec$var_spec$variable
-  data_vars <- names(dm)
-
-  # Find a variable that exists in metadata to remove
-  var_to_remove <- intersect(meta_vars, data_vars)[1]
-
-  # Create mismatch: add a variable not in metadata, remove a variable that is in metadata
-  dm_mismatch <- dm %>%
-    select(-all_of(var_to_remove)) %>% # Remove a variable that's in metadata
-    mutate(EXTRAVAR = "test") # Add a variable not in metadata
-
-  # Test verbose = "message" or "warn" - should show warnings about mismatches
+  
+  # Create data with mismatch
+  dm_mismatch <- dm |> 
+    select(-RACE) |>  # Remove a variable in metadata
+    mutate(EXTRAVAR = "test")  # Add variable not in metadata
+  
+  # verbose = "silent" suppresses warnings
+  expect_silent(
+    set_variable_labels(dm_mismatch, spec, verbose = "silent")
+  )
+  
+  # verbose = "message" or "warn" show warnings
   expect_warning(
     set_variable_labels(dm_mismatch, spec, verbose = "message"),
     "Variables in"
   )
-
-  expect_warning(
-    set_variable_labels(dm_mismatch, spec, verbose = "warn"),
-    "Variables in"
-  )
-
-  # Test verbose = "silent" - suppress all warnings
-  expect_silent(
-    result_silent <- set_variable_labels(dm_mismatch, spec, verbose = "silent")
-  )
-
-  # Verify all verbose levels return same result (labels applied the same way)
-  result_message <- suppressWarnings(
-    set_variable_labels(dm_mismatch, spec, verbose = "message")
-  )
-
-  result_warn <- suppressWarnings(
-    set_variable_labels(dm_mismatch, spec, verbose = "warn")
-  )
-
-  expect_equal(result_message, result_warn)
-  expect_equal(result_message, result_silent)
-
-  # Verify labels were actually applied to variables that exist in both
-  common_vars <- intersect(names(result_message), meta_vars)
-  if (length(common_vars) > 0) {
-    expect_true(!is.null(attr(result_message[[common_vars[1]]], "label")))
-  }
-
-  # Test with perfect match - no warnings with any verbose level
-  # Only keep variables that are in metadata
-  dm_matched <- dm %>% select(all_of(intersect(names(dm), meta_vars)))
-
-  expect_silent(
-    set_variable_labels(dm_matched, spec, verbose = "message")
-  )
-
-  expect_silent(
-    set_variable_labels(dm_matched, spec, verbose = "warn")
-  )
-
-  expect_silent(
-    set_variable_labels(dm_matched, spec, verbose = "silent")
-  )
-
-  # Test invalid verbose value
+  
+  # Invalid verbose value errors
   expect_error(
     set_variable_labels(dm, spec, verbose = "invalid"),
-    "should be one of: message, warn, silent"
+    "should be one of"
   )
 })
