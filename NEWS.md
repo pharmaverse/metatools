@@ -1,4 +1,5 @@
 # metatools 0.3.0
+* Bugfix issue in `create_var_from_codelist()` where supplied codelist contains negative numeric values. (#111)
 
 # metatools 0.2.0
 * Functions now require a subsetted metacore object to be used i.e., created via `metacore::select_dataset()`.
