@@ -5,7 +5,12 @@ This function drops all unspecified variables.
 ## Usage
 
 ``` r
-drop_unspec_vars(dataset, metacore, dataset_name = deprecated())
+drop_unspec_vars(
+  dataset,
+  metacore,
+  dataset_name = deprecated(),
+  verbose = c("message", "warn", "silent")
+)
 ```
 
 ## Arguments
@@ -29,6 +34,22 @@ drop_unspec_vars(dataset, metacore, dataset_name = deprecated())
   [`metacore::select_dataset`](https://atorus-research.github.io/metacore/reference/select_dataset.html)
   to subset the `metacore` object to obtain metadata for a single
   dataset.
+
+- verbose:
+
+  Character string controlling message verbosity. One of:
+
+  `"message"`
+
+  :   Show both warnings and messages (default)
+
+  `"warn"`
+
+  :   Show warnings but suppress messages
+
+  `"silent"`
+
+  :   Suppress all warnings and messages
 
 ## Value
 

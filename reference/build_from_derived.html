@@ -59,7 +59,8 @@ but this is not universal so that is optional to specify.</p>
 <span>  <span class="va">ds_list</span>,</span>
 <span>  dataset_name <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  predecessor_only <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  keep <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  keep <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"message"</span>, <span class="st">"warn"</span>, <span class="st">"silent"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -115,6 +116,20 @@ VS.VSTESTCD == 'Heart Rate'" contains both
 VS.VSTESTCD and VS.VSSTRESN as prerequisites, and
 these columns will be kept through to the ADaM.</p></li>
 </ul></dd>
+
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>Character string controlling message verbosity. One of:</p><dl><dt><code>"message"</code></dt>
+<dd><p>Show both warnings and messages (default)</p></dd>
+
+<dt><code>"warn"</code></dt>
+<dd><p>Show warnings but suppress messages</p></dd>
+
+<dt><code>"silent"</code></dt>
+<dd><p>Suppress all warnings and messages</p></dd>
+
+
+</dl></dd>
 
 </dl></div>
     <div class="section level2">

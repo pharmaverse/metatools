@@ -16,7 +16,8 @@ build_from_derived(
   ds_list,
   dataset_name = deprecated(),
   predecessor_only = TRUE,
-  keep = FALSE
+  keep = FALSE,
+  verbose = c("message", "warn", "silent")
 )
 ```
 
@@ -72,6 +73,22 @@ build_from_derived(
     "Value of VS.VSSTRESN where VS.VSTESTCD == 'Heart Rate'" contains
     both VS.VSTESTCD and VS.VSSTRESN as prerequisites, and these columns
     will be kept through to the ADaM.
+
+- verbose:
+
+  Character string controlling message verbosity. One of:
+
+  `"message"`
+
+  :   Show both warnings and messages (default)
+
+  `"warn"`
+
+  :   Show warnings but suppress messages
+
+  `"silent"`
+
+  :   Suppress all warnings and messages
 
 ## Value
 

@@ -5,7 +5,15 @@ Build the observations for a single QNAM
 ## Usage
 
 ``` r
-build_qnam(dataset, qnam, qlabel, idvar, qeval, qorig)
+build_qnam(
+  dataset,
+  qnam,
+  qlabel,
+  idvar,
+  qeval,
+  qorig,
+  verbose = c("message", "warn", "silent")
+)
 ```
 
 ## Arguments
@@ -33,6 +41,22 @@ build_qnam(dataset, qnam, qlabel, idvar, qeval, qorig)
 - qorig:
 
   QORIG value to be populated for this QNAM
+
+- verbose:
+
+  Character string controlling message verbosity. One of:
+
+  `"message"`
+
+  :   Show both warnings and messages (default)
+
+  `"warn"`
+
+  :   Show warnings but suppress messages
+
+  `"silent"`
+
+  :   Suppress all warnings and messages
 
 ## Value
 
