@@ -41,7 +41,12 @@
 #'                            VS.VSTESTCD == 'Heart Rate'" contains both
 #'                            VS.VSTESTCD and VS.VSSTRESN as prerequisites, and
 #'                            these columns will be kept through to the ADaM.
-#'
+#' @param verbose Character string controlling message verbosity. One of:
+#'   \describe{
+#'     \item{`"message"`}{Show both warnings and messages (default)}
+#'     \item{`"warn"`}{Show warnings but suppress messages}
+#'     \item{`"silent"`}{Suppress all warnings and messages}
+#'   }
 #'
 #' @return dataset
 #' @export
@@ -55,7 +60,8 @@
 #' ds_list <- list(DM = read_xpt(metatools_example("dm.xpt")))
 #' build_from_derived(spec, ds_list, predecessor_only = FALSE)
 build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
-                               predecessor_only = TRUE, keep = FALSE) {
+                               predecessor_only = TRUE, keep = FALSE,
+                               verbose = c("message", "warn", "silent")) {
   if (is_present(dataset_name)) {
     lifecycle::deprecate_warn(
       when = "0.2.0",
@@ -67,6 +73,8 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
     metacore <- make_lone_dataset(metacore, dataset_name)
   }
   verify_DatasetMeta(metacore)
+
+  verbose <- validate_verbose(verbose)
 
   # Deprecate KEEP = TRUE
   keep <- match.arg(as.character(keep), c("TRUE", "FALSE", "ALL", "PREREQUISITE"))
@@ -114,7 +122,7 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
     str_to_lower()
   if (!all(ds_names %in% names(ds_list))) {
     unknown <- keep(names(ds_list), ~ !. %in% ds_names)
-    if (length(unknown) > 0) {
+    if (length(unknown) > 0 && check_warn(verbose)) {
       warning(paste0("The following dataset(s) have no predecessors and will be ignored:\n"),
         paste0(unknown, collapse = ", "),
         call. = FALSE
@@ -124,11 +132,13 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
       str_to_upper() %>%
       paste0(collapse = ", ")
 
-    message(paste0(
-      "Not all datasets provided. Only variables from ",
-      ds_using,
-      " will be gathered."
-    ))
+    if (check_message(verbose)) {
+      message(paste0(
+        "Not all datasets provided. Only variables from ",
+        ds_using,
+        " will be gathered."
+      ))
+    }
 
     # Filter out any variable that come from datasets that aren't present
     vars_w_ds <- vars_w_ds %>%
@@ -162,7 +172,7 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
     group_by(ds) %>%
     group_split() %>%
     map(get_variables, ds_list, keep, derirvations) %>%
-    prepare_join(join_by, names(ds_list)) %>%
+    prepare_join(join_by, names(ds_list), verbose) %>%
     reduce(full_join, by = join_by)
 }
 
@@ -232,10 +242,12 @@ get_variables <- function(x, ds_list, keep, derivations) {
 #'
 #' @param x List of datasets with all columns added
 #' @param keys List of key values to join on
+#' @param ds_names Names of datasets
+#' @param verbose Verbosity level
 #'
 #' @return datasets
 #' @noRd
-prepare_join <- function(x, keys, ds_names) {
+prepare_join <- function(x, keys, ds_names, verbose = "message") {
   out <- list(x[[1]])
 
   if (length(x) > 1) {
@@ -248,8 +260,8 @@ prepare_join <- function(x, keys, ds_names) {
           intersect(colnames(x[[i]]))
         drop_cols <- c(drop_cols, conflicting_cols)
 
-        if (length(conflicting_cols) > 0) {
-          cli_inform(c("i" = "Dropping column(s) from {ds_names[[i]]} due to \\
+        if (length(conflicting_cols) > 0 && check_message(verbose)) {
+          cli_inform(c("i" = "Dropping column(s) from {ds_names[[i]]} due to \
                             conflict with {ds_names[[j]]}: {conflicting_cols}."))
         }
       }
@@ -273,6 +285,12 @@ prepare_join <- function(x, keys, ds_names) {
 #' Note: Deprecated in version 0.2.0. The `dataset_name` argument will be removed
 #' in a future release. Please use `metacore::select_dataset` to subset the
 #' `metacore` object to obtain metadata for a single dataset.
+#' @param verbose Character string controlling message verbosity. One of:
+#'   \describe{
+#'     \item{`"message"`}{Show both warnings and messages (default)}
+#'     \item{`"warn"`}{Show warnings but suppress messages}
+#'     \item{`"silent"`}{Suppress all warnings and messages}
+#'   }
 #'
 #' @return Dataset with only specified columns
 #' @export
@@ -287,7 +305,8 @@ prepare_join <- function(x, keys, ds_names) {
 #'   select(USUBJID, SITEID) %>%
 #'   mutate(foo = "Hello")
 #' drop_unspec_vars(data, spec)
-drop_unspec_vars <- function(dataset, metacore, dataset_name = deprecated()) {
+drop_unspec_vars <- function(dataset, metacore, dataset_name = deprecated(),
+                             verbose = c("message", "warn", "silent")) {
   if (is_present(dataset_name)) {
     lifecycle::deprecate_warn(
       when = "0.2.0",
@@ -299,6 +318,8 @@ drop_unspec_vars <- function(dataset, metacore, dataset_name = deprecated()) {
     metacore <- make_lone_dataset(metacore, dataset_name)
   }
 
+  verbose <- validate_verbose(verbose)
+
   verify_DatasetMeta(metacore)
   var_list <- metacore$ds_vars %>%
     filter(is.na(supp_flag) | !(supp_flag)) %>%
@@ -308,10 +329,12 @@ drop_unspec_vars <- function(dataset, metacore, dataset_name = deprecated()) {
   if (length(to_drop) > 0) {
     out <- dataset %>%
       select(-all_of(to_drop))
-    message(paste0(
-      "The following variable(s) were dropped:\n  ",
-      paste0(to_drop, collapse = "\n  ")
-    ))
+    if (check_message(verbose)) {
+      message(paste0(
+        "The following variable(s) were dropped:\n  ",
+        paste0(to_drop, collapse = "\n  ")
+      ))
+    }
   } else {
     out <- dataset
   }

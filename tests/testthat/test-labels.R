@@ -58,7 +58,8 @@ mc <- suppressWarnings(
   )
 )
 
-test_that("Check that add_labels applies labels properly", {
+# add_labels() tests ----
+test_that("add_labels applies labels properly", {
   x <- mtcars %>%
     add_labels(
       mpg = "Miles Per Gallon",
@@ -69,14 +70,15 @@ test_that("Check that add_labels applies labels properly", {
   expect_equal(attr(x$cyl, "label"), "Cylinders")
 })
 
-test_that("Check that add_labels errors properly", {
+test_that("add_labels errors on invalid input", {
   expect_error(add_labels(TRUE, x = "label"))
   expect_error(add_labels(mtcars, "label"))
   expect_error(add_labels(mtcars, bad = "label"))
   expect_error(add_labels(mtcars, mpg = 1))
 })
 
-test_that("set_variable_labels applies labels properly", {
+# set_variable_labels() tests ----
+test_that("set_variable_labels applies labels from metacore properly", {
   # Load in the metacore test object and example data
   suppressMessages(
     mc <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet = TRUE) %>%
@@ -94,7 +96,7 @@ test_that("set_variable_labels applies labels properly", {
   expect_equal(labs, mc$var_spec$label)
 })
 
-test_that("set_variable_labels raises warnings properly", {
+test_that("set_variable_labels warns on variable mismatches", {
   # This is metadata for the dplyr::starwars dataset
   mc <- suppressWarnings(
     suppressMessages(
@@ -102,33 +104,79 @@ test_that("set_variable_labels raises warnings properly", {
     )
   ) %>% select_dataset("Starwars", quiet = TRUE)
 
+  # Variables in data not in metadata
   starwars_short2 <- starwars_short
   starwars_short2$new_var <- ""
-
-  # Variables in data not in metadata
   expect_warning(set_variable_labels(starwars_short2, mc))
 
-  mc <- suppressWarnings(
+  # Variables in metadata not in data
+  mc_subset <- suppressWarnings(
     suppressMessages(
       metacore::metacore(ds_spec, ds_vars[1:4, ], var_spec[1:4, ], value_spec, derivations, code_id) %>%
         metacore::select_dataset("Starwars", quiet = TRUE)
     )
   )
-  expect_warning(set_variable_labels(starwars_short, mc))
+  expect_warning(set_variable_labels(starwars_short, mc_subset))
 })
 
-test_that("removal_labels works to remvoe all labels", {
-  data <- tibble::tibble(
-    a = 1:5,
-    b = letters[1:5]
-  )
-  data_lab <- data %>%
-    purrr::map2_dfr(c("apple", "pear"), function(x, y) {
-      attr(x, "label") <- y
-      x
-    })
-  remove_labels(data_lab) %>%
-    expect_equal(., data)
+test_that("set_variable_labels respects verbose parameter", {
+  load(metacore::metacore_example("pilot_SDTM.rda"))
+  spec <- metacore |> select_dataset("DM", quiet = TRUE)
+  dm <- haven::read_xpt(metatools_example("dm.xpt"))
 
-  expect_error(remove_labels(c(1:10)))
+  # Create data with mismatch to trigger warnings
+  dm_mismatch <- dm |>
+    select(-RACE) |>
+    mutate(EXTRAVAR = "test")
+
+  # verbose = "silent" suppresses warnings
+  expect_silent(
+    set_variable_labels(dm_mismatch, spec, verbose = "silent")
+  )
+
+  # verbose = "message" shows warnings
+  expect_warning(
+    set_variable_labels(dm_mismatch, spec, verbose = "message"),
+    "Variables in"
+  )
+
+  # verbose = "warn" shows warnings
+  expect_warning(
+    set_variable_labels(dm_mismatch, spec, verbose = "warn"),
+    "Variables in"
+  )
+
+  # Invalid verbose value errors
+  expect_error(
+    set_variable_labels(dm, spec, verbose = "invalid"),
+    "should be one of"
+  )
+})
+
+# remove_labels() tests ----
+test_that("remove_labels removes labels properly", {
+  # Add labels first
+  x <- mtcars |>
+    add_labels(
+      mpg = "Miles Per Gallon",
+      cyl = "Cylinders"
+    )
+
+  # Verify labels exist
+  expect_equal(attr(x$mpg, "label"), "Miles Per Gallon")
+  expect_equal(attr(x$cyl, "label"), "Cylinders")
+
+  # Remove labels
+  x_no_labels <- remove_labels(x)
+
+  # Verify labels are gone
+  expect_null(attr(x_no_labels$mpg, "label"))
+  expect_null(attr(x_no_labels$cyl, "label"))
+})
+
+test_that("remove_labels errors on invalid input", {
+  expect_error(
+    remove_labels("not a dataframe"),
+    "Labels must be removed from a data.frame or tibble"
+  )
 })
