@@ -23,8 +23,7 @@ in a future release. Please use \code{metacore::select_dataset} to subset the
 Dataset with only specified columns
 }
 \description{
-This function drops all unspecified variables. It will throw and error if the
-dataset does not contain all expected variables.
+This function drops all unspecified variables.
 }
 \examples{
 library(metacore)

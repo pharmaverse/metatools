@@ -56,110 +56,114 @@
 #' build_from_derived(spec, ds_list, predecessor_only = FALSE)
 build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
                                predecessor_only = TRUE, keep = FALSE) {
-   if (is_present(dataset_name)) {
-      lifecycle::deprecate_warn(
-         when = "0.2.0",
-         what = "build_from_derived(dataset_name)",
-         details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
+  if (is_present(dataset_name)) {
+    lifecycle::deprecate_warn(
+      when = "0.2.0",
+      what = "build_from_derived(dataset_name)",
+      details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
       Please use {.fn metacore::select_dataset} to subset the {.obj metacore} object to obtain
       metadata for a single dataset.")))
-      )
-      metacore <- make_lone_dataset(metacore, dataset_name)
-   }
-   verify_DatasetMeta(metacore)
+    )
+    metacore <- make_lone_dataset(metacore, dataset_name)
+  }
+  verify_DatasetMeta(metacore)
 
-   # Deprecate KEEP = TRUE
-   keep <- match.arg(as.character(keep), c("TRUE", "FALSE", "ALL", "PREREQUISITE"))
-   if (keep == "TRUE"){
-      cli_warn(paste0("Setting 'keep' = TRUE has been superseded",
+  # Deprecate KEEP = TRUE
+  keep <- match.arg(as.character(keep), c("TRUE", "FALSE", "ALL", "PREREQUISITE"))
+  if (keep == "TRUE") {
+    cli_warn(paste0(
+      "Setting 'keep' = TRUE has been superseded",
       ", and will be unavailable in future releases. Please consider setting ",
-      "'keep' equal to 'ALL' or 'PREREQUISITE'."))
-   }
+      "'keep' equal to 'ALL' or 'PREREQUISITE'."
+    ))
+  }
 
-   derirvations <- metacore$derivations %>%
-      mutate(derivation = trimws(derivation))
+  derirvations <- metacore$derivations %>%
+    mutate(derivation = trimws(derivation))
 
-   if (predecessor_only) {
-      limited_dev_ids <- metacore$value_spec %>%
-         filter(str_detect(str_to_lower(origin), "predecessor")) %>%
-         pull(derivation_id)
+  if (predecessor_only) {
+    limited_dev_ids <- metacore$value_spec %>%
+      filter(str_detect(str_to_lower(origin), "predecessor")) %>%
+      pull(derivation_id)
 
-      derirvations <- derirvations %>%
-         filter(derivation_id %in% limited_dev_ids)
-      if (nrow(derirvations) == 0) {
-         stop("No predecessor variables found please check your metacore object")
-      }
-   }
+    derirvations <- derirvations %>%
+      filter(derivation_id %in% limited_dev_ids)
+    if (nrow(derirvations) == 0) {
+      stop("No predecessor variables found please check your metacore object")
+    }
+  }
 
-   vars_to_pull_through <- derirvations %>%
-      filter(str_detect(derivation, "^\\w*\\.[a-zA-Z0-9]*$"))
+  vars_to_pull_through <- derirvations %>%
+    filter(str_detect(derivation, "^\\w*\\.[a-zA-Z0-9]*$"))
 
-   # To lower so it is flexible about how people name their ds list
-   vars_w_ds <- vars_to_pull_through %>%
-      mutate(ds = str_extract(derivation, "^\\w*(?=\\.)") %>%
-                str_to_lower())
-   ds_names <- vars_w_ds %>%
-      pull(ds) %>%
-      unique()
-   if(is.null(names(ds_list))){
-      names(ds_list) <- deparse(substitute(ds_list)) %>%
-         str_remove("list\\s?\\(") %>%
-         str_remove("\\)s?$") %>%
-         str_split(",\\s?") %>%
-         unlist()
-   }
-   names(ds_list) <- names(ds_list) %>%
-      str_to_lower()
-   if (!all(ds_names %in% names(ds_list))) {
-      unknown <- keep(names(ds_list), ~!.%in% ds_names)
-      if(length(unknown) > 0){
-         warning(paste0("The following dataset(s) have no predecessors and will be ignored:\n"),
-                 paste0(unknown, collapse = ", "),
-                 call. = FALSE)
-      }
-      ds_using <- discard(names(ds_list), ~. %in% unknown) %>%
-         str_to_upper() %>%
-         paste0(collapse = ", ")
+  # To lower so it is flexible about how people name their ds list
+  vars_w_ds <- vars_to_pull_through %>%
+    mutate(ds = str_extract(derivation, "^\\w*(?=\\.)") %>%
+      str_to_lower())
+  ds_names <- vars_w_ds %>%
+    pull(ds) %>%
+    unique()
+  if (is.null(names(ds_list))) {
+    names(ds_list) <- deparse(substitute(ds_list)) %>%
+      str_remove("list\\s?\\(") %>%
+      str_remove("\\)s?$") %>%
+      str_split(",\\s?") %>%
+      unlist()
+  }
+  names(ds_list) <- names(ds_list) %>%
+    str_to_lower()
+  if (!all(ds_names %in% names(ds_list))) {
+    unknown <- keep(names(ds_list), ~ !. %in% ds_names)
+    if (length(unknown) > 0) {
+      warning(paste0("The following dataset(s) have no predecessors and will be ignored:\n"),
+        paste0(unknown, collapse = ", "),
+        call. = FALSE
+      )
+    }
+    ds_using <- discard(names(ds_list), ~ . %in% unknown) %>%
+      str_to_upper() %>%
+      paste0(collapse = ", ")
 
-      message(paste0(
-         "Not all datasets provided. Only variables from ",
-         ds_using,
-         " will be gathered."
-      ))
+    message(paste0(
+      "Not all datasets provided. Only variables from ",
+      ds_using,
+      " will be gathered."
+    ))
 
-      # Filter out any variable that come from datasets that aren't present
-      vars_w_ds <- vars_w_ds %>%
-         filter(ds %in% names(ds_list))
+    # Filter out any variable that come from datasets that aren't present
+    vars_w_ds <- vars_w_ds %>%
+      filter(ds %in% names(ds_list))
+  }
 
-   }
+  ds_keys <- metacore$ds_vars %>%
+    filter(!is.na(key_seq)) %>%
+    pull(variable)
 
-   ds_keys <- metacore$ds_vars %>%
-      filter(!is.na(key_seq)) %>%
-      pull(variable)
+  joining_vals_to_add <- ds_list %>%
+    map(function(x) {
+      names(x) %>%
+        keep(~ . %in% ds_keys)
+    })
 
-   joining_vals_to_add <- ds_list %>%
-      map(function(x){
-         names(x) %>%
-            keep(~ . %in% ds_keys)
-         })
+  join_by <- joining_vals_to_add %>%
+    reduce(intersect)
+  additional_vals <- tibble(
+    ds = names(ds_list),
+    variable = joining_vals_to_add
+  ) %>%
+    unnest(variable) %>%
+    mutate(col_name = variable)
 
-   join_by = joining_vals_to_add %>%
-      reduce(intersect)
-   additional_vals <- tibble(ds = names(ds_list),
-          variable = joining_vals_to_add) %>%
-      unnest(variable) %>%
-      mutate(col_name = variable)
-
-   vars_w_ds %>%
-      mutate(col_name = str_extract(derivation, "(?<=\\.).*")) %>%
-      inner_join(metacore$value_spec, ., by = "derivation_id") %>%
-      select(variable, ds, col_name) %>%
-      bind_rows(additional_vals) %>%
-      group_by(ds) %>%
-      group_split() %>%
-      map(get_variables, ds_list, keep, derirvations) %>%
-      prepare_join(join_by, names(ds_list)) %>%
-      reduce(full_join, by = join_by)
+  vars_w_ds %>%
+    mutate(col_name = str_extract(derivation, "(?<=\\.).*")) %>%
+    inner_join(metacore$value_spec, ., by = "derivation_id") %>%
+    select(variable, ds, col_name) %>%
+    bind_rows(additional_vals) %>%
+    group_by(ds) %>%
+    group_split() %>%
+    map(get_variables, ds_list, keep, derirvations) %>%
+    prepare_join(join_by, names(ds_list)) %>%
+    reduce(full_join, by = join_by)
 }
 
 #' Internal functions to get variables from a dataset list
@@ -174,46 +178,46 @@ build_from_derived <- function(metacore, ds_list, dataset_name = deprecated(),
 #' @return datasets
 #' @noRd
 get_variables <- function(x, ds_list, keep, derivations) {
-   ds_name <- unique(x$ds)
-   data <- ds_list[[ds_name]]
-   rename_vec <- set_names(x$col_name, x$variable)
-   if (keep == "TRUE") {
-      # Don't drop predecessor columns
-      out <- data %>%
-         select(x$col_name) %>%
-         mutate(across(all_of(rename_vec)))
-   } else if (keep == "FALSE") {
-      # Drop predecessor columns
-      out <- data %>%
-         select(x$col_name) %>%
-         mutate(across(all_of(rename_vec))) %>%
-         select(x$variable)
-   } else if (keep == "ALL") {
-      # Keep all cols from original datasets
-      out <- data %>%
-         mutate(across(all_of(rename_vec)))
-   } else if (keep == "PREREQUISITE") {
-      # Keep all columns required for future derivations
-      # Find all "XX.XXXXX"
-      future_derivations <- derivations %>%
-         select(derivation) %>%
-         filter(!str_detect(derivation,"^[A-Z0-9a-z]+\\.[A-Z0-9a-z]+$"))
+  ds_name <- unique(x$ds)
+  data <- ds_list[[ds_name]]
+  rename_vec <- set_names(x$col_name, x$variable)
+  if (keep == "TRUE") {
+    # Don't drop predecessor columns
+    out <- data %>%
+      select(x$col_name) %>%
+      mutate(across(all_of(rename_vec)))
+  } else if (keep == "FALSE") {
+    # Drop predecessor columns
+    out <- data %>%
+      select(x$col_name) %>%
+      mutate(across(all_of(rename_vec))) %>%
+      select(x$variable)
+  } else if (keep == "ALL") {
+    # Keep all cols from original datasets
+    out <- data %>%
+      mutate(across(all_of(rename_vec)))
+  } else if (keep == "PREREQUISITE") {
+    # Keep all columns required for future derivations
+    # Find all "XX.XXXXX"
+    future_derivations <- derivations %>%
+      select(derivation) %>%
+      filter(!str_detect(derivation, "^[A-Z0-9a-z]+\\.[A-Z0-9a-z]+$"))
 
-      prereq_vector <- str_match_all(future_derivations$derivation, "([A-Z0-9a-z]+)\\.([A-Z0-9a-z]+)")
+    prereq_vector <- str_match_all(future_derivations$derivation, "([A-Z0-9a-z]+)\\.([A-Z0-9a-z]+)")
 
-      # Bind into matrix + remove dups
-      prereq_matrix <- do.call(rbind,prereq_vector) %>%
-         unique()
+    # Bind into matrix + remove dups
+    prereq_matrix <- do.call(rbind, prereq_vector) %>%
+      unique()
 
-      # Subset to those present in current dataset
-      prereq_cols <- subset(prereq_matrix, tolower(prereq_matrix[,2]) == tolower(ds_name))[,3]
+    # Subset to those present in current dataset
+    prereq_cols <- subset(prereq_matrix, tolower(prereq_matrix[, 2]) == tolower(ds_name))[, 3]
 
-      out <- data %>%
-         select(c(x$col_name, all_of(prereq_cols))) %>%
-         mutate(across(all_of(rename_vec))) %>%
-         select(c(x$variable, all_of(prereq_cols)))
-   }
-   out
+    out <- data %>%
+      select(c(x$col_name, all_of(prereq_cols))) %>%
+      mutate(across(all_of(rename_vec))) %>%
+      select(c(x$variable, all_of(prereq_cols)))
+  }
+  out
 }
 
 #' Internal function to remove duplicated non-key variables prior to join
@@ -232,35 +236,34 @@ get_variables <- function(x, ds_list, keep, derivations) {
 #' @return datasets
 #' @noRd
 prepare_join <- function(x, keys, ds_names) {
-   out <- list(x[[1]])
+  out <- list(x[[1]])
 
-   if (length(x) > 1){
-      for (i in 2:length(x)){
-         # Drop non-key cols present in each previous dataset in order
-         drop_cols <- c()
+  if (length(x) > 1) {
+    for (i in 2:length(x)) {
+      # Drop non-key cols present in each previous dataset in order
+      drop_cols <- c()
 
-         for (j in 1:(i-1)){
-            conflicting_cols <- keep(names(x[[j]]), function(col) !(col %in% keys)) %>%
-               intersect(colnames(x[[i]]))
-            drop_cols <- c(drop_cols, conflicting_cols)
+      for (j in 1:(i - 1)) {
+        conflicting_cols <- keep(names(x[[j]]), function(col) !(col %in% keys)) %>%
+          intersect(colnames(x[[i]]))
+        drop_cols <- c(drop_cols, conflicting_cols)
 
-            if(length(conflicting_cols) > 0){
-               cli_inform(c("i" = "Dropping column(s) from {ds_names[[i]]} due to \\
+        if (length(conflicting_cols) > 0) {
+          cli_inform(c("i" = "Dropping column(s) from {ds_names[[i]]} due to \\
                             conflict with {ds_names[[j]]}: {conflicting_cols}."))
-            }
-         }
-
-         out[[i]] <- x[[i]] %>%
-            select(-any_of(drop_cols))
+        }
       }
-   }
-   out
+
+      out[[i]] <- x[[i]] %>%
+        select(-any_of(drop_cols))
+    }
+  }
+  out
 }
 
 #' Drop Unspecified Variables
 #'
-#' This function drops all unspecified variables. It will throw and error if the
-#' dataset does not contain all expected variables.
+#' This function drops all unspecified variables.
 #' @param dataset Dataset to change
 #' @param metacore metacore object that only contains the specifications for the
 #'   dataset of interest.
@@ -285,34 +288,35 @@ prepare_join <- function(x, keys, ds_names) {
 #'   mutate(foo = "Hello")
 #' drop_unspec_vars(data, spec)
 drop_unspec_vars <- function(dataset, metacore, dataset_name = deprecated()) {
-   if (is_present(dataset_name)) {
-      lifecycle::deprecate_warn(
-         when = "0.2.0",
-         what = "drop_unspec_vars(dataset_name)",
-         details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
+  if (is_present(dataset_name)) {
+    lifecycle::deprecate_warn(
+      when = "0.2.0",
+      what = "drop_unspec_vars(dataset_name)",
+      details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
       Please use {.fn metacore::select_dataset} to subset the {.obj metacore} object to obtain
       metadata for a single dataset.")))
-      )
-      metacore <- make_lone_dataset(metacore, dataset_name)
-   }
+    )
+    metacore <- make_lone_dataset(metacore, dataset_name)
+  }
 
-   verify_DatasetMeta(metacore)
-   var_list <- metacore$ds_vars %>%
-      filter(is.na(supp_flag) | !(supp_flag)) %>%
-      pull(variable)
-   to_drop <- names(dataset) %>%
-      discard(~ . %in% var_list)
-   if (length(to_drop) > 0) {
-      out <- dataset %>%
-         select(-all_of(to_drop))
-      message(paste0("The following variable(s) were dropped:\n  ",
-              paste0(to_drop, collapse = "\n  ")))
-   } else {
-      out <- dataset
-   }
-   out
+  verify_DatasetMeta(metacore)
+  var_list <- metacore$ds_vars %>%
+    filter(is.na(supp_flag) | !(supp_flag)) %>%
+    pull(variable)
+  to_drop <- names(dataset) %>%
+    discard(~ . %in% var_list)
+  if (length(to_drop) > 0) {
+    out <- dataset %>%
+      select(-all_of(to_drop))
+    message(paste0(
+      "The following variable(s) were dropped:\n  ",
+      paste0(to_drop, collapse = "\n  ")
+    ))
+  } else {
+    out <- dataset
+  }
+  out
 }
-
 
 
 #' Add Missing Variables
@@ -341,58 +345,60 @@ drop_unspec_vars <- function(dataset, metacore, dataset_name = deprecated()) {
 #' load(metacore_example("pilot_ADaM.rda"))
 #' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt")) %>%
-#'    select(-TRTSDT, -TRT01P, -TRT01PN)
+#'   select(-TRTSDT, -TRT01P, -TRT01PN)
 #' add_variables(data, spec)
-add_variables <- function(dataset, metacore, dataset_name = deprecated()){
-   if (is_present(dataset_name)) {
-      lifecycle::deprecate_warn(
-         when = "0.2.0",
-         what = "add_variables(dataset_name)",
-         details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
+add_variables <- function(dataset, metacore, dataset_name = deprecated()) {
+  if (is_present(dataset_name)) {
+    lifecycle::deprecate_warn(
+      when = "0.2.0",
+      what = "add_variables(dataset_name)",
+      details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
       Please use {.fn metacore::select_dataset} to subset the {.obj metacore} object to obtain
       metadata for a single dataset.")))
+    )
+    metacore <- make_lone_dataset(metacore, dataset_name)
+  }
+
+  verify_DatasetMeta(metacore)
+  var_list <- metacore$ds_vars %>%
+    filter(is.na(supp_flag) | !(supp_flag)) %>%
+    pull(variable)
+
+  to_add <- var_list %>%
+    discard(~ . %in% names(dataset))
+  if (length(to_add) > 0) {
+    n <- nrow(dataset)
+    typing <- metacore$var_spec %>%
+      filter(variable %in% to_add) %>%
+      mutate(
+        type_fmt = str_to_lower(type),
+        out_type =
+          case_when(
+            str_detect(str_to_lower(format), "date") ~ "date",
+            type_fmt == "integer" ~ "integer",
+            type_fmt == "numeric" ~ "double",
+            type_fmt == "text" ~ "character",
+            type_fmt == "character" ~ "character",
+            type_fmt == "boolean" ~ "logical",
+            type_fmt == "logical" ~ "logical",
+            TRUE ~ "unknown"
+          )
       )
-      metacore <- make_lone_dataset(metacore, dataset_name)
-   }
 
-   verify_DatasetMeta(metacore)
-   var_list <- metacore$ds_vars %>%
-      filter(is.na(supp_flag) | !(supp_flag)) %>%
-      pull(variable)
+    new_cols <- map(typing$out_type, function(typ) {
+      out <- switch(typ,
+        "character" = rep(NA_character_, n),
+        "integer" = rep(NA_integer_, n),
+        "double" = rep(NA_real_, n),
+        "date" = as.Date(rep(NA_integer_, n)),
+        "logical" = rep(NA, n),
+        "unknown" = rep(NA, n)
+      )
+    })
+    names(new_cols) <- typing$variable
+    new_cols <- as_tibble(new_cols)
 
-   to_add <- var_list %>%
-      discard(~ . %in% names(dataset))
-   if(length(to_add) > 0){
-      n <- nrow(dataset)
-      typing <- metacore$var_spec %>%
-         filter(variable %in% to_add) %>%
-         mutate(type_fmt = str_to_lower(type),
-                out_type =
-                   case_when(
-                      str_detect(str_to_lower(format), "date") ~ "date",
-                      type_fmt == "integer" ~ "integer",
-                      type_fmt == "numeric" ~ "double",
-                      type_fmt == "text" ~ "character",
-                      type_fmt == "character" ~ "character",
-                      type_fmt == "boolean" ~"logical",
-                      type_fmt == "logical" ~"logical",
-                      TRUE ~ "unknown"
-                   ))
-
-      new_cols <- map(typing$out_type, function(typ){
-         out <- switch(typ,
-                       "character" = rep(NA_character_, n),
-                       "integer" = rep(NA_integer_, n),
-                       "double" = rep(NA_real_, n),
-                       "date" = as.Date(rep(NA_integer_, n)),
-                       "logical" = rep(NA, n),
-                       "unknown" = rep(NA, n)
-         )
-      })
-      names(new_cols) <- typing$variable
-      new_cols <- as_tibble(new_cols)
-
-      dataset <- bind_cols(dataset, new_cols)
-   }
-   dataset
+    dataset <- bind_cols(dataset, new_cols)
+  }
+  dataset
 }

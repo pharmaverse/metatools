@@ -1,5 +1,5 @@
 # Suppress cli output during testing
-options(cli.default_handler = function(...) { })
+options(cli.default_handler = function(...) {})
 
 test_that("metatools_example", {
   expect_equal(metatools_example(), c("adsl.xpt", "dm.xpt"))
@@ -15,7 +15,7 @@ test_that("metatools_example", {
 })
 
 test_that("make_lone_dataset", {
-   load(metacore::metacore_example("pilot_ADaM.rda"))
-   # Test deprecated function. Deprecated warning suppressed.
-   suppressWarnings(expect_error(make_lone_dataset(metacore, NULL)))
+  load(metacore::metacore_example("pilot_ADaM.rda"))
+  # Test deprecated function. Deprecated warning suppressed.
+  suppressWarnings(expect_error(make_lone_dataset(metacore, NULL)))
 })
