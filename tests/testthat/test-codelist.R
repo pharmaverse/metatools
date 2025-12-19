@@ -86,19 +86,19 @@ test_that("create_var_from_codelist", {
 
   # Test character variable warning where arg `strict == TRUE` / single issue case
   create_var_from_codelist(
-     data = data,
-     metacore = adlb_spec,
-     input_var = PARAMCD,
-     out_var = PARAM,
-     codelist = get_control_term(adlb_spec, PARAMCD),
-     decode_to_code = FALSE,
-     strict = TRUE
+    data = data,
+    metacore = adlb_spec,
+    input_var = PARAMCD,
+    out_var = PARAM,
+    codelist = get_control_term(adlb_spec, PARAMCD),
+    decode_to_code = FALSE,
+    strict = TRUE
   ) |>
-     expect_warning()
+    expect_warning()
 
   # Test character variable warning where arg `strict == TRUE` / multiple issue case
   data <- tibble::tibble(
-     PARAMCD = c("ALB", "ALP", "ALT", "DUMMY", "DUMMY2")
+    PARAMCD = c("ALB", "ALP", "ALT", "DUMMY", "DUMMY2")
   )
 
   create_var_from_codelist(
@@ -147,19 +147,19 @@ test_that("create_var_from_codelist", {
 
   # Test numeric variable used as input_var / multiple issue case (strict == TRUE)
   data3 <- tibble::tibble(
-     PARAMN = c(18, 19, 20, 99, 999)
+    PARAMN = c(18, 19, 20, 99, 999)
   )
 
   create_var_from_codelist(
-     data = data3,
-     metacore = adlb_spec,
-     input_var = PARAMN,
-     out_var = PARAM,
-     codelist = get_control_term(adlb_spec, PARAMN),
-     decode_to_code = FALSE,
-     strict = TRUE
+    data = data3,
+    metacore = adlb_spec,
+    input_var = PARAMN,
+    out_var = PARAM,
+    codelist = get_control_term(adlb_spec, PARAMN),
+    decode_to_code = FALSE,
+    strict = TRUE
   ) |>
-     expect_warning()
+    expect_warning()
 
   # Test for Variable not in specs
   expect_error(create_var_from_codelist(data, spec, VAR2, FOO))
