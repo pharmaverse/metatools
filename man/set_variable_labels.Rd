@@ -29,9 +29,9 @@ labels to a data frame.
 \examples{
 
 mc <- metacore::spec_to_metacore(
-        metacore::metacore_example("p21_mock.xlsx"),
-        quiet=TRUE
-        )
+  metacore::metacore_example("p21_mock.xlsx"),
+  quiet = TRUE
+)
 dm <- haven::read_xpt(metatools_example("dm.xpt"))
 set_variable_labels(dm, mc, dataset_name = "DM")
 }

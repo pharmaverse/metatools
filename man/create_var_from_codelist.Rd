@@ -69,28 +69,30 @@ create_var_from_codelist(data, dm_spec, VAR1, SEX, decode_to_code = FALSE)
 
 # Example providing a custom codelist
 # This example also reverses the direction of translation
-load(metacore_example('pilot_ADaM.rda'))
+load(metacore_example("pilot_ADaM.rda"))
 adlb_spec <- select_dataset(metacore, "ADLBC", quiet = TRUE)
 adlb <- tibble(PARAMCD = c("ALB", "ALP", "ALT", "AST", "BILI", "BUN"))
 create_var_from_codelist(
-   adlb,
-   adlb_spec,
-   PARAMCD,
-   PARAM,
-   codelist = get_control_term(adlb_spec, PARAMCD),
-   decode_to_code = FALSE,
-   strict = FALSE)
+  adlb,
+  adlb_spec,
+  PARAMCD,
+  PARAM,
+  codelist = get_control_term(adlb_spec, PARAMCD),
+  decode_to_code = FALSE,
+  strict = FALSE
+)
 
 \dontrun{
 # Example expecting warning where `strict` == `TRUE`
 adlb <- tibble(PARAMCD = c("ALB", "ALP", "ALT", "AST", "BILI", "BUN", "DUMMY1", "DUMMY2"))
 create_var_from_codelist(
-   adlb,
-   adlb_spec,
-   PARAMCD,
-   PARAM,
-   codelist = get_control_term(adlb_spec, PARAMCD),
-   decode_to_code = FALSE,
-   strict = TRUE)
+  adlb,
+  adlb_spec,
+  PARAMCD,
+  PARAM,
+  codelist = get_control_term(adlb_spec, PARAMCD),
+  decode_to_code = FALSE,
+  strict = TRUE
+)
 }
 }
