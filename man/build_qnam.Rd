@@ -4,7 +4,15 @@
 \alias{build_qnam}
 \title{Build the observations for a single QNAM}
 \usage{
-build_qnam(dataset, qnam, qlabel, idvar, qeval, qorig)
+build_qnam(
+  dataset,
+  qnam,
+  qlabel,
+  idvar,
+  qeval,
+  qorig,
+  verbose = c("message", "warn", "silent")
+)
 }
 \arguments{
 \item{dataset}{Input dataset}
@@ -18,6 +26,13 @@ build_qnam(dataset, qnam, qlabel, idvar, qeval, qorig)
 \item{qeval}{QEVAL value to be populated for this QNAM}
 
 \item{qorig}{QORIG value to be populated for this QNAM}
+
+\item{verbose}{Character string controlling message verbosity. One of:
+\describe{
+\item{\code{"message"}}{Show both warnings and messages (default)}
+\item{\code{"warn"}}{Show warnings but suppress messages}
+\item{\code{"silent"}}{Suppress all warnings and messages}
+}}
 }
 \value{
 Observations structured in SUPP format
