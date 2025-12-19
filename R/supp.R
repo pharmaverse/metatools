@@ -6,12 +6,21 @@
 #' @param idvar IDVAR variable name (provided as a string)
 #' @param qeval QEVAL value to be populated for this QNAM
 #' @param qorig QORIG value to be populated for this QNAM
+#' @param verbose Character string controlling message verbosity. One of:
+#'   \describe{
+#'     \item{`"message"`}{Show both warnings and messages (default)}
+#'     \item{`"warn"`}{Show warnings but suppress messages}
+#'     \item{`"silent"`}{Suppress all warnings and messages}
+#'   }
 #'
 #' @return Observations structured in SUPP format
 #' @export
 #'
 #'
-build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
+build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig,
+                       verbose = c("message", "warn", "silent")) {
+  verbose <- validate_verbose(verbose)
+
   # Need QNAM as a variable
   qval <- as.symbol(qnam)
 
@@ -58,7 +67,9 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
   blank_test <- out %>%
     pull(QVAL)
   if (any(blank_test == "")) {
-    message(paste0("Empty QVAL rows removed for QNAM = ", unique(out$QNAM)))
+    if (check_message(verbose)) {
+      message(paste0("Empty QVAL rows removed for QNAM = ", unique(out$QNAM)))
+    }
     out <- out %>%
       filter(QVAL != "")
   }
