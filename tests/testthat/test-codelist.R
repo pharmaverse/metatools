@@ -90,7 +90,7 @@ test_that("create_var_from_codelist", {
     metacore = adlb_spec,
     input_var = PARAMCD,
     out_var = PARAM,
-    codelist = get_control_term(adlb_spec, PARAMCD),
+    codelist = metacore::get_control_term(adlb_spec, PARAMCD),
     decode_to_code = FALSE,
     strict = TRUE
   ) |>
