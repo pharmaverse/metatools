@@ -6,12 +6,21 @@
 #' @param idvar IDVAR variable name (provided as a string)
 #' @param qeval QEVAL value to be populated for this QNAM
 #' @param qorig QORIG value to be populated for this QNAM
+#' @param verbose Character string controlling message verbosity. One of:
+#'   \describe{
+#'     \item{`"message"`}{Show both warnings and messages (default)}
+#'     \item{`"warn"`}{Show warnings but suppress messages}
+#'     \item{`"silent"`}{Suppress all warnings and messages}
+#'   }
 #'
 #' @return Observations structured in SUPP format
 #' @export
 #'
 #'
-build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
+build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig,
+                       verbose = c("message", "warn", "silent")) {
+  verbose <- validate_verbose(verbose)
+
   # Need QNAM as a variable
   qval <- as.symbol(qnam)
 
@@ -58,7 +67,9 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig) {
   blank_test <- out %>%
     pull(QVAL)
   if (any(blank_test == "")) {
-    message(paste0("Empty QVAL rows removed for QNAM = ", unique(out$QNAM)))
+    if (check_message(verbose)) {
+      message(paste0("Empty QVAL rows removed for QNAM = ", unique(out$QNAM)))
+    }
     out <- out %>%
       filter(QVAL != "")
   }
@@ -267,20 +278,22 @@ combine_supp_join <- function(dataset, supp) {
 
     # Add message for when there are rows in the supp that didn't get merged
     if (nrow(missing) > 0) {
-      missing_txt <-
-        capture.output(
-          missing %>%
-            select(USUBJID, all_of(current_idvar)) %>%
-            print()
-        ) %>%
-        paste0(collapse = "\n")
-      stop(
-        paste0(
-          "Not all rows of the Supp were merged. The following rows are missing:\n",
-          missing_txt
-        ),
-        call. = FALSE
-      )
+      missing_display <- missing %>%
+        dplyr::transmute(
+          USUBJID,
+          !!current_idvar := IDVARVAL
+        )
+      msg <- "Not all rows of SUPP were merged."
+      cli::cli_alert_warning(msg)
+
+      cli::cli_text("")
+      cli::cli_text("The following rows are missing:")
+      cli::cli_rule()
+
+      print(missing_display)
+
+      cli::cli_rule()
+      warning(msg, call. = FALSE)
     }
 
     # join the data
