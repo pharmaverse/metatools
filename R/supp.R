@@ -278,20 +278,22 @@ combine_supp_join <- function(dataset, supp) {
 
     # Add message for when there are rows in the supp that didn't get merged
     if (nrow(missing) > 0) {
-      missing_txt <-
-        capture.output(
-          missing %>%
-            select(USUBJID, all_of(current_idvar)) %>%
-            print()
-        ) %>%
-        paste0(collapse = "\n")
-      stop(
-        paste0(
-          "Not all rows of the Supp were merged. The following rows are missing:\n",
-          missing_txt
-        ),
-        call. = FALSE
-      )
+      missing_display <- missing %>%
+        dplyr::transmute(
+          USUBJID,
+          !!current_idvar := IDVARVAL
+        )
+      msg <- "Not all rows of SUPP were merged."
+      cli::cli_alert_warning(msg)
+
+      cli::cli_text("")
+      cli::cli_text("The following rows are missing:")
+      cli::cli_rule()
+
+      print(missing_display)
+
+      cli::cli_rule()
+      warning(msg, call. = FALSE)
     }
 
     # join the data

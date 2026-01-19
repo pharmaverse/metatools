@@ -35,6 +35,6 @@ library(dplyr)
 load(metacore_example("pilot_ADaM.rda"))
 spec <- metacore \%>\% select_dataset("ADSL")
 data <- read_xpt(metatools_example("adsl.xpt")) \%>\%
-   select(-TRTSDT, -TRT01P, -TRT01PN)
+  select(-TRTSDT, -TRT01P, -TRT01PN)
 add_variables(data, spec)
 }
