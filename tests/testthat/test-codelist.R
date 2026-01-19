@@ -163,8 +163,8 @@ test_that("create_var_from_codelist", {
 
   # Test for Variable not in specs
   expect_error(
-     create_var_from_codelist(data, adlb_spec, VAR2, FOO),
-     regexp = cli_inform(c("!" = "FOO not found in the value_spec table. Please check the variable name"))
+    create_var_from_codelist(data, adlb_spec, VAR2, FOO),
+    regexp = cli_inform(c("!" = "FOO not found in the value_spec table. Please check the variable name"))
   )
 })
 
