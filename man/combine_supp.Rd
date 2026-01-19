@@ -20,5 +20,5 @@ Combine the Domain and Supplemental Qualifier
 \examples{
 library(safetyData)
 library(tibble)
-combine_supp(sdtm_ae, sdtm_suppae)  \%>\% as_tibble()
+combine_supp(sdtm_ae, sdtm_suppae) \%>\% as_tibble()
 }
