@@ -27,14 +27,14 @@ Source:
 [`DESCRIPTION`](https://github.com/pharmaverse/metatools/blob/main/DESCRIPTION)
 
 Hobby L, Fillmore C, Denney B, Stackhouse M, Stoilova J, Senior T
-(2025). *metatools: Enable the Use of 'metacore' to Help Create and
+(2026). *metatools: Enable the Use of 'metacore' to Help Create and
 Check Dataset*. R package version 0.2.0,
 <https://github.com/pharmaverse/metatools>.
 
     @Manual{,
       title = {metatools: Enable the Use of 'metacore' to Help Create and Check Dataset},
       author = {Liam Hobby and Christina Fillmore and Bill Denney and Mike Stackhouse and Jana Stoilova and Tamara Senior},
-      year = {2025},
+      year = {2026},
       note = {R package version 0.2.0},
       url = {https://github.com/pharmaverse/metatools},
     }
