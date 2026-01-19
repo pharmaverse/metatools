@@ -397,6 +397,8 @@ test_that("combine_supp: extra SUPP rows that do not match core raise a warning 
     c("NA", "NA", "NA")
   )
   expect_false(any(out$PCSEQ %in% c(99, 101)))
+})
+
 test_that("build_qnam verbose parameter", {
   # Create simple test data with a column that will be used as QNAM
   ae <- safetyData::sdtm_ae %>%
