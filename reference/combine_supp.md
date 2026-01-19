@@ -27,7 +27,7 @@ a dataset with the supp variables added to it
 ``` r
 library(safetyData)
 library(tibble)
-combine_supp(sdtm_ae, sdtm_suppae)  %>% as_tibble()
+combine_supp(sdtm_ae, sdtm_suppae) %>% as_tibble()
 #> # A tibble: 1,191 × 36
 #>    STUDYID DOMAIN USUBJID AESEQ AESPID AETERM AELLT AELLTCD AEDECOD AEPTCD AEHLT
 #>    <chr>   <chr>  <chr>   <int> <chr>  <chr>  <chr> <lgl>   <chr>   <lgl>  <chr>

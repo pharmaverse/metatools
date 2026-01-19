@@ -27,10 +27,10 @@ data with variable labels applied
 
 ``` r
 add_labels(
-    mtcars,
-    mpg = "Miles Per Gallon",
-    cyl = "Cylinders"
-  )
+  mtcars,
+  mpg = "Miles Per Gallon",
+  cyl = "Cylinders"
+)
 #>                      mpg cyl  disp  hp drat    wt  qsec vs am gear carb
 #> Mazda RX4           21.0   6 160.0 110 3.90 2.620 16.46  0  1    4    4
 #> Mazda RX4 Wag       21.0   6 160.0 110 3.90 2.875 17.02  0  1    4    4

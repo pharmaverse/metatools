@@ -64,7 +64,7 @@ spec <- metacore %>% select_dataset("ADSL")
 #> ✔ ADSL dataset successfully selected
 #> 
 data <- read_xpt(metatools_example("adsl.xpt")) %>%
-   select(-TRTSDT, -TRT01P, -TRT01PN)
+  select(-TRTSDT, -TRT01P, -TRT01PN)
 add_variables(data, spec)
 #> # A tibble: 254 × 51
 #>    STUDYID USUBJID SUBJID SITEID SITEGR1 ARM   TRT01A TRT01AN TRTEDT     TRTDURD

@@ -60,9 +60,9 @@ Dataframe with labels applied
 
 ``` r
 mc <- metacore::spec_to_metacore(
-        metacore::metacore_example("p21_mock.xlsx"),
-        quiet=TRUE
-        )
+  metacore::metacore_example("p21_mock.xlsx"),
+  quiet = TRUE
+)
 #> ✔ Metadata successfully imported
 #> ℹ Dataset metadata imported with suppressed warnings
 #> ℹ To use the Metacore object with metatools package, first subset a dataset

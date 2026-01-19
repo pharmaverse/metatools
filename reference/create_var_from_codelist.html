@@ -156,20 +156,21 @@ values not present in the codelist will likely result in <code>NA</code> results
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example providing a custom codelist</span></span></span>
 <span class="r-in"><span><span class="co"># This example also reverses the direction of translation</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span><span class="fu"><a href="https://atorus-research.github.io/metacore/reference/metacore_example.html" class="external-link">metacore_example</a></span><span class="op">(</span><span class="st">'pilot_ADaM.rda'</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span><span class="fu"><a href="https://atorus-research.github.io/metacore/reference/metacore_example.html" class="external-link">metacore_example</a></span><span class="op">(</span><span class="st">"pilot_ADaM.rda"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">adlb_spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://atorus-research.github.io/metacore/reference/select_dataset.html" class="external-link">select_dataset</a></span><span class="op">(</span><span class="va">metacore</span>, <span class="st">"ADLBC"</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> ADLBC dataset successfully selected</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> <span style="color: #BB0000;">Dataset metadata specification subsetted with suppressed warnings</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="va">adlb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>PARAMCD <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ALB"</span>, <span class="st">"ALP"</span>, <span class="st">"ALT"</span>, <span class="st">"AST"</span>, <span class="st">"BILI"</span>, <span class="st">"BUN"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">create_var_from_codelist</span><span class="op">(</span></span></span>
-<span class="r-in"><span>   <span class="va">adlb</span>,</span></span>
-<span class="r-in"><span>   <span class="va">adlb_spec</span>,</span></span>
-<span class="r-in"><span>   <span class="va">PARAMCD</span>,</span></span>
-<span class="r-in"><span>   <span class="va">PARAM</span>,</span></span>
-<span class="r-in"><span>   codelist <span class="op">=</span> <span class="fu"><a href="https://atorus-research.github.io/metacore/reference/get_control_term.html" class="external-link">get_control_term</a></span><span class="op">(</span><span class="va">adlb_spec</span>, <span class="va">PARAMCD</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>   decode_to_code <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
-<span class="r-in"><span>   strict <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">adlb</span>,</span></span>
+<span class="r-in"><span>  <span class="va">adlb_spec</span>,</span></span>
+<span class="r-in"><span>  <span class="va">PARAMCD</span>,</span></span>
+<span class="r-in"><span>  <span class="va">PARAM</span>,</span></span>
+<span class="r-in"><span>  codelist <span class="op">=</span> <span class="fu"><a href="https://atorus-research.github.io/metacore/reference/get_control_term.html" class="external-link">get_control_term</a></span><span class="op">(</span><span class="va">adlb_spec</span>, <span class="va">PARAMCD</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  decode_to_code <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>  strict <span class="op">=</span> <span class="cn">FALSE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 6 × 2</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   PARAMCD PARAM                           </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                           </span>
@@ -184,13 +185,14 @@ values not present in the codelist will likely result in <code>NA</code> results
 <span class="r-in"><span><span class="co"># Example expecting warning where `strict` == `TRUE`</span></span></span>
 <span class="r-in"><span><span class="va">adlb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>PARAMCD <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ALB"</span>, <span class="st">"ALP"</span>, <span class="st">"ALT"</span>, <span class="st">"AST"</span>, <span class="st">"BILI"</span>, <span class="st">"BUN"</span>, <span class="st">"DUMMY1"</span>, <span class="st">"DUMMY2"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">create_var_from_codelist</span><span class="op">(</span></span></span>
-<span class="r-in"><span>   <span class="va">adlb</span>,</span></span>
-<span class="r-in"><span>   <span class="va">adlb_spec</span>,</span></span>
-<span class="r-in"><span>   <span class="va">PARAMCD</span>,</span></span>
-<span class="r-in"><span>   <span class="va">PARAM</span>,</span></span>
-<span class="r-in"><span>   codelist <span class="op">=</span> <span class="fu"><a href="https://atorus-research.github.io/metacore/reference/get_control_term.html" class="external-link">get_control_term</a></span><span class="op">(</span><span class="va">adlb_spec</span>, <span class="va">PARAMCD</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>   decode_to_code <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
-<span class="r-in"><span>   strict <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">adlb</span>,</span></span>
+<span class="r-in"><span>  <span class="va">adlb_spec</span>,</span></span>
+<span class="r-in"><span>  <span class="va">PARAMCD</span>,</span></span>
+<span class="r-in"><span>  <span class="va">PARAM</span>,</span></span>
+<span class="r-in"><span>  codelist <span class="op">=</span> <span class="fu"><a href="https://atorus-research.github.io/metacore/reference/get_control_term.html" class="external-link">get_control_term</a></span><span class="op">(</span><span class="va">adlb_spec</span>, <span class="va">PARAMCD</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  decode_to_code <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>  strict <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
