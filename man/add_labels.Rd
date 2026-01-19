@@ -19,9 +19,9 @@ This function allows a user to apply several labels to a dataframe at once.
 }
 \examples{
 add_labels(
-    mtcars,
-    mpg = "Miles Per Gallon",
-    cyl = "Cylinders"
-  )
+  mtcars,
+  mpg = "Miles Per Gallon",
+  cyl = "Cylinders"
+)
 
 }
