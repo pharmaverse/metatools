@@ -397,4 +397,82 @@ test_that("combine_supp: extra SUPP rows that do not match core raise a warning 
     c("NA", "NA", "NA")
   )
   expect_false(any(out$PCSEQ %in% c(99, 101)))
+test_that("build_qnam verbose parameter", {
+  # Create simple test data with a column that will be used as QNAM
+  ae <- safetyData::sdtm_ae %>%
+    head(10) %>%
+    mutate(TESTVAR = c("", "", "Y", "Y", "N", "", "Y", "N", "Y", "")) # Some empty strings
+
+  # Test verbose = "message" (default) - should show message about empty QVAL
+  expect_message(
+    build_qnam(
+      dataset = ae,
+      qnam = "TESTVAR",
+      qlabel = "Test Variable",
+      idvar = "AESEQ",
+      qeval = "INVESTIGATOR",
+      qorig = "CRF",
+      verbose = "message"
+    ),
+    "Empty QVAL rows removed for QNAM = TESTVAR"
+  )
+
+  # Test verbose = "warn" - suppress messages
+  expect_silent(
+    result_warn <- build_qnam(
+      dataset = ae,
+      qnam = "TESTVAR",
+      qlabel = "Test Variable",
+      idvar = "AESEQ",
+      qeval = "INVESTIGATOR",
+      qorig = "CRF",
+      verbose = "warn"
+    )
+  )
+
+  # Test verbose = "silent" - suppress all output
+  expect_silent(
+    result_silent <- build_qnam(
+      dataset = ae,
+      qnam = "TESTVAR",
+      qlabel = "Test Variable",
+      idvar = "AESEQ",
+      qeval = "INVESTIGATOR",
+      qorig = "CRF",
+      verbose = "silent"
+    )
+  )
+
+  # Verify all verbose levels return same result
+  result_message <- suppressMessages(
+    build_qnam(
+      dataset = ae,
+      qnam = "TESTVAR",
+      qlabel = "Test Variable",
+      idvar = "AESEQ",
+      qeval = "INVESTIGATOR",
+      qorig = "CRF",
+      verbose = "message"
+    )
+  )
+
+  expect_equal(result_message, result_warn)
+  expect_equal(result_message, result_silent)
+
+  # Verify empty strings were actually removed
+  expect_false("" %in% result_message$QVAL)
+
+  # Test invalid verbose value
+  expect_error(
+    build_qnam(
+      dataset = ae,
+      qnam = "TESTVAR",
+      qlabel = "Test Variable",
+      idvar = "AESEQ",
+      qeval = "INVESTIGATOR",
+      qorig = "CRF",
+      verbose = "invalid"
+    ),
+    "should be one of: message, warn, silent"
+  )
 })

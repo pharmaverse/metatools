@@ -44,3 +44,32 @@ make_lone_dataset <- function(metacore, dataset_name) {
   }
   metacore
 }
+
+#' Check if messages should be displayed
+#' @param verbose Verbosity level
+#' @noRd
+check_message <- function(verbose) {
+  verbose == "message"
+}
+
+#' Check if warnings should be displayed
+#' @param verbose Verbosity level
+#' @noRd
+check_warn <- function(verbose) {
+  verbose %in% c("message", "warn")
+}
+
+#' Validate verbose parameter
+#' @param verbose Verbosity level to validate
+#' @noRd
+validate_verbose <- function(verbose, arg = rlang::caller_arg(verbose), call = rlang::caller_env()) {
+  choices <- c("message", "warn", "silent")
+  tryCatch(
+    match.arg(verbose, choices),
+    error = function(e) {
+      cli_abort(c(
+        "x" = "{.arg {arg}} should be one of: {cli::ansi_collapse(choices, last = ', ')}"
+      ), call = call)
+    }
+  )
+}

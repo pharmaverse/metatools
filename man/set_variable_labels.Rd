@@ -4,7 +4,12 @@
 \alias{set_variable_labels}
 \title{Apply labels to a data frame using a metacore object}
 \usage{
-set_variable_labels(data, metacore, dataset_name = deprecated())
+set_variable_labels(
+  data,
+  metacore,
+  dataset_name = deprecated(),
+  verbose = c("message", "warn", "silent")
+)
 }
 \arguments{
 \item{data}{A dataframe or tibble upon which labels will be applied}
@@ -18,6 +23,13 @@ object provided hasn't already been subsetted.\cr
 Note: Deprecated in version 0.2.0. The \code{dataset_name} argument will be removed
 in a future release. Please use \code{metacore::select_dataset} to subset the
 \code{metacore} object to obtain metadata for a single dataset.}
+
+\item{verbose}{Character string controlling message verbosity. One of:
+\describe{
+\item{\code{"message"}}{Show both warnings and messages (default)}
+\item{\code{"warn"}}{Show warnings but suppress messages}
+\item{\code{"silent"}}{Suppress all warnings and messages}
+}}
 }
 \value{
 Dataframe with labels applied

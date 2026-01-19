@@ -175,7 +175,7 @@ test_that("build_from_derived", {
 })
 
 
-test_that("add_variables", {
+test_that("add_variables add missing variables to the metacore object", {
   load(metacore::metacore_example("pilot_ADaM.rda"))
   spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
@@ -197,5 +197,77 @@ test_that("add_variables", {
   expect_equal(
     add_variables(data, spec),
     data
+  )
+})
+
+test_that("drop_unspec_vars verbose parameter", {
+  data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
+    mutate(foo = "Hello", foo2 = "world")
+
+  man_vars <- metacore$ds_vars %>%
+    filter(dataset == "ADSL") %>%
+    pull(variable)
+  man_dat <- data %>%
+    select(all_of(man_vars))
+
+  # Test verbose = "message" (default behavior)
+  expect_message(
+    drop_unspec_vars(data, spec, verbose = "message"),
+    "The following variable\\(s\\) were dropped:"
+  )
+
+  # Test verbose = "warn" (suppress messages)
+  expect_silent(
+    drop_unspec_vars(data, spec, verbose = "warn")
+  )
+
+  # Test verbose = "silent" (suppress all output)
+  expect_silent(
+    drop_unspec_vars(data, spec, verbose = "silent")
+  )
+
+  # Verify all verbose levels return same result
+  result_message <- drop_unspec_vars(data, spec, verbose = "message")
+  result_warn <- drop_unspec_vars(data, spec, verbose = "warn")
+  result_silent <- drop_unspec_vars(data, spec, verbose = "silent")
+
+  expect_equal(result_message, man_dat)
+  expect_equal(result_warn, man_dat)
+  expect_equal(result_silent, man_dat)
+
+  # Test invalid verbose value
+  expect_error(
+    drop_unspec_vars(data, spec, verbose = "invalid"),
+    "should be one of: message, warn, silent"
+  )
+})
+
+test_that("build_from_derived verbose controls prepare_join messages", {
+  load(metacore::metacore_example("pilot_ADaM.rda"))
+  spec2 <- metacore %>% select_dataset("ADAE", quiet = TRUE)
+
+  # Use safetyData datasets and add a conflicting non-key column
+  # STUDYID is a key column, so add a different column that will conflict
+  ae <- safetyData::sdtm_ae %>%
+    mutate(TESTCOL = "AE_VALUE") # Add a non-key column
+
+  adsl <- safetyData::adam_adsl %>%
+    mutate(TESTCOL = "ADSL_VALUE") # Same column with different value
+
+  ds_list <- list(AE = ae, ADSL = adsl)
+
+  # Test that conflicting column messages are shown with verbose = "message"
+  expect_message(
+    build_from_derived(spec2, ds_list, predecessor_only = FALSE, verbose = "message", keep = "ALL"),
+    "Dropping column\\(s\\) from"
+  )
+
+  # Test that messages are suppressed with verbose = "warn" and "silent"
+  expect_silent(
+    build_from_derived(spec2, ds_list, predecessor_only = FALSE, verbose = "warn", keep = "ALL")
+  )
+
+  expect_silent(
+    build_from_derived(spec2, ds_list, predecessor_only = FALSE, verbose = "silent", keep = "ALL")
   )
 })

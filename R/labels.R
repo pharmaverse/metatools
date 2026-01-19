@@ -75,6 +75,12 @@ remove_labels <- function(data) {
 #'   Note: Deprecated in version 0.2.0. The `dataset_name` argument will be removed
 #'   in a future release. Please use `metacore::select_dataset` to subset the
 #'   `metacore` object to obtain metadata for a single dataset.
+#' @param verbose Character string controlling message verbosity. One of:
+#'   \describe{
+#'     \item{`"message"`}{Show both warnings and messages (default)}
+#'     \item{`"warn"`}{Show warnings but suppress messages}
+#'     \item{`"silent"`}{Suppress all warnings and messages}
+#'   }
 #'
 #' @return Dataframe with labels applied
 #' @export
@@ -87,7 +93,8 @@ remove_labels <- function(data) {
 #' )
 #' dm <- haven::read_xpt(metatools_example("dm.xpt"))
 #' set_variable_labels(dm, mc, dataset_name = "DM")
-set_variable_labels <- function(data, metacore, dataset_name = deprecated()) {
+set_variable_labels <- function(data, metacore, dataset_name = deprecated(),
+                                verbose = c("message", "warn", "silent")) {
   if (is_present(dataset_name)) {
     lifecycle::deprecate_warn(
       when = "0.2.0",
@@ -100,6 +107,8 @@ set_variable_labels <- function(data, metacore, dataset_name = deprecated()) {
   }
   verify_DatasetMeta(metacore)
 
+  verbose <- validate_verbose(verbose)
+
   # Grab out the var names and labels
   var_spec <- metacore$var_spec %>%
     select(variable, label)
@@ -110,16 +119,15 @@ set_variable_labels <- function(data, metacore, dataset_name = deprecated()) {
   dns <- names(data)
 
   # Are there any variables in data not in the metadata
-  mismatch <- setdiff(dns, ns)
-  in_meta <- ns[which(ns %in% mismatch)]
-  in_data <- dns[which(dns %in% mismatch)]
+  in_meta <- setdiff(ns, dns) # Variables in metadata not in data
+  in_data <- setdiff(dns, ns) # Variables in data not in metadata
 
-  if (length(in_meta) > 0) {
+  if (length(in_meta) > 0 && check_warn(verbose)) {
     wrn <- paste0("Variables in metadata not in data:\n\t", paste0(in_meta, collapse = "\n\t"))
     warning(wrn, call. = FALSE)
   }
 
-  if (length(in_data) > 0) {
+  if (length(in_data) > 0 && check_warn(verbose)) {
     wrn <- paste0("Variables in data not in metadata:\n\t", paste0(in_data, collapse = "\n\t"))
     warning(wrn, call. = FALSE)
   }
