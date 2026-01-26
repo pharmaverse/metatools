@@ -191,10 +191,11 @@ type is {typeof(code_translation)}. Check the structure of the codelist in the \
   codelist <- code_translation |> pull(ref_var)
 
   miss <- setdiff(values, codelist)
-  if (strict == TRUE && length(miss) > 0) {
+  n_miss <- length(miss)
+  if (strict == TRUE && n_miss > 0) {
     cli_warn(
-      "In {.fn create_var_from_codelist}: The following value{?s} present in the
-input dataset {?is/are} not present in the codelist: {miss}"
+      "In {.fn create_var_from_codelist}: The following {qty(n_miss)}value{?s}
+present in the input dataset {qty(n_miss)}{?is/are} not present in the codelist: {miss}"
     )
   }
 
