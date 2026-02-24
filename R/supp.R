@@ -21,6 +21,20 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig,
                        verbose = c("message", "warn", "silent")) {
   verbose <- validate_verbose(verbose)
 
+  # Detect whether this is an AP domain (APID) or standard domain (USUBJID)
+  is_ap <- "APID" %in% names(dataset)
+  is_subject <- "USUBJID" %in% names(dataset)
+
+  if (is_ap && is_subject) {
+    stop("Dataset contains both APID and USUBJID. Only one is permitted.", call. = FALSE)
+  }
+  if (!is_ap && !is_subject) {
+    stop("Dataset must contain either USUBJID (study subject) or APID (associated persons).", call. = FALSE)
+  }
+
+  id_var <- if (is_ap) "APID" else "USUBJID"
+  id_sym <- sym(id_var)
+
   # Need QNAM as a variable
   qval <- as.symbol(qnam)
 
@@ -34,7 +48,7 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig,
   }
 
   dup_sup <- dataset %>%
-    select(STUDYID, RDOMAIN = DOMAIN, USUBJID, !!idvarval, !!qval) %>%
+    select(STUDYID, RDOMAIN = DOMAIN, !!id_sym, !!idvarval, !!qval) %>%
     rename(IDVARVAL = !!idvarval, QVAL = !!qval) %>%
     filter(!is.na(QVAL)) %>%
     mutate(
@@ -47,11 +61,11 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig,
 
   out <- dup_sup %>%
     distinct(STUDYID, RDOMAIN,
-      USUBJID, IDVARVAL, QNAM,
+      !!id_sym, IDVARVAL, QNAM,
       .keep_all = TRUE
     ) %>%
     select(
-      STUDYID, RDOMAIN, USUBJID, IDVAR,
+      STUDYID, RDOMAIN, !!id_sym, IDVAR,
       IDVARVAL, QNAM, QLABEL, QVAL,
       QORIG, QEVAL
     )
@@ -59,7 +73,10 @@ build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig,
   test_out <- dup_sup %>%
     distinct()
   if (nrow(out) != nrow(test_out)) {
-    stop("The combination of STUDYID, RDOMAIN, USUBJID, IDVARVAL, QNAM is ambiguous. Consider modifying the IDVAR",
+    stop(
+      paste0(
+        "The combination of STUDYID, RDOMAIN, ", id_var, ", IDVARVAL, QNAM is ambiguous. Consider modifying the IDVAR"
+      ),
       call. = FALSE
     )
   }
@@ -158,8 +175,22 @@ combine_supp <- function(dataset, supp) {
     warning("Zero rows in supp, returning original dataset unchanged")
     return(dataset)
   }
+
+  # Detect whether this is an AP supp (APID) or standard supp (USUBJID)
+  is_ap <- "APID" %in% names(supp)
+  is_subject <- "USUBJID" %in% names(supp)
+
+  if (is_ap && is_subject) {
+    stop("Supplemental dataset contains both APID and USUBJID. Only one is permitted.", call. = FALSE)
+  }
+  if (!is_ap && !is_subject) {
+    stop("Supplemental dataset must contain either USUBJID (study subject) or APID (associated persons).", call. = FALSE)
+  }
+
+  id_var <- if (is_ap) "APID" else "USUBJID"
+
   supp_cols <- c(
-    "STUDYID", "RDOMAIN", "USUBJID", "IDVAR", "IDVARVAL",
+    "STUDYID", "RDOMAIN", id_var, "IDVAR", "IDVARVAL",
     "QNAM", "QLABEL", "QVAL", "QORIG"
   )
   maybe <- c("QEVAL")
@@ -183,6 +214,22 @@ combine_supp <- function(dataset, supp) {
     stop(
       "The following column(s) would be created by combine_supp(), but are already in the original dataset:\n  ",
       paste(existing_qnam, sep = ", ")
+    )
+  }
+
+  if (all(c("APID", "USUBJID") %in% names(dataset))) {
+    stop("Parent dataset contains both APID and USUBJID. Only one is permitted.", call. = FALSE)
+  }
+
+  # Validate that required key columns are present in the parent dataset
+  required_parent_cols <- c("STUDYID", "DOMAIN", id_var)
+  mis_parent_col <- setdiff(required_parent_cols, names(dataset))
+
+  if (length(mis_parent_col) > 0) {
+    stop(
+      "The following required column(s) are missing from the parent dataset:\n  ",
+      paste(mis_parent_col, collapse = "\n  "),
+      call. = FALSE
     )
   }
 
@@ -241,7 +288,7 @@ combine_supp_join <- function(dataset, supp) {
   stopifnot(length(current_idvar) == 1)
   stopifnot(length(current_qnam) == 1)
 
-  by <- intersect(names(supp), c("STUDYID", "DOMAIN", "USUBJID", "IDVARVAL"))
+  by <- intersect(names(supp), c("STUDYID", "DOMAIN", "USUBJID", "APID", "IDVARVAL"))
   supp_prep <- supp %>% select(-QNAM, -IDVAR)
   new_column <- setdiff(names(supp_prep), by)
   stopifnot(length(new_column) == 1)

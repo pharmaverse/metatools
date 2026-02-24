@@ -484,6 +484,138 @@ test_that("combine_supp: extra SUPP rows that do not match core raise a warning 
   expect_false(any(out$PCSEQ %in% c(99, 101)))
 })
 
+test_that("combine_supp:errors if supp has both APID and USUBJID", {
+  dataset <- data.frame(
+    STUDYID = "S1",
+    DOMAIN  = "AE",
+    USUBJID = "01",
+    AESEQ   = 1L
+  )
+
+  supp <- data.frame(
+    STUDYID  = "S1",
+    RDOMAIN  = "AE",
+    USUBJID  = "01",
+    APID     = "A01",
+    IDVAR    = "AESEQ",
+    IDVARVAL = "1",
+    QNAM     = "AETRTEM",
+    QLABEL   = "Treatment Emergent Flag",
+    QVAL     = "Y",
+    QORIG    = "CRF"
+  )
+
+  expect_error(
+    combine_supp(dataset, supp),
+    "contains both APID and USUBJID"
+  )
+})
+
+
+test_that("combine_supp:errors if supp has neither APID nor USUBJID", {
+  dataset <- data.frame(
+    STUDYID = "S1",
+    DOMAIN  = "AE",
+    USUBJID = "01",
+    AESEQ   = 1L
+  )
+
+  supp <- data.frame(
+    STUDYID  = "S1",
+    RDOMAIN  = "AE",
+    IDVAR    = "AESEQ",
+    IDVARVAL = "1",
+    QNAM     = "AETRTEM",
+    QLABEL   = "Treatment Emergent Flag",
+    QVAL     = "Y",
+    QORIG    = "CRF"
+  )
+
+  expect_error(
+    combine_supp(dataset, supp),
+    "must contain either USUBJID"
+  )
+})
+
+test_that("combine_supp:supports APID-based supplemental datasets", {
+  dataset <- data.frame(
+    STUDYID = "S1",
+    DOMAIN  = "APSC",
+    APID    = "A01",
+    SCSEQ   = 1L
+  )
+
+  supp <- data.frame(
+    STUDYID  = "S1",
+    RDOMAIN  = "APSC",
+    APID     = "A01",
+    IDVAR    = "SCSEQ",
+    IDVARVAL = "1",
+    QNAM     = "AETRTEM",
+    QLABEL   = "Treatment Emergent Flag",
+    QVAL     = "Y",
+    QORIG    = "CRF"
+  )
+
+  out <- combine_supp(dataset, supp)
+
+  expect_true("AETRTEM" %in% names(out))
+  attributes(out$AETRTEM) <- NULL
+  expect_equal(out$AETRTEM, "Y")
+})
+
+test_that("combine_supp:errors if parent dataset has both APID and USUBJID", {
+  dataset <- data.frame(
+    STUDYID = "S1",
+    DOMAIN  = "AE",
+    USUBJID = "01",
+    APID    = "A01",
+    AESEQ   = 1L
+  )
+
+  supp <- data.frame(
+    STUDYID  = "S1",
+    RDOMAIN  = "AE",
+    USUBJID  = "01",
+    IDVAR    = "AESEQ",
+    IDVARVAL = "1",
+    QNAM     = "AETRTEM",
+    QLABEL   = "Treatment Emergent Flag",
+    QVAL     = "Y",
+    QORIG    = "CRF"
+  )
+
+  expect_error(
+    combine_supp(dataset, supp),
+    "Parent dataset contains both APID and USUBJID"
+  )
+})
+
+test_that("combine_supp:errors when required parent key columns are missing", {
+  dataset <- data.frame(
+    STUDYID = "S1",
+    DOMAIN  = "AE",
+    AESEQ   = 1L
+  )
+
+  supp <- data.frame(
+    STUDYID  = "S1",
+    RDOMAIN  = "AE",
+    USUBJID  = "01",
+    IDVAR    = "AESEQ",
+    IDVARVAL = "1",
+    QNAM     = "AETRTEM",
+    QLABEL   = "Treatment Emergent Flag",
+    QVAL     = "Y",
+    QORIG    = "CRF"
+  )
+
+  expect_error(
+    combine_supp(dataset, supp),
+    "required column"
+  )
+})
+
 test_that("build_qnam verbose parameter", {
   # Create simple test data with a column that will be used as QNAM
   ae <- safetyData::sdtm_ae %>%
@@ -562,4 +694,100 @@ test_that("build_qnam verbose parameter", {
     ),
     "should be one of: message, warn, silent"
   )
+})
+
+
+test_that("build_qnam: errors if dataset contains both APID and USUBJID", {
+  dataset <- data.frame(
+    STUDYID = "S1",
+    DOMAIN  = "AE",
+    USUBJID = "01",
+    APID    = "A01",
+    AESEQ   = 1L,
+    AETRTEM = "Y"
+  )
+
+  expect_error(
+    build_qnam(
+      dataset = dataset,
+      qnam    = "AETRTEM",
+      qlabel  = "Treatment Emergent Flag",
+      idvar   = "AESEQ",
+      qeval   = NA_character_,
+      qorig   = "CRF",
+      verbose = "silent"
+    ),
+    "both APID and USUBJID"
+  )
+})
+
+test_that("build_qnam: errors if dataset contains neither APID nor USUBJID", {
+  dataset <- data.frame(
+    STUDYID = "S1",
+    DOMAIN  = "AE",
+    AESEQ   = 1L,
+    AETRTEM = "Y"
+  )
+
+  expect_error(
+    build_qnam(
+      dataset = dataset,
+      qnam    = "AETRTEM",
+      qlabel  = "Treatment Emergent Flag",
+      idvar   = "AESEQ",
+      qeval   = NA_character_,
+      qorig   = "CRF",
+      verbose = "silent"
+    ),
+    "must contain either USUBJID.*or APID"
+  )
+})
+
+test_that("build_qnam: uses USUBJID when present and returns USUBJID column (not APID)", {
+  dataset <- data.frame(
+    STUDYID = c("S1", "S1"),
+    DOMAIN  = c("AE", "AE"),
+    USUBJID = c("01", "01"),
+    AESEQ   = c(1L, 2L),
+    AETRTEM = c("Y", "N")
+  )
+
+  out <- build_qnam(
+    dataset = dataset,
+    qnam    = "AETRTEM",
+    qlabel  = "Treatment Emergent Flag",
+    idvar   = "AESEQ",
+    qeval   = NA_character_,
+    qorig   = "CRF",
+    verbose = "silent"
+  )
+
+  expect_true("USUBJID" %in% names(out))
+  expect_false("APID" %in% names(out))
+  expect_identical(out$USUBJID, c("01", "01"))
+})
+
+
+test_that("build_qnam: uses APID when present and returns APID column (not USUBJID)", {
+  dataset <- data.frame(
+    STUDYID = c("S1", "S1"),
+    DOMAIN  = c("APSC", "APSC"),
+    APID    = c("A01", "A01"),
+    SCSEQ   = c(1L, 2L),
+    AETRTEM = c("Y", "N")
+  )
+
+  out <- build_qnam(
+    dataset = dataset,
+    qnam    = "AETRTEM",
+    qlabel  = "Treatment Emergent Flag",
+    idvar   = "SCSEQ",
+    qeval   = NA_character_,
+    qorig   = "CRF",
+    verbose = "silent"
+  )
+
+  expect_true("APID" %in% names(out))
+  expect_false("USUBJID" %in% names(out))
+  expect_identical(out$APID, c("A01", "A01"))
 })
