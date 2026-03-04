@@ -121,6 +121,25 @@ test_that("make_supp_qual", {
   )
 })
 
+test_that("combine_supp errors if inputs are not data.frames", {
+  # dataset not a data.frame
+  expect_error(
+    combine_supp(dataset = "not_df", supp = data.frame(x = 1)),
+    "You must supply a domain and supplemental dataset"
+  )
+
+  # supp not a data.frame
+  expect_error(
+    combine_supp(dataset = data.frame(x = 1), supp = "not_df"),
+    "You must supply a domain and supplemental dataset"
+  )
+
+  # neither are data.frames
+  expect_error(
+    combine_supp(dataset = 1, supp = 2),
+    "You must supply a domain and supplemental dataset"
+  )
+})
 
 test_that("combine_supp", {
   ### 1 IDVAR and 1 QNAM
@@ -231,6 +250,15 @@ test_that("supp data that does not match the main data will raise a warning but 
   expect_s3_class(out, "data.frame")
 })
 
+test_that("combine_supp errors if QNAM already exists in dataset", {
+  ae <- safetyData::sdtm_ae
+  ae$AETRTEM <- "Y"
+
+  expect_error(
+    combine_supp(ae, safetyData::sdtm_suppae),
+    "would be created by combine_supp"
+  )
+})
 
 test_that("Floating point correction works", {
   fp1 <- 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1
