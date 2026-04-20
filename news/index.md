@@ -1,5 +1,12 @@
 # Changelog
 
+## metatools 0.3.0
+
+- Bugfix issue in
+  [`create_var_from_codelist()`](https://pharmaverse.github.io/metatools/reference/create_var_from_codelist.md)
+  where supplied codelist contains negative numeric values.
+  ([\#111](https://github.com/pharmaverse/metatools/issues/111))
+
 ## metatools 0.2.0
 
 CRAN release: 2025-07-16

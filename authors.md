@@ -28,13 +28,13 @@ Source:
 
 Hobby L, Fillmore C, Denney B, Stackhouse M, Stoilova J, Senior T
 (2026). *metatools: Enable the Use of 'metacore' to Help Create and
-Check Dataset*. R package version 0.2.0,
+Check Dataset*. R package version 0.3.0,
 <https://github.com/pharmaverse/metatools>.
 
     @Manual{,
       title = {metatools: Enable the Use of 'metacore' to Help Create and Check Dataset},
       author = {Liam Hobby and Christina Fillmore and Bill Denney and Mike Stackhouse and Jana Stoilova and Tamara Senior},
       year = {2026},
-      note = {R package version 0.2.0},
+      note = {R package version 0.3.0},
       url = {https://github.com/pharmaverse/metatools},
     }
