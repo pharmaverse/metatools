@@ -4,7 +4,12 @@
 \alias{drop_unspec_vars}
 \title{Drop Unspecified Variables}
 \usage{
-drop_unspec_vars(dataset, metacore, dataset_name = deprecated())
+drop_unspec_vars(
+  dataset,
+  metacore,
+  dataset_name = deprecated(),
+  verbose = c("message", "warn", "silent")
+)
 }
 \arguments{
 \item{dataset}{Dataset to change}
@@ -18,13 +23,19 @@ been subsetted.\cr
 Note: Deprecated in version 0.2.0. The \code{dataset_name} argument will be removed
 in a future release. Please use \code{metacore::select_dataset} to subset the
 \code{metacore} object to obtain metadata for a single dataset.}
+
+\item{verbose}{Character string controlling message verbosity. One of:
+\describe{
+\item{\code{"message"}}{Show both warnings and messages (default)}
+\item{\code{"warn"}}{Show warnings but suppress messages}
+\item{\code{"silent"}}{Suppress all warnings and messages}
+}}
 }
 \value{
 Dataset with only specified columns
 }
 \description{
-This function drops all unspecified variables. It will throw and error if the
-dataset does not contain all expected variables.
+This function drops all unspecified variables.
 }
 \examples{
 library(metacore)
