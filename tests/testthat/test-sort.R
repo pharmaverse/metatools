@@ -1,7 +1,7 @@
 # order_cols() tests ----
 test_that("order_cols reorders columns to match metacore spec", {
   load(metacore::metacore_example("pilot_ADaM.rda"))
-  spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
+  spec <- metacore %>% select_dataset("ADSL", verbose = "silent")
   data <- haven::read_xpt(metatools_example("adsl.xpt"))
 
   result <- data %>%
@@ -13,7 +13,7 @@ test_that("order_cols reorders columns to match metacore spec", {
 
 test_that("order_cols handles extra columns not in spec", {
   load(metacore::metacore_example("pilot_ADaM.rda"))
-  spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
+  spec <- metacore %>% select_dataset("ADSL", verbose = "silent")
   data <- haven::read_xpt(metatools_example("adsl.xpt"))
 
   result <- data %>%
@@ -26,7 +26,7 @@ test_that("order_cols handles extra columns not in spec", {
 
 test_that("order_cols handles additional columns beyond spec", {
   load(metacore::metacore_example("pilot_ADaM.rda"))
-  spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
+  spec <- metacore %>% select_dataset("ADSL", verbose = "silent")
   data <- haven::read_xpt(metatools_example("adsl.xpt"))
 
   result <- data %>%
@@ -41,7 +41,7 @@ test_that("order_cols handles additional columns beyond spec", {
 # sort_by_key() tests ----
 test_that("sort_by_key sorts data by key variables from metacore spec", {
   load(metacore::metacore_example("pilot_ADaM.rda"))
-  spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
+  spec <- metacore %>% select_dataset("ADSL", verbose = "silent")
   data <- haven::read_xpt(metatools_example("adsl.xpt"))
 
   result <- data %>%

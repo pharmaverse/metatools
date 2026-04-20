@@ -28,7 +28,7 @@ Imports:
     dplyr,
     lifecycle,
     magrittr,
-    metacore (>= 0.2.0),
+    metacore (>= 0.3.0),
     purrr,
     rlang,
     stringr,
