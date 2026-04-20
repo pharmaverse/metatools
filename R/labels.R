@@ -17,23 +17,26 @@
 #' )
 #'
 add_labels <- function(data, ...) {
-  # Pull out ellipsis to list
-  args <- list2(...)
+   # Pull out ellipsis to list
+   args <- list2(...)
 
-  # Check params
-  if (!inherits(data, "data.frame")) stop("Labels must be applied to a data.frame or tibble")
-  if (!is_named(args)) stop("Must provide variable name and label as named arguments")
-  if (!all(names(args) %in% names(data))) {
-    stop("All variable names supplied to label must be variables in data")
-  }
-  if (!all(map_lgl(args, is.character))) stop("All labels must be character")
+   # Check params
+   if (!inherits(data, 'data.frame')) stop("Labels must be applied to a data.frame or tibble")
+   if (!is_named(args)) stop("Must provide variable name and label as named arguments")
 
-  # Iterate the args supplied and update the variable labels in place
-  walk2(names(args), args, ~ {
-    attr(data[[.x]], "label") <<- .y
-  })
+   vars_not_ex <- setdiff(names(args), names(data))
+   if (length(vars_not_ex) > 0) {
+      cli_abort(c(
+         "x" = "The following variables do not exist in the data frame:",
+         "i" = ansi_collapse(vars_not_ex, sep2 = ", ", last = ", ")
+      ), call. = FALSE)
+   }
+   if (!all(map_lgl(args, is.character))) stop("All labels must be character")
 
-  data
+   # Iterate the args supplied and update the variable labels in place
+   walk2(names(args), args, ~ {attr(data[[.x]], "label") <<- .y})
+
+   data
 }
 
 
