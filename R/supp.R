@@ -157,33 +157,58 @@ combine_supp <- function(dataset, supp) {
     warning("Zero rows in supp, returning original dataset unchanged")
     return(dataset)
   }
-  supp_cols <- c(
-    "STUDYID", "RDOMAIN", "USUBJID", "IDVAR", "IDVARVAL",
-    "QNAM", "QLABEL", "QVAL", "QORIG"
-  )
-  maybe <- c("QEVAL")
-  ext_supp_col <- names(supp) %>% discard(~ . %in% c(supp_cols, maybe))
-  mis_supp_col <- supp_cols %>% discard(~ . %in% names(supp))
-  if (length(ext_supp_col) > 0 | length(mis_supp_col) > 0) {
-    mess <- "Supplemental datasets need to comply with CDISC standards\n"
-    ext <- if_else(length(ext_supp_col) > 0,
-      paste0("The following columns need to be removed:\n", paste0(ext_supp_col, collapse = "\n")),
-      ""
-    )
-    mis <- if_else(length(mis_supp_col) > 0,
-      paste0("The following columns are missing:\n", paste0(mis_supp_col, collapse = "\n")),
-      ""
-    )
-    stop(paste0(mess, ext, mis))
-  }
-  all_qnam <- unique(supp$QNAM)
-  existing_qnam <- intersect(all_qnam, names(dataset))
-  if (length(existing_qnam) > 0) {
-    stop(
-      "The following column(s) would be created by combine_supp(), but are already in the original dataset:\n  ",
-      paste(existing_qnam, sep = ", ")
-    )
-  }
+
+   # Verify required dataset cols are present
+   required_vars <- c("STUDYID", "DOMAIN", "USUBJID")
+   missing_vars <- setdiff(required_vars, names(dataset))
+
+   if (length(missing_vars) > 0) {
+      cli::cli_abort(c(
+         "x" = "Core SDTM variables are missing from the dataset:",
+         "i" = "{.val {missing_vars}}"
+      ))
+   }
+
+
+   # Verify required supp cols are present
+   supp_cols <- c(
+      "STUDYID", "RDOMAIN", "USUBJID", "IDVAR", "IDVARVAL",
+      "QNAM", "QLABEL", "QVAL", "QORIG"
+   )
+   maybe <- c("QEVAL")
+
+   ext_supp_col <- setdiff(names(supp), c(supp_cols, maybe))
+   mis_supp_col <- setdiff(supp_cols, names(supp))
+
+   if (length(ext_supp_col) > 0 || length(mis_supp_col) > 0) {
+      cli::cli_abort(c(
+         "x" = "Supplemental Qualifier dataset does not comply with CDISC SDTM structure.",
+
+         if (length(ext_supp_col) > 0) c(
+            "!" = "Unexpected columns detected (must be removed):",
+            "i" = "{.val {ext_supp_col}}"
+         ),
+
+         if (length(mis_supp_col) > 0) c(
+            "!" = "Required columns are missing:",
+            "i" = "{.val {mis_supp_col}}"
+         )
+      ))
+   }
+
+   # Verify qnam values from supp do not conflict with main dataset
+   all_qnam <- unique(supp$QNAM)
+   existing_qnam <- intersect(all_qnam, names(dataset))
+
+   if (length(existing_qnam) > 0) {
+      cli::cli_abort(c(
+         "x" = "Column name conflict detected when combining SUPP data.",
+         "!" = "The following QNAM values would create variables that already exist in the dataset:",
+         "x" = "{.val {existing_qnam}}",
+         "i" = "Renaming or removing these SUPP qualifiers is required before merging."
+      ))
+
+   }
 
   # In order to prevent issues when there are multiple IDVARS we need to merge
   # each IDVAR into the domain separately (otherwise there is problems when the
@@ -299,28 +324,28 @@ combine_supp_join <- function(dataset, supp) {
       )
     }
   } else {
-    # Verify that nothing will be missed
-    missing <- anti_join(supp_prep, ret, by = by)
+     # Verify that nothing will be missed
+     missing <- dplyr::anti_join(supp_prep, ret, by = by)
 
-    # Add message for when there are rows in the supp that didn't get merged
-    if (nrow(missing) > 0) {
-      missing_display <- missing %>%
-        dplyr::transmute(
-          USUBJID,
-          !!current_idvar := IDVARVAL
-        )
-      msg <- "Not all rows of SUPP were merged."
-      cli::cli_alert_warning(msg)
+     # Add a message for when there are rows in the dataset that didn't get merged
+     if (nrow(missing) > 0) {
+        missing_display <- missing %>%
+           dplyr::transmute(
+              USUBJID,
+              !!current_idvar := IDVARVAL
+           )
 
-      cli::cli_text("")
-      cli::cli_text("The following rows are missing:")
-      cli::cli_rule()
-
-      print(missing_display)
-
-      cli::cli_rule()
-      warning(msg, call. = FALSE)
-    }
+        cli::cli_warn(c(
+           "x" = "Some SUPP records were not merged into the main dataset.",
+           "!" = "Unmatched rows:",
+           sprintf(
+              "{.strong USUBJID}: {.val %s}  |  {.strong %s}: {.val %s}",
+              missing_display$USUBJID,
+              current_idvar,
+              missing_display[[current_idvar]]
+           )
+        ))
+     }
 
     # join the data
     ret <- left_join(ret, supp_prep, by = by)
