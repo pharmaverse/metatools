@@ -226,7 +226,7 @@ test_that("supp data that does not match the main data will raise a warning but 
 
   expect_warning(
     out <- combine_supp(safetyData::sdtm_ae, sdtm_suppae_extra),
-    "Not all rows of SUPP were merged"
+    "Some SUPP records were not merged into the main dataset"
   )
   expect_s3_class(out, "data.frame")
 })
@@ -329,7 +329,7 @@ test_that("combine_supp errors when QNAM already exists in dataset", {
 
   expect_error(
     combine_supp(simple_ae, simple_suppae),
-    "already in the original dataset"
+    "Column name conflict detected when combining SUPP data"
   )
 })
 
@@ -472,7 +472,7 @@ test_that("combine_supp: extra SUPP rows that do not match core raise a warning 
 
   expect_warning(
     out <- combine_supp(pc, supppc_extra),
-    "Not all rows of SUPP were merged"
+    "Some SUPP records were not merged into the main dataset"
   )
   expect_s3_class(out, "data.frame")
   expect_equal(nrow(out), nrow(pc))
