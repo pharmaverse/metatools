@@ -16,7 +16,6 @@
 #' @return Observations structured in SUPP format
 #' @export
 #'
-#'
 build_qnam <- function(dataset, qnam, qlabel, idvar, qeval, qorig,
                        verbose = c("message", "warn", "silent")) {
   verbose <- validate_verbose(verbose)
@@ -187,9 +186,8 @@ combine_supp <- function(dataset, supp) {
   }
 
   # In order to prevent issues when there are multiple IDVARS we need to merge
-  # each IDVAR into the domain seperately (otherwise there is problems when the
+  # each IDVAR into the domain separately (otherwise there is problems when the
   # two IDVARS don't overlap)
-
   supp_wides_prep <-
     supp %>%
     select(-any_of(c("QLABEL", "QORIG", "QEVAL"))) %>% # Removing columns not for the main dataset
@@ -198,6 +196,34 @@ combine_supp <- function(dataset, supp) {
     group_split()
 
   supp_wides <- purrr::pmap(.l = list(supp = supp_wides_prep), .f = combine_supp_make_wide)
+
+  # Verify that each idvar in supp domain is present in the main dataset
+  idvars <- sapply(supp_wides, function(x) x$IDVAR[1])
+  invalid_idvars <- unique(
+     idvars[
+        !idvars %in% names(dataset) &
+           !is.na(idvars) &
+           idvars != "NA"
+     ]
+  )
+
+  if (length(invalid_idvars) > 0) {
+     supp_wides <- supp_wides[
+        vapply(supp_wides, function(x) !(x$IDVAR[1] %in% invalid_idvars), logical(1))
+     ]
+
+     cli::cli_warn(c(
+        "!" = "The following {.field IDVAR} values from the SUPP dataset will not be joined:",
+        "x" = "{.val {invalid_idvars}}",
+        "i" = "They do not exist as variables in the main dataset."
+     ))
+  }
+
+  # If all idvars are invalid then return the main dataset
+  if (length(supp_wides) == 0) {
+     return(dataset)
+  }
+
   ret <- reduce(.x = append(list(dataset), supp_wides), .f = combine_supp_join)
   ret$IDVARVAL <- NULL
 
