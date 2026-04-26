@@ -3,14 +3,14 @@ options(cli.default_handler = function(...) {})
 
 # Load data to use across tests
 load(metacore::metacore_example("pilot_ADaM.rda"))
-spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
+spec <- metacore %>% select_dataset("ADSL", verbose = "silent")
 data <- haven::read_xpt(metatools_example("adsl.xpt"))
 
 mod_ds_vars <- spec$ds_vars %>%
   mutate(core = if_else(variable %in% c("TRT01PN", "COMP8FL"), "Required", core))
 spec_mod <- metacore::metacore(spec$ds_spec, mod_ds_vars, spec$var_spec, spec$value_spec, spec$derivations, spec$codelist) %>%
   suppressWarnings()
-spec_mod <- select_dataset(spec_mod, "ADSL", quiet = TRUE)
+spec_mod <- select_dataset(spec_mod, "ADSL", verbose = "silent")
 
 test_that("get_bad_ct works correctly", {
   # test na_acceptable
@@ -36,13 +36,13 @@ test_that("check_ct_col works correctly", {
   expect_equal(check_ct_col(data, spec, "TRT01PN"), data)
 
   # Test permitted Values
-  spec2 <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet = TRUE)
-  dm <- select_dataset(spec2, "DM", quiet = TRUE)
+  spec2 <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), verbose = "silent")
+  dm <- select_dataset(spec2, "DM", verbose = "silent")
   expect_equal(check_ct_col(data, dm, ARM), data)
 
   # Test external dictionaries
   data2 <- tibble::tibble(AELLT = "Hello")
-  ae <- select_dataset(spec2, "AE", quiet = TRUE)
+  ae <- select_dataset(spec2, "AE", verbose = "silent")
   expect_error(
     check_ct_col(data2, ae, AELLT),
     "We currently don't have the ability to check against external libraries"
@@ -123,10 +123,10 @@ test_that("check_unique_keys works as expected", {
   # check requirement for subsetted metacore object or a dataset name
   expect_error(check_unique_keys(data, metacore))
   # check missing variable keys error
-  adae <- select_dataset(metacore, "ADAE", quiet = TRUE)
+  adae <- select_dataset(metacore, "ADAE", verbose = "silent")
   expect_error(check_unique_keys(data, adae))
   # check works correctly when records are unique
-  adsl <- select_dataset(metacore, "ADSL", quiet = TRUE)
+  adsl <- select_dataset(metacore, "ADSL", verbose = "silent")
   expect_message(check_unique_keys(data, adsl))
   # check works correctly when records are not unique
   test <- build_from_derived(adae,

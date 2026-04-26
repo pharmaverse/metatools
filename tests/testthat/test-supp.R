@@ -48,7 +48,7 @@ test_that("make_supp_qual", {
   load(metacore::metacore_example("pilot_SDTM.rda"))
 
   spec <- metacore %>%
-    select_dataset("AE", quiet = TRUE)
+    select_dataset("AE", verbose = "silent")
 
   # Add the mock supp variables
   ae <- combine_supp(safetyData::sdtm_ae, safetyData::sdtm_suppae)
@@ -78,7 +78,7 @@ test_that("make_supp_qual", {
   expect_equal(metacore_supp, man_supp)
 
   # Add the supp without a idvar
-  dm_spec <- select_dataset(metacore, "DM", quiet = TRUE)
+  dm_spec <- select_dataset(metacore, "DM", verbose = "silent")
   dm <- combine_supp(safetyData::sdtm_dm, safetyData::sdtm_suppdm) %>%
     as_tibble()
   dm_supp <- make_supp_qual(dm, dm_spec)
@@ -113,8 +113,8 @@ test_that("make_supp_qual", {
   # Testing with too many datasets
   expect_error(make_supp_qual(ae, metacore))
   # Testing without supp columns specified
-  metacore_old <- metacore::spec_to_metacore(metacore::metacore_example("SDTM_spec_CDISC_pilot.xlsx"), quiet = TRUE)
-  ae_spec <- select_dataset(metacore_old, "AE", quiet = TRUE)
+  metacore_old <- metacore::spec_to_metacore(metacore::metacore_example("SDTM_spec_CDISC_pilot.xlsx"), verbose = "silent")
+  ae_spec <- select_dataset(metacore_old, "AE", verbose = "silent")
   expect_error(
     make_supp_qual(ae, ae_spec),
     "No supplemental variables specified in metacore object. Please check your specifications"
@@ -338,9 +338,9 @@ test_that("combine_supp handles IDVAR not in dataset", {
   simple_suppae <- safetyData::sdtm_suppae[1, ]
   simple_suppae$IDVAR <- "FAKEIDVAR" # IDVAR that doesn't exist
 
-  expect_error(
+  expect_warning(
     combine_supp(simple_ae, simple_suppae),
-    "replacement has 0 rows"
+    "The following IDVAR values from the SUPP dataset will not be joined"
   )
 })
 
