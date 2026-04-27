@@ -8,8 +8,7 @@ data <- haven::read_xpt(metatools_example("adsl.xpt"))
 
 mod_ds_vars <- spec$ds_vars %>%
   mutate(core = if_else(variable %in% c("TRT01PN", "COMP8FL"), "Required", core))
-spec_mod <- metacore::metacore(spec$ds_spec, mod_ds_vars, spec$var_spec, spec$value_spec, spec$derivations, spec$codelist) %>%
-  suppressWarnings()
+spec_mod <- metacore::metacore(spec$ds_spec, mod_ds_vars, spec$var_spec, spec$value_spec, spec$derivations, spec$codelist, verbose = "silent")
 spec_mod <- select_dataset(spec_mod, "ADSL", verbose = "silent")
 
 test_that("get_bad_ct works correctly", {
