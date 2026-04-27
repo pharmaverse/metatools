@@ -59,14 +59,14 @@ test_that("check_ct_col works correctly", {
   expect_equal(check_ct_col(data, dm, ARM, TRUE), data)
   data_w_miss <- data %>%
     mutate(TRT01PN = if_else(dplyr::row_number() == 3, NA_real_, TRT01PN))
-  expect_error(check_ct_col(data_w_miss, spec, TRT01PN, FALSE))
+  expect_warning(check_ct_col(data_w_miss, spec, TRT01PN, FALSE))
   expect_equal(get_bad_ct(data_w_miss, spec, TRT01PN, FALSE), NA_real_)
   expect_equal(check_ct_col(data_w_miss, spec, TRT01PN, TRUE), data_w_miss)
   ### Test with  a required column ###
   # Required without missing
   expect_equal(check_ct_col(data, spec_mod, TRT01PN), data)
   # Required with missing
-  expect_error(check_ct_col(data, spec_mod, COMP8FL))
+  expect_warning(check_ct_col(data, spec_mod, COMP8FL))
   expect_equal(get_bad_ct(data, spec_mod, COMP8FL), "")
   expect_equal(check_ct_col(data, spec_mod, COMP8FL, TRUE), data)
 })
@@ -82,21 +82,21 @@ test_that("check_ct_data works correctly", {
       ),
       TRT01A = TRT01P
     )
-  expect_error(check_ct_data(data_multi_word, spec))
+  expect_warning(check_ct_data(data_multi_word |> select(TRT01P), spec))
 
-  expect_error(check_ct_data(data, spec, FALSE))
+  expect_warning(check_ct_data(data |> select(COMP8FL), spec, FALSE))
   expect_equal(check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N")), data)
   expect_equal(check_ct_data(data, spec, TRUE, omit_vars = c("AGEGR2", "AGEGR2N")), data)
-  expect_error(check_ct_data(data, spec_mod))
+  expect_warning(check_ct_data(data |> select(AGEGR2), spec_mod))
   expect_equal(check_ct_data(data, spec_mod, TRUE, omit_vars = c("AGEGR2", "AGEGR2N")), data)
 
   # Check character vector input for na_acceptable:
-  expect_error(check_ct_data(data, spec, na_acceptable = c("DISCONFL", "DSRAEFL")))
+  expect_warning(check_ct_data(data, spec, na_acceptable = c("DCSREAS", "COMP8FL", "BMIBLGR1")))
   expect_error(check_ct_data(data, spec, 1))
 
   # Check omit_vars:
   expect_error(check_ct_data(data, spec, omit_vars = c("A", "B")))
-  expect_error(check_ct_data(data, spec, FALSE, omit_vars = c("DISCONFL", "DSRAEFL")))
+  expect_warning(check_ct_data(data, spec, FALSE, omit_vars = c("DCSREAS", "COMP8FL", "BMIBLGR1")))
   expect_equal(
     check_ct_data(
       data,
@@ -111,11 +111,14 @@ test_that("check_ct_data works correctly", {
 test_that("variable_check works correctly", {
   expect_equal(check_variables(data, spec), data)
   data_miss <- data %>% select(-1)
-  expect_error(check_variables(data_miss, spec))
+  expect_error(check_variables(data_miss, spec, strict = TRUE))
+  expect_warning(check_variables(data_miss, spec, strict = FALSE))
   data_extra <- data %>% mutate(foo = "hello")
-  expect_error(check_variables(data_extra, spec))
+  expect_error(check_variables(data_extra, spec, strict = TRUE))
+  expect_warning(check_variables(data_extra, spec, strict = FALSE))
   data_mis_ex <- data_extra %>% select(-1)
-  expect_error(check_variables(data_mis_ex, spec))
+  expect_error(check_variables(data_mis_ex, spec, strict = TRUE))
+  expect_warning(check_variables(data_mis_ex, spec, strict = FALSE))
 })
 
 test_that("check_unique_keys works as expected", {

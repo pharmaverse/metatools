@@ -13,6 +13,12 @@
 #'   "Required" in the `metacore` object. If set to `TRUE` then will pass check
 #'   if values are in the control terminology or are missing. If set to
 #'   `FALSE`then NA will not be acceptable.
+#' @param .internal Logical value indicating whether the function is being
+#'   called internally by another package function. If `TRUE`, the function
+#'   suppresses user-facing messages and instead returns a logical indicator
+#'   of whether any controlled terminology violations were detected. This
+#'   argument is intended for internal use only and should not be set by
+#'   end users.
 #'
 #' @return Given data if column only contains control terms. If not, will error
 #'   given the values which should not be in the column
@@ -27,20 +33,36 @@
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_ct_col(data, spec, TRT01PN)
 #' check_ct_col(data, spec, "TRT01PN")
-check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
-  verify_DatasetMeta(metacore)
-  bad_vals <- get_bad_ct(
-    data = data, metacore = metacore,
-    var = {{ var }}, na_acceptable = na_acceptable
-  )
-  if (length(bad_vals) == 0) {
-    data
-  } else {
-    extra <- bad_vals %>%
-      paste0("'", ., "'") %>%
-      paste0(collapse = ", ")
-    stop(paste("The following values should not be present:\n", extra))
-  }
+check_ct_col <- function(data, metacore, var, na_acceptable = NULL, .internal = FALSE) {
+   verify_DatasetMeta(metacore)
+
+   var_name <- rlang::as_name(rlang::ensym(var))
+
+   bad_vals <- get_bad_ct(
+      data = data,
+      metacore = metacore,
+      var = {{ var }},
+      na_acceptable = na_acceptable
+   )
+
+   if (length(bad_vals) == 0) {
+      if (.internal) return(TRUE)
+      return(data)
+
+   }
+
+   # Format values nicely for display
+   bad_vals_fmt <- paste0("'", bad_vals, "'")
+   codelist = metacore$value_spec |> filter(variable == var_name) |> pull(code_id)
+
+   cli_warn(c(
+      "x" = "Invalid controlled terminology detected",
+      "i" = "Variable: {var_name} | Codelist: {codelist}",
+      "i" = "Values not permitted {bad_vals_fmt}",
+      ""
+   ))
+
+   invisible(TRUE)
 }
 
 #' Gets vector of control terminology which should be there
@@ -144,77 +166,59 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL) {
 #' check_ct_data(data, spec, na_acceptable = c("DSRAEFL", "DCSREAS"), omit_vars = "DISCONFL")
 #' }
 check_ct_data <- function(data, metacore, na_acceptable = NULL, omit_vars = NULL) {
-  verify_DatasetMeta(metacore)
-  codes_in_data <- metacore$value_spec %>%
-    filter(variable %in% names(data), !is.na(code_id)) %>%
-    pull(code_id) %>%
-    unique()
-  # Remove any codes that have external libraries
-  codes_to_check <- metacore$codelist %>%
-    filter(type != "external_library", code_id %in% codes_in_data) %>%
-    select(code_id)
-  # convert list of codes to variables
-  cols_to_check <- metacore$value_spec %>%
-    inner_join(codes_to_check, by = "code_id", multiple = "all", relationship = "many-to-many") %>%
-    filter(variable %in% names(data)) %>%
-    pull(variable) %>%
-    unique()
+   verify_DatasetMeta(metacore)
 
-  # Subset cols_to_check by omit_vars
-  if (is.character(omit_vars)) {
-    check_vars_in_data(omit_vars, "omit_vars", data)
-    cols_to_check <- setdiff(cols_to_check, omit_vars)
-  }
+   codes_in_data <- metacore$value_spec %>%
+      dplyr::filter(variable %in% names(data), !is.na(code_id)) %>%
+      dplyr::pull(code_id) %>%
+      unique()
 
-  # send all variables through check_ct_col
-  safe_chk <- safely(check_ct_col)
+   # Remove any codes that have external libraries
+   codes_to_check <- metacore$codelist %>%
+      dplyr::filter(type != "external_library", code_id %in% codes_in_data) %>%
+      dplyr::select(code_id)
 
-  if (is.character(na_acceptable)) {
-    check_vars_in_data(na_acceptable, "na_acceptable", data)
-    new_na_acceptable <- rep(FALSE, length(cols_to_check))
-    new_na_acceptable[match(na_acceptable, cols_to_check)] <- TRUE
+   # Convert list of codes to variables
+   cols_to_check <- metacore$value_spec %>%
+      dplyr::inner_join(codes_to_check, by = "code_id", relationship = "many-to-many") %>%
+      dplyr::filter(variable %in% names(data)) %>%
+      dplyr::pull(variable) %>%
+      unique()
 
-    results <- map2(cols_to_check, new_na_acceptable, function(x, naac) {
-      out <- safe_chk(data, metacore, {{ x }}, naac)
-      out$error
-    })
-  } else if (is.logical(na_acceptable) || is.null(na_acceptable)) {
-    results <- cols_to_check %>%
-      map(function(x) {
-        out <- safe_chk(data, metacore, {{ x }}, na_acceptable)
-        out$error
-      })
-  } else {
-    stop("na_acceptable is not NULL, logical or character.", call. = FALSE)
-  }
+   # Subset cols_to_check by omit_vars
+   if (is.character(omit_vars)) {
+      check_vars_in_data(omit_vars, "omit_vars", data)
+      cols_to_check <- setdiff(cols_to_check, omit_vars)
+   }
 
+   # Validate na_acceptable
+   if (!is.null(na_acceptable) &&
+       !is.logical(na_acceptable) &&
+       !is.character(na_acceptable)) {
+      cli::cli_abort(
+         "na_acceptable must be NULL, logical, or character."
+      )
+   }
 
-  # Write out warning message
-  test <- map_lgl(results, is.null)
-  if (all(test)) {
-    return(data)
-  } else {
-    extras <- results %>%
-      discard(is.null) %>%
-      map(~ .$message) %>%
-      unlist() %>%
-      str_remove("The following values should not be present:\n\\s")
-    unique_test <- extras %>%
-      keep(~ str_detect(., "does not have a unique control term"))
-    if (length(unique_test) > 0) {
-      stop(paste0(unique_test, collapse = "\n"), call. = FALSE)
-    }
-    message <- paste0(cols_to_check[!test], " (", extras, ")") %>%
-      paste0(collapse = "\n")
-    stop(
-      paste0(
-        "The following variables contained values not found in the control terminology
-       Variable (Prohibited Value(s))\n",
-        message
-      ),
-      call. = FALSE
-    )
-  }
+   # Run checks and collect flags
+   results <- purrr::map_lgl(cols_to_check, function(x) {
+      if (is.character(na_acceptable)) {
+         na_flag <- x %in% na_acceptable
+      } else if (is.logical(na_acceptable) || is.null(na_acceptable)) {
+         na_flag <- na_acceptable
+      }
+
+      check_ct_col(data, metacore, !!rlang::sym(x), na_flag, .internal = TRUE)
+   })
+
+   # If no warnings triggered
+   if (all(results)) {
+      cli::cli_inform(c(
+         "v" = "All controlled terminology checks passed"
+      ))
+   }
+
+   return(data)
 }
 
 check_vars_in_data <- function(vars, vars_name, data) {
@@ -263,7 +267,7 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #' check_variables(data, spec)
 #' data["DUMMY_COL"] <- NA
 #' check_variables(data, spec, strict = FALSE)
-check_variables <- function(data, metacore, dataset_name = deprecated(), strict = TRUE) {
+check_variables <- function(data, metacore, dataset_name = deprecated(), strict = FALSE) {
   if (is_present(dataset_name)) {
     lifecycle::deprecate_warn(
       when = "0.2.0",
@@ -344,8 +348,8 @@ print_to_console <- function(messages, data_list, strict = TRUE) {
 
   options(deparse.max.lines = 2000L)
   switch(as.character(strict),
-    "TRUE"  = cli::cli_abort(output_string, call = NULL),
-    "FALSE" = cli::cli_warn(output_string, call = NULL)
+    "TRUE"  = cli::cli_abort(c(output_string), call = NULL),
+    "FALSE" = cli::cli_warn(c(output_string), call = NULL)
   )
 }
 
