@@ -278,7 +278,7 @@ test_that("multiple different IDVAR map to the same QNAM works", {
 
   expect_error(
     combine_supp(simple_ae, supp = simple_suppae),
-    regexp = "An unexpected number of rows were replaced while merging QNAM AETRTEM and IDVAR AESEQ"
+    regexp = "SUPP domain merge failed due to inconsistent key mapping."
   )
 })
 
@@ -381,7 +381,7 @@ test_that("combine_supp_by_idvar detects conflicting replacements across IDVARs"
 
   expect_error(
     combine_supp(simple_ae, suppae_conflict),
-    "unexpected number of rows"
+    "SUPP domain merge failed due to inconsistent key mapping."
   )
 })
 

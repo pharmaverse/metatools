@@ -318,10 +318,13 @@ combine_supp_join <- function(dataset, supp) {
     expected_na_difference <- sum(!is.na(supp_prep[[new_column]]))
     actual_na_difference <- sum(!mask_na_ret_after) - sum(!mask_na_ret_before)
     if (expected_na_difference != actual_na_difference) {
-      stop(
-        "An unexpected number of rows were replaced while merging QNAM ", current_qnam, " and IDVAR ", current_idvar,
-        "\n  Please verify that your SUPP domain is valid SDTM with only one matched row per key column set"
-      )
+       cli::cli_abort(c(
+          "X" = "SUPP domain merge failed due to inconsistent key mapping.",
+          "i" = "While processing {.field QNAM} = {.val {current_qnam}} with {.field IDVAR} = {.val {current_idvar}}.",
+          "i" = "This usually indicates that multiple records in the SUPP domain map to the same parent record.",
+          "i" = "Each combination of STUDYID, USUBJID, IDVAR, and IDVARVAL should uniquely identify a row.",
+          "i" = "Check for duplicate or conflicting mappings in SUPP-- for this QNAM."
+       ), call = rlang::caller_env(n = 3)) # caller_env depth of 3 is "combine_supp"
     }
   } else {
      # Verify that nothing will be missed
