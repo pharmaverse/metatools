@@ -135,38 +135,44 @@ test_that("set_variable_labels respects verbose parameter", {
   )
 
   # verbose = "message" shows warnings
-  gotWarnings= character(0)
-  withCallingHandlers({
-     got <- set_variable_labels(dm_mismatch, spec, verbose = "message")
-  }, warning = function(e) {
-     # Push warning onto vector
-     gotWarnings <<- c(gotWarnings, conditionMessage((e)))
-     invokeRestart("muffleWarning")
-  })
+  gotWarnings <- character(0)
+  withCallingHandlers(
+    {
+      got <- set_variable_labels(dm_mismatch, spec, verbose = "message")
+    },
+    warning = function(e) {
+      # Push warning onto vector
+      gotWarnings <<- c(gotWarnings, conditionMessage((e)))
+      invokeRestart("muffleWarning")
+    }
+  )
 
   # Ensure no unexpected warnings
   expect_equal(length(gotWarnings), 2)
 
   # Test that each warning I want is there
-  expect_true( any( grepl( "Variables in metadata not in data", gotWarnings )))
-  expect_true( any( grepl( "Variables in data not in metadata", gotWarnings )))
+  expect_true(any(grepl("Variables in metadata not in data", gotWarnings)))
+  expect_true(any(grepl("Variables in data not in metadata", gotWarnings)))
 
   # verbose = "warn" shows warnings
-  gotWarnings= character(0)
-  withCallingHandlers({
-     got <- set_variable_labels(dm_mismatch, spec, verbose = "warn")
-  }, warning = function(e) {
-     # Push warning onto vector
-     gotWarnings <<- c(gotWarnings, conditionMessage((e)))
-     invokeRestart("muffleWarning")
-  })
+  gotWarnings <- character(0)
+  withCallingHandlers(
+    {
+      got <- set_variable_labels(dm_mismatch, spec, verbose = "warn")
+    },
+    warning = function(e) {
+      # Push warning onto vector
+      gotWarnings <<- c(gotWarnings, conditionMessage((e)))
+      invokeRestart("muffleWarning")
+    }
+  )
 
   # Ensure no unexpected warnings
   expect_equal(length(gotWarnings), 2)
 
   # Test that each warning I want is there
-  expect_true( any( grepl( "Variables in metadata not in data", gotWarnings )))
-  expect_true( any( grepl( "Variables in data not in metadata", gotWarnings )))
+  expect_true(any(grepl("Variables in metadata not in data", gotWarnings)))
+  expect_true(any(grepl("Variables in data not in metadata", gotWarnings)))
 
   # Invalid verbose value errors
   expect_error(

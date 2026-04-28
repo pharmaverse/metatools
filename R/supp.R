@@ -158,57 +158,58 @@ combine_supp <- function(dataset, supp) {
     return(dataset)
   }
 
-   # Verify required dataset cols are present
-   required_vars <- c("STUDYID", "DOMAIN", "USUBJID")
-   missing_vars <- setdiff(required_vars, names(dataset))
+  # Verify required dataset cols are present
+  required_vars <- c("STUDYID", "DOMAIN", "USUBJID")
+  missing_vars <- setdiff(required_vars, names(dataset))
 
-   if (length(missing_vars) > 0) {
-      cli::cli_abort(c(
-         "x" = "Core SDTM variables are missing from the dataset:",
-         "i" = "{.val {missing_vars}}"
-      ))
-   }
+  if (length(missing_vars) > 0) {
+    cli::cli_abort(c(
+      "x" = "Core SDTM variables are missing from the dataset:",
+      "i" = "{.val {missing_vars}}"
+    ))
+  }
 
 
-   # Verify required supp cols are present
-   supp_cols <- c(
-      "STUDYID", "RDOMAIN", "USUBJID", "IDVAR", "IDVARVAL",
-      "QNAM", "QLABEL", "QVAL", "QORIG"
-   )
-   maybe <- c("QEVAL")
+  # Verify required supp cols are present
+  supp_cols <- c(
+    "STUDYID", "RDOMAIN", "USUBJID", "IDVAR", "IDVARVAL",
+    "QNAM", "QLABEL", "QVAL", "QORIG"
+  )
+  maybe <- c("QEVAL")
 
-   ext_supp_col <- setdiff(names(supp), c(supp_cols, maybe))
-   mis_supp_col <- setdiff(supp_cols, names(supp))
+  ext_supp_col <- setdiff(names(supp), c(supp_cols, maybe))
+  mis_supp_col <- setdiff(supp_cols, names(supp))
 
-   if (length(ext_supp_col) > 0 || length(mis_supp_col) > 0) {
-      cli::cli_abort(c(
-         "x" = "Supplemental Qualifier dataset does not comply with CDISC SDTM structure.",
+  if (length(ext_supp_col) > 0 || length(mis_supp_col) > 0) {
+    cli::cli_abort(c(
+      "x" = "Supplemental Qualifier dataset does not comply with CDISC SDTM structure.",
+      if (length(ext_supp_col) > 0) {
+        c(
+          "!" = "Unexpected columns detected (must be removed):",
+          "i" = "{.val {ext_supp_col}}"
+        )
+      },
+      if (length(mis_supp_col) > 0) {
+        c(
+          "!" = "Required columns are missing:",
+          "i" = "{.val {mis_supp_col}}"
+        )
+      }
+    ))
+  }
 
-         if (length(ext_supp_col) > 0) c(
-            "!" = "Unexpected columns detected (must be removed):",
-            "i" = "{.val {ext_supp_col}}"
-         ),
+  # Verify qnam values from supp do not conflict with main dataset
+  all_qnam <- unique(supp$QNAM)
+  existing_qnam <- intersect(all_qnam, names(dataset))
 
-         if (length(mis_supp_col) > 0) c(
-            "!" = "Required columns are missing:",
-            "i" = "{.val {mis_supp_col}}"
-         )
-      ))
-   }
-
-   # Verify qnam values from supp do not conflict with main dataset
-   all_qnam <- unique(supp$QNAM)
-   existing_qnam <- intersect(all_qnam, names(dataset))
-
-   if (length(existing_qnam) > 0) {
-      cli::cli_abort(c(
-         "x" = "Column name conflict detected when combining SUPP data.",
-         "!" = "The following QNAM values would create variables that already exist in the dataset:",
-         "x" = "{.val {existing_qnam}}",
-         "i" = "Renaming or removing these SUPP qualifiers is required before merging."
-      ))
-
-   }
+  if (length(existing_qnam) > 0) {
+    cli::cli_abort(c(
+      "x" = "Column name conflict detected when combining SUPP data.",
+      "!" = "The following QNAM values would create variables that already exist in the dataset:",
+      "x" = "{.val {existing_qnam}}",
+      "i" = "Renaming or removing these SUPP qualifiers is required before merging."
+    ))
+  }
 
   # In order to prevent issues when there are multiple IDVARS we need to merge
   # each IDVAR into the domain separately (otherwise there is problems when the
@@ -225,28 +226,28 @@ combine_supp <- function(dataset, supp) {
   # Verify that each idvar in supp domain is present in the main dataset
   idvars <- sapply(supp_wides, function(x) x$IDVAR[1])
   invalid_idvars <- unique(
-     idvars[
-        !idvars %in% names(dataset) &
-           !is.na(idvars) &
-           idvars != "NA"
-     ]
+    idvars[
+      !idvars %in% names(dataset) &
+        !is.na(idvars) &
+        idvars != "NA"
+    ]
   )
 
   if (length(invalid_idvars) > 0) {
-     supp_wides <- supp_wides[
-        vapply(supp_wides, function(x) !(x$IDVAR[1] %in% invalid_idvars), logical(1))
-     ]
+    supp_wides <- supp_wides[
+      vapply(supp_wides, function(x) !(x$IDVAR[1] %in% invalid_idvars), logical(1))
+    ]
 
-     cli::cli_warn(c(
-        "!" = "The following {.field IDVAR} values from the SUPP dataset will not be joined:",
-        "x" = "{.val {invalid_idvars}}",
-        "i" = "They do not exist as variables in the main dataset."
-     ))
+    cli::cli_warn(c(
+      "!" = "The following {.field IDVAR} values from the SUPP dataset will not be joined:",
+      "x" = "{.val {invalid_idvars}}",
+      "i" = "They do not exist as variables in the main dataset."
+    ))
   }
 
   # If all idvars are invalid then return the main dataset
   if (length(supp_wides) == 0) {
-     return(dataset)
+    return(dataset)
   }
 
   ret <- reduce(.x = append(list(dataset), supp_wides), .f = combine_supp_join)
@@ -318,37 +319,37 @@ combine_supp_join <- function(dataset, supp) {
     expected_na_difference <- sum(!is.na(supp_prep[[new_column]]))
     actual_na_difference <- sum(!mask_na_ret_after) - sum(!mask_na_ret_before)
     if (expected_na_difference != actual_na_difference) {
-       cli::cli_abort(c(
-          "X" = "SUPP domain merge failed due to inconsistent key mapping.",
-          "i" = "While processing {.field QNAM} = {.val {current_qnam}} with {.field IDVAR} = {.val {current_idvar}}.",
-          "i" = "This usually indicates that multiple records in the SUPP domain map to the same parent record.",
-          "i" = "Each combination of STUDYID, USUBJID, IDVAR, and IDVARVAL should uniquely identify a row.",
-          "i" = "Check for duplicate or conflicting mappings in SUPP-- for this QNAM."
-       ), call = rlang::caller_env(n = 3)) # caller_env depth of 3 is "combine_supp"
+      cli::cli_abort(c(
+        "X" = "SUPP domain merge failed due to inconsistent key mapping.",
+        "i" = "While processing {.field QNAM} = {.val {current_qnam}} with {.field IDVAR} = {.val {current_idvar}}.",
+        "i" = "This usually indicates that multiple records in the SUPP domain map to the same parent record.",
+        "i" = "Each combination of STUDYID, USUBJID, IDVAR, and IDVARVAL should uniquely identify a row.",
+        "i" = "Check for duplicate or conflicting mappings in SUPP-- for this QNAM."
+      ), call = rlang::caller_env(n = 3)) # caller_env depth of 3 is "combine_supp"
     }
   } else {
-     # Verify that nothing will be missed
-     missing <- dplyr::anti_join(supp_prep, ret, by = by)
+    # Verify that nothing will be missed
+    missing <- dplyr::anti_join(supp_prep, ret, by = by)
 
-     # Add a message for when there are rows in the dataset that didn't get merged
-     if (nrow(missing) > 0) {
-        missing_display <- missing %>%
-           dplyr::transmute(
-              USUBJID,
-              !!current_idvar := IDVARVAL
-           )
+    # Add a message for when there are rows in the dataset that didn't get merged
+    if (nrow(missing) > 0) {
+      missing_display <- missing %>%
+        dplyr::transmute(
+          USUBJID,
+          !!current_idvar := IDVARVAL
+        )
 
-        cli::cli_warn(c(
-           "x" = "Some SUPP records were not merged into the main dataset.",
-           "!" = "Unmatched rows:",
-           sprintf(
-              "{.strong USUBJID}: {.val %s}  |  {.strong %s}: {.val %s}",
-              missing_display$USUBJID,
-              current_idvar,
-              missing_display[[current_idvar]]
-           )
-        ))
-     }
+      cli::cli_warn(c(
+        "x" = "Some SUPP records were not merged into the main dataset.",
+        "!" = "Unmatched rows:",
+        sprintf(
+          "{.strong USUBJID}: {.val %s}  |  {.strong %s}: {.val %s}",
+          missing_display$USUBJID,
+          current_idvar,
+          missing_display[[current_idvar]]
+        )
+      ))
+    }
 
     # join the data
     ret <- left_join(ret, supp_prep, by = by)

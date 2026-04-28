@@ -565,66 +565,64 @@ test_that("build_qnam verbose parameter", {
 })
 
 test_that("combine_supp throws clean errors and warnings", {
-   ae <- data.frame(
-      STUDYID = c("ABC123","ABC123","ABC123","ABC123","ABC123"),
-      DOMAIN = c("AE","AE","AE","AE","AE"),
-      USUBJID = c("ABC123-001","ABC123-001","ABC123-002","ABC123-002","ABC123-003"),
-      AESEQ   = c(1,2,1,2,1),
-      AESPID  = c("AE01","AE02","AE01","AE02","AE01"),
-      AEGRPID = c(NA, "GRP-A", NA, "GRP-B", "GRP-A"),
-      AETERM  = c("Headache","Nausea","Dizziness","Vomiting","Rash")
-   )
+  ae <- data.frame(
+    STUDYID = c("ABC123", "ABC123", "ABC123", "ABC123", "ABC123"),
+    DOMAIN = c("AE", "AE", "AE", "AE", "AE"),
+    USUBJID = c("ABC123-001", "ABC123-001", "ABC123-002", "ABC123-002", "ABC123-003"),
+    AESEQ = c(1, 2, 1, 2, 1),
+    AESPID = c("AE01", "AE02", "AE01", "AE02", "AE01"),
+    AEGRPID = c(NA, "GRP-A", NA, "GRP-B", "GRP-A"),
+    AETERM = c("Headache", "Nausea", "Dizziness", "Vomiting", "Rash")
+  )
 
-   suppae <- data.frame(
-      STUDYID = c("ABC123","ABC123","ABC123","ABC123","ABC123","ABC123"),
-      RDOMAIN = c("AE","AE","AE","AE","AE","AE"),
-      USUBJID = c("ABC123-001","ABC123-001","ABC123-001","ABC123-002","ABC123-002","ABC123-003"),
-      IDVAR   = c("AESEQ","AESEQ","AESPID","AESPID","AEGRPID","AEGRPID"),
-      IDVARVAL = c("1","2","AE01","AE02","GRP-B","GRP-A"),
-      QNAM    = c("AELAT","AETOXGR","AEREL","AEPATT","AESEV2","AESOC2"),
-      QLABEL  = c("Laterality","Toxicity Grade","Relationship","Pattern","Severity (Alt)","SOC (Alt)"),
-      QVAL    = c("LEFT","2","RELATED","INTERMITTENT","MODERATE","SKIN DISORDERS"),
-      QORIG   = c("CRF","CRF","CRF","CRF","DERIVED","DERIVED"),
-      QEVAL   = c(NA,NA,"INVESTIGATOR",NA,NA,NA)
-   )
+  suppae <- data.frame(
+    STUDYID = c("ABC123", "ABC123", "ABC123", "ABC123", "ABC123", "ABC123"),
+    RDOMAIN = c("AE", "AE", "AE", "AE", "AE", "AE"),
+    USUBJID = c("ABC123-001", "ABC123-001", "ABC123-001", "ABC123-002", "ABC123-002", "ABC123-003"),
+    IDVAR = c("AESEQ", "AESEQ", "AESPID", "AESPID", "AEGRPID", "AEGRPID"),
+    IDVARVAL = c("1", "2", "AE01", "AE02", "GRP-B", "GRP-A"),
+    QNAM = c("AELAT", "AETOXGR", "AEREL", "AEPATT", "AESEV2", "AESOC2"),
+    QLABEL = c("Laterality", "Toxicity Grade", "Relationship", "Pattern", "Severity (Alt)", "SOC (Alt)"),
+    QVAL = c("LEFT", "2", "RELATED", "INTERMITTENT", "MODERATE", "SKIN DISORDERS"),
+    QORIG = c("CRF", "CRF", "CRF", "CRF", "DERIVED", "DERIVED"),
+    QEVAL = c(NA, NA, "INVESTIGATOR", NA, NA, NA)
+  )
 
-   # Missing variables in supp, does not comply with CDISC structure
-   expect_error(
-      combine_supp(
-         dataset = ae,
-         supp = suppae |> select(-RDOMAIN, -IDVAR, -QNAM)
-      ),
-      "Supplemental Qualifier dataset does not comply with CDISC SDTM structure."
-   )
+  # Missing variables in supp, does not comply with CDISC structure
+  expect_error(
+    combine_supp(
+      dataset = ae,
+      supp = suppae |> select(-RDOMAIN, -IDVAR, -QNAM)
+    ),
+    "Supplemental Qualifier dataset does not comply with CDISC SDTM structure."
+  )
 
-   # Additional variables in supp, does not comply with CDISC structure
-   expect_error(
-      combine_supp(
-         dataset = ae,
-         supp = suppae |> mutate(EXT = NA_character_)
-      ),
-      "Supplemental Qualifier dataset does not comply with CDISC SDTM structure."
-   )
+  # Additional variables in supp, does not comply with CDISC structure
+  expect_error(
+    combine_supp(
+      dataset = ae,
+      supp = suppae |> mutate(EXT = NA_character_)
+    ),
+    "Supplemental Qualifier dataset does not comply with CDISC SDTM structure."
+  )
 
-   # IDVAR values in the supp are not in the main dataset and will not be joined
-   ae_01 <- ae[, !names(ae) %in% unique(suppae$IDVAR)]
-   expect_warning(
-      combine_supp(
-         dataset = ae_01,
-         supp = suppae
-      ),
-      "The following IDVAR values from the SUPP dataset will not be joined"
-   )
+  # IDVAR values in the supp are not in the main dataset and will not be joined
+  ae_01 <- ae[, !names(ae) %in% unique(suppae$IDVAR)]
+  expect_warning(
+    combine_supp(
+      dataset = ae_01,
+      supp = suppae
+    ),
+    "The following IDVAR values from the SUPP dataset will not be joined"
+  )
 
-   # Core SDTM variables are missing from the main dataset
-   ae_02 <- ae[, !names(ae) %in% c("STUDYID", "DOMAIN", "USUBJID")]
-   expect_error(
-      combine_supp(
-         dataset = ae_02,
-         supp = suppae
-      ),
-      "Core SDTM variables are missing from the dataset"
-   )
+  # Core SDTM variables are missing from the main dataset
+  ae_02 <- ae[, !names(ae) %in% c("STUDYID", "DOMAIN", "USUBJID")]
+  expect_error(
+    combine_supp(
+      dataset = ae_02,
+      supp = suppae
+    ),
+    "Core SDTM variables are missing from the dataset"
+  )
 })
-
-

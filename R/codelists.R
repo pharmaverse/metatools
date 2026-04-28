@@ -215,11 +215,11 @@ present in the input dataset {qty(n_miss)}{?is/are} not present in the codelist:
     rename({{ out_var }} := !!sym(new_var)) |>
     select(-merge_on)
 
-   # Optionally coerce to numeric if the output values are numeric
-   if (all(str_detect(code_translation[[new_var]], "^-?\\d*$"))) {
-      out <- out |>
-         mutate({{ out_var }} := as.numeric({{ out_var }}))
-   }
+  # Optionally coerce to numeric if the output values are numeric
+  if (all(str_detect(code_translation[[new_var]], "^-?\\d*$"))) {
+    out <- out |>
+      mutate({{ out_var }} := as.numeric({{ out_var }}))
+  }
 
   out
 }
