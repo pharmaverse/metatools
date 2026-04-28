@@ -2,7 +2,7 @@
 options(cli.default_handler = function(...) {})
 
 load(metacore::metacore_example("pilot_ADaM.rda"))
-spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
+spec <- metacore %>% select_dataset("ADSL", verbose = "silent")
 test_that("drop_unspec_vars", {
   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
     mutate(AGEGR2 = "DUMMY", AGEGR2N = 99, foo = "Hello", foo2 = "world")
@@ -65,7 +65,7 @@ test_that("build_from_derived", {
   )
 
   # Pulling through from more than one dataset
-  spec2 <- metacore %>% select_dataset("ADAE", quiet = TRUE)
+  spec2 <- metacore %>% select_dataset("ADAE", verbose = "silent")
   adae_auto <- build_from_derived(spec2,
     ds_list = list(
       "AE" = safetyData::sdtm_ae,
@@ -138,7 +138,7 @@ test_that("build_from_derived", {
   expect_equal(adae_full, adae_all_man)
 
   # Pulling through columns required for future derivations
-  spec3 <- metacore %>% select_dataset("ADAE", quiet = TRUE)
+  spec3 <- metacore %>% select_dataset("ADAE", verbose = "silent")
 
   adae_prereq <- build_from_derived(spec3,
     ds_list = list(
@@ -177,7 +177,7 @@ test_that("build_from_derived", {
 
 test_that("add_variables add missing variables to the metacore object", {
   load(metacore::metacore_example("pilot_ADaM.rda"))
-  spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
+  spec <- metacore %>% select_dataset("ADSL", verbose = "silent")
   data <- haven::read_xpt(metatools_example("adsl.xpt")) %>%
     mutate(AGEGR2 = "DUMMY", AGEGR2N = 99)
   data_mis <- data %>%
@@ -244,7 +244,7 @@ test_that("drop_unspec_vars verbose parameter", {
 
 test_that("build_from_derived verbose controls prepare_join messages", {
   load(metacore::metacore_example("pilot_ADaM.rda"))
-  spec2 <- metacore %>% select_dataset("ADAE", quiet = TRUE)
+  spec2 <- metacore %>% select_dataset("ADAE", verbose = "silent")
 
   # Use safetyData datasets and add a conflicting non-key column
   # STUDYID is a key column, so add a different column that will conflict

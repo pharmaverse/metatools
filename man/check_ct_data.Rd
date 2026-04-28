@@ -4,7 +4,13 @@
 \alias{check_ct_data}
 \title{Check Control Terminology for a Dataset}
 \usage{
-check_ct_data(data, metacore, na_acceptable = NULL, omit_vars = NULL)
+check_ct_data(
+  data,
+  metacore,
+  na_acceptable = NULL,
+  omit_vars = NULL,
+  verbose = "message"
+)
 }
 \arguments{
 \item{data}{Dataset to check}
@@ -24,13 +30,23 @@ only the specified variables may contain NA values.}
 \item{omit_vars}{\code{character} vector indicating which variables should be skipped
 when doing the controlled terminology checks. Internally, \code{omit_vars} is
 evaluated before \code{na_acceptable}.}
+
+\item{verbose}{\code{character} string controlling the verbosity of the output.
+Possible values are \code{"message"} (for general information and success messages)
+and \code{"warn"} (for warnings). Partial matching is allowed.
+\strong{Important}: \code{"silent"} is explicitly \strong{not} a valid option for \code{verbose} in
+this function. The primary purpose of \code{check_ct_data} is to identify and
+warn the user about non-compliant or problematic control terminology. Allowing
+the suppression of these warnings would bypass the function's intent and could
+lead to unnoticed data quality issues. If \code{verbose = "silent"} is provided, it will
+be coerced to \code{"message"} with a warning.}
 }
 \value{
-Given data if all columns pass. It will error otherwise
+Given data if all columns pass. It will issue a warning otherwise.
 }
 \description{
 This function checks that all columns in the dataset only contains the
-control terminology as defined by the metacore specification
+control terminology as defined by the metacore specification.
 }
 \examples{
 library(haven)

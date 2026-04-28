@@ -4,18 +4,39 @@
 #' terminology as defined by the metacore specification
 #'
 #' @param data Data to check
+#'
 #' @param metacore A metacore object to get the codelist from. If the variable
 #'   has different codelists for different datasets the metacore object will
 #'   need to be subsetted using `select_dataset` from the metacore package.
+#'
 #' @param var Name of variable to check
+#'
 #' @param na_acceptable Logical value, set to `NULL` by default, so the
 #'   acceptability of missing values is based on if the core for the variable is
 #'   "Required" in the `metacore` object. If set to `TRUE` then will pass check
 #'   if values are in the control terminology or are missing. If set to
 #'   `FALSE`then NA will not be acceptable.
 #'
+#' @param verbose `character` string controlling the verbosity of the output.
+#'   Possible values are `"message"` (for general information and success messages)
+#'   and `"warn"` (for warnings). Partial matching is allowed.
+#'   **Important**: `"silent"` is explicitly **not** a valid option for `verbose` in
+#'   this function. The primary purpose of `check_ct_data` is to identify and
+#'   warn the user about non-compliant or problematic control terminology. Allowing
+#'   the suppression of these warnings would bypass the function's intent and could
+#'   lead to unnoticed data quality issues. If `verbose = "silent"` is provided, it will
+#'   be coerced to `"message"` with a warning.
+#'
+#' @param .internal Logical value indicating whether the function is being
+#'   called internally by another package function. If `TRUE`, the function
+#'   suppresses user-facing messages and instead returns a logical indicator
+#'   of whether any controlled terminology violations were detected. This
+#'   argument is intended for internal use only and should not be set by
+#'   end users.
+#'
 #' @return Given data if column only contains control terms. If not, will error
 #'   given the values which should not be in the column
+#'
 #' @export
 #'
 #' @examples
@@ -27,20 +48,57 @@
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_ct_col(data, spec, TRT01PN)
 #' check_ct_col(data, spec, "TRT01PN")
-check_ct_col <- function(data, metacore, var, na_acceptable = NULL) {
+check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "message", .internal = FALSE) {
   verify_DatasetMeta(metacore)
-  bad_vals <- get_bad_ct(
-    data = data, metacore = metacore,
-    var = {{ var }}, na_acceptable = na_acceptable
+
+  # Verbose cannot be `silent` as the point of this function is to warn the user
+  tryCatch(
+    {
+      arg <- match.arg(verbose, "silent")
+      cli_warn(c(
+        "x" = "Argument {.arg verbose} cannot be {.val {arg}} for {.fn check_ct_data}",
+        "i" = "Must be one of: {.val message}, {.val warn}",
+        "i" = "Defaulting to {.val message}"
+      ))
+      verbose <- "message"
+    },
+    error = function(e) {
+      verbose <- validate_verbose(verbose, call = rlang::env_parent())
+    }
   )
+
+  var_name <- rlang::as_name(rlang::ensym(var))
+
+  bad_vals <- get_bad_ct(
+    data = data,
+    metacore = metacore,
+    var = {{ var }},
+    na_acceptable = na_acceptable
+  )
+
   if (length(bad_vals) == 0) {
-    data
-  } else {
-    extra <- bad_vals %>%
-      paste0("'", ., "'") %>%
-      paste0(collapse = ", ")
-    stop(paste("The following values should not be present:\n", extra))
+    if (.internal) {
+      return(TRUE)
+    } else if (verbose == "message") {
+      return(data)
+    }
+    return(invisible(data))
   }
+
+  # Format values nicely for display
+  bad_vals_fmt <- paste0("'", bad_vals, "'")
+  codelist <- metacore$value_spec |>
+    filter(variable == var_name) |>
+    pull(code_id)
+
+  cli_warn(c(
+    "x" = "Invalid controlled terminology detected",
+    "i" = "Variable: {var_name} | Codelist: {codelist}",
+    "i" = "Values not permitted {bad_vals_fmt}",
+    ""
+  ))
+
+  invisible(FALSE)
 }
 
 #' Gets vector of control terminology which should be there
@@ -109,23 +167,38 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL) {
 #' Check Control Terminology for a Dataset
 #'
 #' This function checks that all columns in the dataset only contains the
-#' control terminology as defined by the metacore specification
+#' control terminology as defined by the metacore specification.
+#'
 #' @param data Dataset to check
+#'
 #' @param metacore metacore object that contains the specifications for the
 #'   dataset of interest. If any variable has different codelists for different
 #'   datasets the metacore object will need to be subsetted using
 #'   `select_dataset` from the metacore package.
+#'
 #' @param na_acceptable `logical` value or `character` vector, set to `NULL` by default.
 #'   `NULL` sets the acceptability of missing values based on if the core for
 #'   the variable is "Required" in the `metacore` object. If set to `TRUE` then will
 #'   pass check if values are in the control terminology or are missing. If set
 #'   to `FALSE` then NA will not be acceptable. If set to a `character` vector then
 #'   only the specified variables may contain NA values.
+#'
 #' @param omit_vars `character` vector indicating which variables should be skipped
 #'   when doing the controlled terminology checks. Internally, `omit_vars` is
 #'   evaluated before `na_acceptable`.
 #'
-#' @return Given data if all columns pass. It will error otherwise
+#' @param verbose `character` string controlling the verbosity of the output.
+#'   Possible values are `"message"` (for general information and success messages)
+#'   and `"warn"` (for warnings). Partial matching is allowed.
+#'   **Important**: `"silent"` is explicitly **not** a valid option for `verbose` in
+#'   this function. The primary purpose of `check_ct_data` is to identify and
+#'   warn the user about non-compliant or problematic control terminology. Allowing
+#'   the suppression of these warnings would bypass the function's intent and could
+#'   lead to unnoticed data quality issues. If `verbose = "silent"` is provided, it will
+#'   be coerced to `"message"` with a warning.
+#'
+#' @return Given data if all columns pass. It will issue a warning otherwise.
+#'
 #' @export
 #'
 #' @examples
@@ -143,21 +216,40 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL) {
 #' check_ct_data(data, spec, na_acceptable = FALSE, omit_vars = "DISCONFL")
 #' check_ct_data(data, spec, na_acceptable = c("DSRAEFL", "DCSREAS"), omit_vars = "DISCONFL")
 #' }
-check_ct_data <- function(data, metacore, na_acceptable = NULL, omit_vars = NULL) {
+check_ct_data <- function(data, metacore, na_acceptable = NULL, omit_vars = NULL, verbose = "message") {
   verify_DatasetMeta(metacore)
+
+  # Verbose cannot be `silent` as the point of this function is to warn the user
+  tryCatch(
+    {
+      arg <- match.arg(verbose, "silent")
+      cli_warn(c(
+        "x" = "Argument {.arg verbose} cannot be {.val {arg}} for {.fn check_ct_data}",
+        "i" = "Must be one of: {.val message}, {.val warn}",
+        "i" = "Defaulting to {.val message}"
+      ))
+      verbose <- "message"
+    },
+    error = function(e) {
+      verbose <- validate_verbose(verbose, call = rlang::env_parent())
+    }
+  )
+
   codes_in_data <- metacore$value_spec %>%
-    filter(variable %in% names(data), !is.na(code_id)) %>%
-    pull(code_id) %>%
+    dplyr::filter(variable %in% names(data), !is.na(code_id)) %>%
+    dplyr::pull(code_id) %>%
     unique()
+
   # Remove any codes that have external libraries
   codes_to_check <- metacore$codelist %>%
-    filter(type != "external_library", code_id %in% codes_in_data) %>%
-    select(code_id)
-  # convert list of codes to variables
+    dplyr::filter(type != "external_library", code_id %in% codes_in_data) %>%
+    dplyr::select(code_id)
+
+  # Convert list of codes to variables
   cols_to_check <- metacore$value_spec %>%
-    inner_join(codes_to_check, by = "code_id", multiple = "all", relationship = "many-to-many") %>%
-    filter(variable %in% names(data)) %>%
-    pull(variable) %>%
+    dplyr::inner_join(codes_to_check, by = "code_id", relationship = "many-to-many") %>%
+    dplyr::filter(variable %in% names(data)) %>%
+    dplyr::pull(variable) %>%
     unique()
 
   # Subset cols_to_check by omit_vars
@@ -166,55 +258,39 @@ check_ct_data <- function(data, metacore, na_acceptable = NULL, omit_vars = NULL
     cols_to_check <- setdiff(cols_to_check, omit_vars)
   }
 
-  # send all variables through check_ct_col
-  safe_chk <- safely(check_ct_col)
-
-  if (is.character(na_acceptable)) {
-    check_vars_in_data(na_acceptable, "na_acceptable", data)
-    new_na_acceptable <- rep(FALSE, length(cols_to_check))
-    new_na_acceptable[match(na_acceptable, cols_to_check)] <- TRUE
-
-    results <- map2(cols_to_check, new_na_acceptable, function(x, naac) {
-      out <- safe_chk(data, metacore, {{ x }}, naac)
-      out$error
-    })
-  } else if (is.logical(na_acceptable) || is.null(na_acceptable)) {
-    results <- cols_to_check %>%
-      map(function(x) {
-        out <- safe_chk(data, metacore, {{ x }}, na_acceptable)
-        out$error
-      })
-  } else {
-    stop("na_acceptable is not NULL, logical or character.", call. = FALSE)
-  }
-
-
-  # Write out warning message
-  test <- map_lgl(results, is.null)
-  if (all(test)) {
-    return(data)
-  } else {
-    extras <- results %>%
-      discard(is.null) %>%
-      map(~ .$message) %>%
-      unlist() %>%
-      str_remove("The following values should not be present:\n\\s")
-    unique_test <- extras %>%
-      keep(~ str_detect(., "does not have a unique control term"))
-    if (length(unique_test) > 0) {
-      stop(paste0(unique_test, collapse = "\n"), call. = FALSE)
-    }
-    message <- paste0(cols_to_check[!test], " (", extras, ")") %>%
-      paste0(collapse = "\n")
-    stop(
-      paste0(
-        "The following variables contained values not found in the control terminology
-       Variable (Prohibited Value(s))\n",
-        message
-      ),
-      call. = FALSE
+  # Validate na_acceptable
+  if (!is.null(na_acceptable) &&
+    !is.logical(na_acceptable) &&
+    !is.character(na_acceptable)) {
+    cli::cli_abort(
+      "na_acceptable must be NULL, logical, or character."
     )
   }
+
+  # Run checks and collect flags
+  results <- purrr::map_lgl(cols_to_check, function(x) {
+    if (is.character(na_acceptable)) {
+      na_flag <- x %in% na_acceptable
+    } else if (is.logical(na_acceptable) || is.null(na_acceptable)) {
+      na_flag <- na_acceptable
+    }
+
+    check_ct_col(data, metacore, !!rlang::sym(x), na_flag, "message", .internal = TRUE)
+  })
+
+  # If no warnings triggered
+  if (all(results) && verbose == "message") {
+    cli::cli_inform(c(
+      "v" = "All controlled terminology checks passed"
+    ))
+  }
+
+  # Print dataset Y/N?
+  if (verbose == "message") {
+    return(data)
+  }
+
+  invisible(data)
 }
 
 check_vars_in_data <- function(vars, vars_name, data) {
@@ -263,7 +339,7 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #' check_variables(data, spec)
 #' data["DUMMY_COL"] <- NA
 #' check_variables(data, spec, strict = FALSE)
-check_variables <- function(data, metacore, dataset_name = deprecated(), strict = TRUE) {
+check_variables <- function(data, metacore, dataset_name = deprecated(), strict = FALSE) {
   if (is_present(dataset_name)) {
     lifecycle::deprecate_warn(
       when = "0.2.0",
@@ -344,8 +420,8 @@ print_to_console <- function(messages, data_list, strict = TRUE) {
 
   options(deparse.max.lines = 2000L)
   switch(as.character(strict),
-    "TRUE"  = cli::cli_abort(output_string, call = NULL),
-    "FALSE" = cli::cli_warn(output_string, call = NULL)
+    "TRUE"  = cli::cli_abort(c(output_string), call = NULL),
+    "FALSE" = cli::cli_warn(c(output_string), call = NULL)
   )
 }
 

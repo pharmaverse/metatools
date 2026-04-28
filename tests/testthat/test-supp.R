@@ -48,7 +48,7 @@ test_that("make_supp_qual", {
   load(metacore::metacore_example("pilot_SDTM.rda"))
 
   spec <- metacore %>%
-    select_dataset("AE", quiet = TRUE)
+    select_dataset("AE", verbose = "silent")
 
   # Add the mock supp variables
   ae <- combine_supp(safetyData::sdtm_ae, safetyData::sdtm_suppae)
@@ -78,7 +78,7 @@ test_that("make_supp_qual", {
   expect_equal(metacore_supp, man_supp)
 
   # Add the supp without a idvar
-  dm_spec <- select_dataset(metacore, "DM", quiet = TRUE)
+  dm_spec <- select_dataset(metacore, "DM", verbose = "silent")
   dm <- combine_supp(safetyData::sdtm_dm, safetyData::sdtm_suppdm) %>%
     as_tibble()
   dm_supp <- make_supp_qual(dm, dm_spec)
@@ -113,8 +113,8 @@ test_that("make_supp_qual", {
   # Testing with too many datasets
   expect_error(make_supp_qual(ae, metacore))
   # Testing without supp columns specified
-  metacore_old <- metacore::spec_to_metacore(metacore::metacore_example("SDTM_spec_CDISC_pilot.xlsx"), quiet = TRUE)
-  ae_spec <- select_dataset(metacore_old, "AE", quiet = TRUE)
+  metacore_old <- metacore::spec_to_metacore(metacore::metacore_example("SDTM_spec_CDISC_pilot.xlsx"), verbose = "silent")
+  ae_spec <- select_dataset(metacore_old, "AE", verbose = "silent")
   expect_error(
     make_supp_qual(ae, ae_spec),
     "No supplemental variables specified in metacore object. Please check your specifications"
@@ -226,7 +226,7 @@ test_that("supp data that does not match the main data will raise a warning but 
 
   expect_warning(
     out <- combine_supp(safetyData::sdtm_ae, sdtm_suppae_extra),
-    "Not all rows of SUPP were merged"
+    "Some SUPP records were not merged into the main dataset"
   )
   expect_s3_class(out, "data.frame")
 })
@@ -278,7 +278,7 @@ test_that("multiple different IDVAR map to the same QNAM works", {
 
   expect_error(
     combine_supp(simple_ae, supp = simple_suppae),
-    regexp = "An unexpected number of rows were replaced while merging QNAM AETRTEM and IDVAR AESEQ"
+    regexp = "SUPP domain merge failed due to inconsistent key mapping."
   )
 })
 
@@ -329,7 +329,7 @@ test_that("combine_supp errors when QNAM already exists in dataset", {
 
   expect_error(
     combine_supp(simple_ae, simple_suppae),
-    "already in the original dataset"
+    "Column name conflict detected when combining SUPP data"
   )
 })
 
@@ -338,9 +338,9 @@ test_that("combine_supp handles IDVAR not in dataset", {
   simple_suppae <- safetyData::sdtm_suppae[1, ]
   simple_suppae$IDVAR <- "FAKEIDVAR" # IDVAR that doesn't exist
 
-  expect_error(
+  expect_warning(
     combine_supp(simple_ae, simple_suppae),
-    "replacement has 0 rows"
+    "The following IDVAR values from the SUPP dataset will not be joined"
   )
 })
 
@@ -381,7 +381,7 @@ test_that("combine_supp_by_idvar detects conflicting replacements across IDVARs"
 
   expect_error(
     combine_supp(simple_ae, suppae_conflict),
-    "unexpected number of rows"
+    "SUPP domain merge failed due to inconsistent key mapping."
   )
 })
 
@@ -472,7 +472,7 @@ test_that("combine_supp: extra SUPP rows that do not match core raise a warning 
 
   expect_warning(
     out <- combine_supp(pc, supppc_extra),
-    "Not all rows of SUPP were merged"
+    "Some SUPP records were not merged into the main dataset"
   )
   expect_s3_class(out, "data.frame")
   expect_equal(nrow(out), nrow(pc))
@@ -561,5 +561,68 @@ test_that("build_qnam verbose parameter", {
       verbose = "invalid"
     ),
     "should be one of: message, warn, silent"
+  )
+})
+
+test_that("combine_supp throws clean errors and warnings", {
+  ae <- data.frame(
+    STUDYID = c("ABC123", "ABC123", "ABC123", "ABC123", "ABC123"),
+    DOMAIN = c("AE", "AE", "AE", "AE", "AE"),
+    USUBJID = c("ABC123-001", "ABC123-001", "ABC123-002", "ABC123-002", "ABC123-003"),
+    AESEQ = c(1, 2, 1, 2, 1),
+    AESPID = c("AE01", "AE02", "AE01", "AE02", "AE01"),
+    AEGRPID = c(NA, "GRP-A", NA, "GRP-B", "GRP-A"),
+    AETERM = c("Headache", "Nausea", "Dizziness", "Vomiting", "Rash")
+  )
+
+  suppae <- data.frame(
+    STUDYID = c("ABC123", "ABC123", "ABC123", "ABC123", "ABC123", "ABC123"),
+    RDOMAIN = c("AE", "AE", "AE", "AE", "AE", "AE"),
+    USUBJID = c("ABC123-001", "ABC123-001", "ABC123-001", "ABC123-002", "ABC123-002", "ABC123-003"),
+    IDVAR = c("AESEQ", "AESEQ", "AESPID", "AESPID", "AEGRPID", "AEGRPID"),
+    IDVARVAL = c("1", "2", "AE01", "AE02", "GRP-B", "GRP-A"),
+    QNAM = c("AELAT", "AETOXGR", "AEREL", "AEPATT", "AESEV2", "AESOC2"),
+    QLABEL = c("Laterality", "Toxicity Grade", "Relationship", "Pattern", "Severity (Alt)", "SOC (Alt)"),
+    QVAL = c("LEFT", "2", "RELATED", "INTERMITTENT", "MODERATE", "SKIN DISORDERS"),
+    QORIG = c("CRF", "CRF", "CRF", "CRF", "DERIVED", "DERIVED"),
+    QEVAL = c(NA, NA, "INVESTIGATOR", NA, NA, NA)
+  )
+
+  # Missing variables in supp, does not comply with CDISC structure
+  expect_error(
+    combine_supp(
+      dataset = ae,
+      supp = suppae |> select(-RDOMAIN, -IDVAR, -QNAM)
+    ),
+    "Supplemental Qualifier dataset does not comply with CDISC SDTM structure."
+  )
+
+  # Additional variables in supp, does not comply with CDISC structure
+  expect_error(
+    combine_supp(
+      dataset = ae,
+      supp = suppae |> mutate(EXT = NA_character_)
+    ),
+    "Supplemental Qualifier dataset does not comply with CDISC SDTM structure."
+  )
+
+  # IDVAR values in the supp are not in the main dataset and will not be joined
+  ae_01 <- ae[, !names(ae) %in% unique(suppae$IDVAR)]
+  expect_warning(
+    combine_supp(
+      dataset = ae_01,
+      supp = suppae
+    ),
+    "The following IDVAR values from the SUPP dataset will not be joined"
+  )
+
+  # Core SDTM variables are missing from the main dataset
+  ae_02 <- ae[, !names(ae) %in% c("STUDYID", "DOMAIN", "USUBJID")]
+  expect_error(
+    combine_supp(
+      dataset = ae_02,
+      supp = suppae
+    ),
+    "Core SDTM variables are missing from the dataset"
   )
 })

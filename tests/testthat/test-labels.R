@@ -81,8 +81,8 @@ test_that("add_labels errors on invalid input", {
 test_that("set_variable_labels applies labels from metacore properly", {
   # Load in the metacore test object and example data
   suppressMessages(
-    mc <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet = TRUE) %>%
-      metacore::select_dataset("DM", quiet = TRUE)
+    mc <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), verbose = "silent") %>%
+      metacore::select_dataset("DM", verbose = "silent")
   )
   dm <- haven::read_xpt(metatools_example("dm.xpt"))
 
@@ -102,7 +102,7 @@ test_that("set_variable_labels warns on variable mismatches", {
     suppressMessages(
       metacore::metacore(ds_spec, ds_vars, var_spec, value_spec, derivations, code_id)
     )
-  ) %>% select_dataset("Starwars", quiet = TRUE)
+  ) %>% select_dataset("Starwars", verbose = "silent")
 
   # Variables in data not in metadata
   starwars_short2 <- starwars_short
@@ -113,7 +113,7 @@ test_that("set_variable_labels warns on variable mismatches", {
   mc_subset <- suppressWarnings(
     suppressMessages(
       metacore::metacore(ds_spec, ds_vars[1:4, ], var_spec[1:4, ], value_spec, derivations, code_id) %>%
-        metacore::select_dataset("Starwars", quiet = TRUE)
+        metacore::select_dataset("Starwars", verbose = "silent")
     )
   )
   expect_warning(set_variable_labels(starwars_short, mc_subset))
@@ -121,7 +121,7 @@ test_that("set_variable_labels warns on variable mismatches", {
 
 test_that("set_variable_labels respects verbose parameter", {
   load(metacore::metacore_example("pilot_SDTM.rda"))
-  spec <- metacore |> select_dataset("DM", quiet = TRUE)
+  spec <- metacore |> select_dataset("DM", verbose = "silent")
   dm <- haven::read_xpt(metatools_example("dm.xpt"))
 
   # Create data with mismatch to trigger warnings
@@ -135,16 +135,44 @@ test_that("set_variable_labels respects verbose parameter", {
   )
 
   # verbose = "message" shows warnings
-  expect_warning(
-    set_variable_labels(dm_mismatch, spec, verbose = "message"),
-    "Variables in"
+  gotWarnings <- character(0)
+  withCallingHandlers(
+    {
+      got <- set_variable_labels(dm_mismatch, spec, verbose = "message")
+    },
+    warning = function(e) {
+      # Push warning onto vector
+      gotWarnings <<- c(gotWarnings, conditionMessage((e)))
+      invokeRestart("muffleWarning")
+    }
   )
 
+  # Ensure no unexpected warnings
+  expect_equal(length(gotWarnings), 2)
+
+  # Test that each warning I want is there
+  expect_true(any(grepl("Variables in metadata not in data", gotWarnings)))
+  expect_true(any(grepl("Variables in data not in metadata", gotWarnings)))
+
   # verbose = "warn" shows warnings
-  expect_warning(
-    set_variable_labels(dm_mismatch, spec, verbose = "warn"),
-    "Variables in"
+  gotWarnings <- character(0)
+  withCallingHandlers(
+    {
+      got <- set_variable_labels(dm_mismatch, spec, verbose = "warn")
+    },
+    warning = function(e) {
+      # Push warning onto vector
+      gotWarnings <<- c(gotWarnings, conditionMessage((e)))
+      invokeRestart("muffleWarning")
+    }
   )
+
+  # Ensure no unexpected warnings
+  expect_equal(length(gotWarnings), 2)
+
+  # Test that each warning I want is there
+  expect_true(any(grepl("Variables in metadata not in data", gotWarnings)))
+  expect_true(any(grepl("Variables in data not in metadata", gotWarnings)))
 
   # Invalid verbose value errors
   expect_error(

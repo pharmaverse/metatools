@@ -4,7 +4,14 @@
 \alias{check_ct_col}
 \title{Check Control Terminology for a Single Column}
 \usage{
-check_ct_col(data, metacore, var, na_acceptable = NULL)
+check_ct_col(
+  data,
+  metacore,
+  var,
+  na_acceptable = NULL,
+  verbose = "message",
+  .internal = FALSE
+)
 }
 \arguments{
 \item{data}{Data to check}
@@ -20,6 +27,23 @@ acceptability of missing values is based on if the core for the variable is
 "Required" in the \code{metacore} object. If set to \code{TRUE} then will pass check
 if values are in the control terminology or are missing. If set to
 \code{FALSE}then NA will not be acceptable.}
+
+\item{verbose}{\code{character} string controlling the verbosity of the output.
+Possible values are \code{"message"} (for general information and success messages)
+and \code{"warn"} (for warnings). Partial matching is allowed.
+\strong{Important}: \code{"silent"} is explicitly \strong{not} a valid option for \code{verbose} in
+this function. The primary purpose of \code{check_ct_data} is to identify and
+warn the user about non-compliant or problematic control terminology. Allowing
+the suppression of these warnings would bypass the function's intent and could
+lead to unnoticed data quality issues. If \code{verbose = "silent"} is provided, it will
+be coerced to \code{"message"} with a warning.}
+
+\item{.internal}{Logical value indicating whether the function is being
+called internally by another package function. If \code{TRUE}, the function
+suppresses user-facing messages and instead returns a logical indicator
+of whether any controlled terminology violations were detected. This
+argument is intended for internal use only and should not be set by
+end users.}
 }
 \value{
 Given data if column only contains control terms. If not, will error

@@ -4,7 +4,7 @@
 \alias{check_variables}
 \title{Check Variable Names}
 \usage{
-check_variables(data, metacore, dataset_name = deprecated(), strict = TRUE)
+check_variables(data, metacore, dataset_name = deprecated(), strict = FALSE)
 }
 \arguments{
 \item{data}{Dataset to check}

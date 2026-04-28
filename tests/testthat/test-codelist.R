@@ -1,10 +1,10 @@
 # Suppress cli output during testing
 options(cli.default_handler = function(...) {})
 
-spec <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), quiet = TRUE)
-dm_spec <- select_dataset(spec, "DM", quiet = TRUE)
+spec <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), verbose = "silent")
+dm_spec <- select_dataset(spec, "DM", verbose = "silent")
 load(metacore::metacore_example("pilot_ADaM.rda"))
-adsl_spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
+adsl_spec <- metacore %>% select_dataset("ADSL", verbose = "silent")
 dm <- haven::read_xpt(metatools_example("dm.xpt"))
 
 
@@ -63,7 +63,7 @@ test_that("create_var_from_codelist", {
 
   # Test provide custom codelist
   load(metacore::metacore_example("pilot_ADaM.rda"))
-  adlb_spec <- metacore::select_dataset(metacore, "ADLBC", quiet = TRUE)
+  adlb_spec <- metacore::select_dataset(metacore, "ADLBC", verbose = "silent")
   data <- tibble::tibble(
     PARAMCD = c("ALB", "ALP", "ALT", "DUMMY", "DUMMY2")
   )
@@ -163,34 +163,38 @@ test_that("create_var_from_codelist", {
 
   # Test numeric codelist with negative numbers
   data <- tibble::tibble(
-     USUBJID = c(1, 2, 3, 4, 5),
-     VAR = c("Male", "Female", "Female", "Unknown", "Male")
+    USUBJID = c(1, 2, 3, 4, 5),
+    VAR = c("Male", "Female", "Female", "Unknown", "Male")
   )
 
   manual_data <- tibble::tibble(
-     USUBJID = c(1, 2, 3, 4, 5),
-     VAR = c("Male", "Female", "Female", "Unknown", "Male"),
-     SEX = c(2, 1, 1, -999, 2),
+    USUBJID = c(1, 2, 3, 4, 5),
+    VAR = c("Male", "Female", "Female", "Unknown", "Male"),
+    SEX = c(2, 1, 1, -999, 2),
   )
 
   dm_spec <- metacore::metacore(
-     quiet = TRUE,
-     ds_spec = spec$ds_spec,
-     ds_vars = spec$ds_vars,
-     var_spec = spec$var_spec,
-     value_spec = mutate(spec$value_spec, code_id = case_when(code_id != "SEX" ~ NA, TRUE ~ "SEX")),
-     derivations = spec$derivations,
-     supp = spec$supp,
-     codelist = structure(
-        list(
-           code_id = structure("SEX", label = "ID of the Code List"),
-           name = "SEX",
-           type = structure("code_decode", label = "Code List/Permitted Values/External Library"),
-           codes = structure(list(structure(list(code = c(1, 2, -999), decode = c("Female", "Male", "Unknown")),     row.names = c(NA, -3L), class = c("tbl_df", "tbl", "data.frame"))), label = "List of Codes")), row.names = c(NA, -1L),   class = c("tbl_df", "tbl", "data.frame"))) %>%
-     select_dataset( "DM", quiet = TRUE)
+    verbose = "silent",
+    ds_spec = spec$ds_spec,
+    ds_vars = spec$ds_vars,
+    var_spec = spec$var_spec,
+    value_spec = mutate(spec$value_spec, code_id = case_when(code_id != "SEX" ~ NA, TRUE ~ "SEX")),
+    derivations = spec$derivations,
+    supp = spec$supp,
+    codelist = structure(
+      list(
+        code_id = structure("SEX", label = "ID of the Code List"),
+        name = "SEX",
+        type = structure("code_decode", label = "Code List/Permitted Values/External Library"),
+        codes = structure(list(structure(list(code = c(1, 2, -999), decode = c("Female", "Male", "Unknown")), row.names = c(NA, -3L), class = c("tbl_df", "tbl", "data.frame"))), label = "List of Codes")
+      ),
+      row.names = c(NA, -1L), class = c("tbl_df", "tbl", "data.frame")
+    )
+  ) %>%
+    select_dataset("DM", verbose = "silent")
 
   create_var_from_codelist(data, dm_spec, VAR, SEX) %>%
-     expect_equal(manual_data)
+    expect_equal(manual_data)
 
   # Test for Variable not in specs
   expect_error(
@@ -260,7 +264,7 @@ test_that("create_cat_var", {
     codelist = codelist,
     supp = adsl_spec$supp
   )) %>%
-    select_dataset("ADSL", quiet = TRUE)
+    select_dataset("ADSL", verbose = "silent")
 
   create_cat_var(dm, spec2, AGE, AGEGR1, AGEGR1N, TRUE) |>
     expect_error("Unable to decipher the following group definition: DUMMY. Please check your controlled terminology.")
@@ -284,7 +288,7 @@ test_that("create_cat_var", {
     codelist = codelist,
     supp = adsl_spec$supp
   )) %>%
-    select_dataset("ADSL", quiet = TRUE)
+    select_dataset("ADSL", verbose = "silent")
 
   create_cat_var(dm, spec2, AGE, AGEGR1, AGEGR1N, create_from_decode = TRUE) |>
     expect_error("Group definitions are not exclusive. Please check your controlled terminology")
