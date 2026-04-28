@@ -34,6 +34,14 @@ test_that("check_ct_col works correctly", {
   # Check it works when passes a string
   expect_equal(check_ct_col(data, spec, "TRT01PN"), data)
 
+  # Check verbose parameters work (warn) and partial match (w)
+  expect_silent(check_ct_col(data, spec, ARM, verbose = "warn"))
+  expect_silent(check_ct_col(data, spec, ARM, verbose = "w"))
+
+  # Check verbose warning issued when `verbose = "silent"` or partial match "s"
+  expect_warning(check_ct_col(data, spec, ARM, verbose = "silent"))
+  expect_warning(check_ct_col(data, spec, ARM, verbose = "s"))
+
   # Test permitted Values
   spec2 <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), verbose = "silent")
   dm <- select_dataset(spec2, "DM", verbose = "silent")
@@ -85,10 +93,31 @@ test_that("check_ct_data works correctly", {
   expect_warning(check_ct_data(data_multi_word |> select(TRT01P), spec))
 
   expect_warning(check_ct_data(data |> select(COMP8FL), spec, FALSE))
+
+  # Check data returned
   expect_equal(check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N")), data)
   expect_equal(check_ct_data(data, spec, TRUE, omit_vars = c("AGEGR2", "AGEGR2N")), data)
   expect_warning(check_ct_data(data |> select(AGEGR2), spec_mod))
   expect_equal(check_ct_data(data, spec_mod, TRUE, omit_vars = c("AGEGR2", "AGEGR2N")), data)
+
+  # Check verbose parameter
+  expect_message(
+    {
+      ret <- check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N"), verbose = "message")
+    },
+    regexp = "All controlled terminology checks passed"
+  )
+
+  expect_silent(check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N"), verbose = "warn"))
+  expect_silent(check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N"), verbose = "w"))
+
+  ret <- check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N"), verbose = "silent") |>
+    expect_message("All controlled terminology checks passed") |>
+    expect_warning("Argument")
+
+  ret <- check_ct_data(data, spec, na_acceptable = c("DCSREAS", "COMP8FL", "BMIBLGR1"), verbose = "silent") |>
+    expect_warning("Argument") |>
+    expect_warning("Invalid controlled terminology detected")
 
   # Check character vector input for na_acceptable:
   expect_warning(check_ct_data(data, spec, na_acceptable = c("DCSREAS", "COMP8FL", "BMIBLGR1")))
