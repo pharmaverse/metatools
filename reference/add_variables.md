@@ -41,6 +41,9 @@ The given dataset with any additional columns added
 
 ``` r
 library(metacore)
+#> Attaching package `metacore`
+#> 
+#> As of metacore 0.3.0 the `keep` variable in the `ds_vars` table has been renamed to `mandatory`. Please see release documentation for details.
 library(haven)
 library(dplyr)
 #> 
@@ -53,16 +56,10 @@ library(dplyr)
 #>     intersect, setdiff, setequal, union
 load(metacore_example("pilot_ADaM.rda"))
 spec <- metacore %>% select_dataset("ADSL")
-#> Warning: `core` from the `ds_vars` table only contains missing values.
-#> Warning: `supp_flag` from the `ds_vars` table only contains missing values.
-#> Warning: `common` from the `var_spec` table only contains missing values.
-#> Warning: `where` from the `value_spec` table only contains missing values.
-#> Warning: `dataset` from the `supp` table only contains missing values.
-#> Warning: `variable` from the `supp` table only contains missing values.
-#> Warning: `idvar` from the `supp` table only contains missing values.
-#> Warning: `qeval` from the `supp` table only contains missing values.
+#> Warning: 'ds_vars' has incorrect column names. It should be: dataset, variable, key_seq,
+#> order, mandatory, core, supp_flag
+#> Warning: Other checks were not performed, because column names were incorrect
 #> ✔ ADSL dataset successfully selected
-#> 
 data <- read_xpt(metatools_example("adsl.xpt")) %>%
   select(-TRTSDT, -TRT01P, -TRT01PN)
 add_variables(data, spec)

@@ -79,15 +79,10 @@ data <- tribble(
   5, "M", "Male",
 )
 spec <- spec_to_metacore(metacore_example("p21_mock.xlsx"), quiet = TRUE)
-#> ✔ Metadata successfully imported
-#> ℹ Dataset metadata imported with suppressed warnings
-#> ℹ To use the Metacore object with metatools package, first subset a dataset
-#>   using `metacore::select_dataset()`
-#> 
+#> Warning: The `quiet` argument of `spec_to_metacore()` is deprecated as of metacore
+#> 0.3.0.
+#> ℹ Please use the `verbose` argument instead.
 dm_spec <- select_dataset(spec, "DM", quiet = TRUE)
-#> ✔ DM dataset successfully selected
-#> ℹ Dataset metadata specification subsetted with suppressed warnings
-#> 
 create_var_from_codelist(data, dm_spec, VAR2, SEX)
 #> # A tibble: 5 × 4
 #>   USUBJID VAR1  VAR2    SEX  
@@ -120,9 +115,6 @@ create_var_from_codelist(data, dm_spec, VAR1, SEX, decode_to_code = FALSE)
 # This example also reverses the direction of translation
 load(metacore_example("pilot_ADaM.rda"))
 adlb_spec <- select_dataset(metacore, "ADLBC", quiet = TRUE)
-#> ✔ ADLBC dataset successfully selected
-#> ℹ Dataset metadata specification subsetted with suppressed warnings
-#> 
 adlb <- tibble(PARAMCD = c("ALB", "ALP", "ALT", "AST", "BILI", "BUN"))
 create_var_from_codelist(
   adlb,

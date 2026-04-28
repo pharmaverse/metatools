@@ -2,7 +2,7 @@ pandoc: 3.1.11
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles: {}
-last_built: 2026-04-20T16:26Z
+last_built: 2026-04-28T10:45Z
 urls:
   reference: https://pharmaverse.github.io/metatools/reference
   article: https://pharmaverse.github.io/metatools/articles

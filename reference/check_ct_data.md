@@ -1,12 +1,18 @@
 # Check Control Terminology for a Dataset
 
 This function checks that all columns in the dataset only contains the
-control terminology as defined by the metacore specification
+control terminology as defined by the metacore specification.
 
 ## Usage
 
 ``` r
-check_ct_data(data, metacore, na_acceptable = NULL, omit_vars = NULL)
+check_ct_data(
+  data,
+  metacore,
+  na_acceptable = NULL,
+  omit_vars = NULL,
+  verbose = "message"
+)
 ```
 
 ## Arguments
@@ -38,9 +44,22 @@ check_ct_data(data, metacore, na_acceptable = NULL, omit_vars = NULL)
   doing the controlled terminology checks. Internally, `omit_vars` is
   evaluated before `na_acceptable`.
 
+- verbose:
+
+  `character` string controlling the verbosity of the output. Possible
+  values are `"message"` (for general information and success messages)
+  and `"warn"` (for warnings). Partial matching is allowed.
+  **Important**: `"silent"` is explicitly **not** a valid option for
+  `verbose` in this function. The primary purpose of `check_ct_data` is
+  to identify and warn the user about non-compliant or problematic
+  control terminology. Allowing the suppression of these warnings would
+  bypass the function's intent and could lead to unnoticed data quality
+  issues. If `verbose = "silent"` is provided, it will be coerced to
+  `"message"` with a warning.
+
 ## Value
 
-Given data if all columns pass. It will error otherwise
+Given data if all columns pass. It will issue a warning otherwise.
 
 ## Examples
 
@@ -50,12 +69,12 @@ library(metacore)
 library(magrittr)
 load(metacore_example("pilot_ADaM.rda"))
 spec <- metacore %>% select_dataset("ADSL", quiet = TRUE)
-#> ✔ ADSL dataset successfully selected
-#> ℹ Dataset metadata specification subsetted with suppressed warnings
-#> 
+#> Warning: The `quiet` argument of `select_dataset()` is deprecated as of metacore 0.3.0.
+#> ℹ Please use the `verbose` argument instead.
 data <- read_xpt(metatools_example("adsl.xpt"))
 
 check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N"))
+#> ✔ All controlled terminology checks passed
 #> # A tibble: 254 × 51
 #>    STUDYID     USUBJID SUBJID SITEID SITEGR1 ARM   TRT01P TRT01PN TRT01A TRT01AN
 #>    <chr>       <chr>   <chr>  <chr>  <chr>   <chr> <chr>    <dbl> <chr>    <dbl>

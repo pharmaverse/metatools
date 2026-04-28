@@ -34,7 +34,14 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.0" id="metatools-030">metatools 0.3.0<a class="anchor" aria-label="anchor" href="#metatools-030"></a></h2>
-<ul><li>Bugfix issue in <code><a href="../reference/create_var_from_codelist.html">create_var_from_codelist()</a></code> where supplied codelist contains negative numeric values. (<a href="https://github.com/pharmaverse/metatools/issues/111" class="external-link">#111</a>)</li>
+<ul><li><p>Enhancement: <code>verbose</code> Adds a verbose parameter to <code><a href="../reference/build_from_derived.html">build_from_derived()</a></code>, <code><a href="../reference/set_variable_labels.html">set_variable_labels()</a></code>, and <code><a href="../reference/build_qnam.html">build_qnam()</a></code> to allow users to suppress informational messages and warnings during execution. Permissible values “message”, “warn”, “silent”.</p></li>
+<li><p>Enhancement: <code>verbose</code> parameter also added to <code>check_ct_col</code> and <code>check_ct_data</code>. Warnings cannot be suppressed for these functions to prevent unnoticed data quality issues. Permissible values “message”, “warn”. <a href="https://github.com/pharmaverse/metatools/pull/136" class="external-link">#136</a></p></li>
+<li><p>Enhancement: <code><a href="../reference/add_labels.html">add_labels()</a></code> now prints out variables that do not exist in the dataset. <a href="https://github.com/pharmaverse/metatools/pull/113" class="external-link">#113</a></p></li>
+<li><p>Bugfix issue where <code><a href="../reference/create_var_from_codelist.html">create_var_from_codelist()</a></code> would throw an error when <code>strict=TRUE</code> and <code>input_var</code> was numeric. <a href="https://github.com/pharmaverse/metatools/pull/108" class="external-link">#111</a></p></li>
+<li><p>Bugfix issue in <code><a href="../reference/create_var_from_codelist.html">create_var_from_codelist()</a></code> where supplied codelist contains negative numeric values.<a href="https://github.com/pharmaverse/metatools/pull/102" class="external-link">#102</a></p></li>
+<li><p>Bugfix logic for detecting variable mismatches in <code><a href="../reference/set_variable_labels.html">set_variable_labels()</a></code>. <a href="https://github.com/pharmaverse/metatools/pull/112" class="external-link">#112</a></p></li>
+<li><p>Bugfix <code>combine_supp_join()</code> no longer throws an error when rows exist in the supp that do not correspond to a record in the core dataset. <a href="https://github.com/pharmaverse/metatools/pull/115" class="external-link">#115</a></p></li>
+<li><p>Various updates and refinements to documentation. - GitHub workflows for package styling and spelling enabled. <a href="https://github.com/pharmaverse/metatools/pull/128" class="external-link">#128</a></p></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="metatools-020">metatools 0.2.0<a class="anchor" aria-label="anchor" href="#metatools-020"></a></h2><p class="text-muted">CRAN release: 2025-07-16</p>

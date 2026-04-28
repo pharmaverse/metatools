@@ -63,11 +63,6 @@ mc <- metacore::spec_to_metacore(
   metacore::metacore_example("p21_mock.xlsx"),
   quiet = TRUE
 )
-#> ✔ Metadata successfully imported
-#> ℹ Dataset metadata imported with suppressed warnings
-#> ℹ To use the Metacore object with metatools package, first subset a dataset
-#>   using `metacore::select_dataset()`
-#> 
 dm <- haven::read_xpt(metatools_example("dm.xpt"))
 set_variable_labels(dm, mc, dataset_name = "DM")
 #> ℹ The `dataset_name` argument will be removed in a future release. Please use
@@ -80,12 +75,7 @@ set_variable_labels(dm, mc, dataset_name = "DM")
 #> Warning: `format` from the `var_spec` table only contains missing values.
 #> Warning: `sig_dig` from the `value_spec` table only contains missing values.
 #> Warning: `where` from the `value_spec` table only contains missing values.
-#> Warning: `dataset` from the `supp` table only contains missing values.
-#> Warning: `variable` from the `supp` table only contains missing values.
-#> Warning: `idvar` from the `supp` table only contains missing values.
-#> Warning: `qeval` from the `supp` table only contains missing values.
 #> ✔ DM dataset successfully selected
-#> 
 #> # A tibble: 306 × 25
 #>    STUDYID      DOMAIN USUBJID  SUBJID RFSTDTC RFENDTC RFXSTDTC RFXENDTC RFICDTC
 #>    <chr>        <chr>  <chr>    <chr>  <chr>   <chr>   <chr>    <chr>    <chr>  

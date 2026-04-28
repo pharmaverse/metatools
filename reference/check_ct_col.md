@@ -6,7 +6,14 @@ terminology as defined by the metacore specification
 ## Usage
 
 ``` r
-check_ct_col(data, metacore, var, na_acceptable = NULL)
+check_ct_col(
+  data,
+  metacore,
+  var,
+  na_acceptable = NULL,
+  verbose = "message",
+  .internal = FALSE
+)
 ```
 
 ## Arguments
@@ -33,6 +40,28 @@ check_ct_col(data, metacore, var, na_acceptable = NULL)
   values are in the control terminology or are missing. If set to
   `FALSE`then NA will not be acceptable.
 
+- verbose:
+
+  `character` string controlling the verbosity of the output. Possible
+  values are `"message"` (for general information and success messages)
+  and `"warn"` (for warnings). Partial matching is allowed.
+  **Important**: `"silent"` is explicitly **not** a valid option for
+  `verbose` in this function. The primary purpose of `check_ct_data` is
+  to identify and warn the user about non-compliant or problematic
+  control terminology. Allowing the suppression of these warnings would
+  bypass the function's intent and could lead to unnoticed data quality
+  issues. If `verbose = "silent"` is provided, it will be coerced to
+  `"message"` with a warning.
+
+- .internal:
+
+  Logical value indicating whether the function is being called
+  internally by another package function. If `TRUE`, the function
+  suppresses user-facing messages and instead returns a logical
+  indicator of whether any controlled terminology violations were
+  detected. This argument is intended for internal use only and should
+  not be set by end users.
+
 ## Value
 
 Given data if column only contains control terms. If not, will error
@@ -46,16 +75,10 @@ library(haven)
 library(magrittr)
 load(metacore_example("pilot_ADaM.rda"))
 spec <- metacore %>% select_dataset("ADSL")
-#> Warning: `core` from the `ds_vars` table only contains missing values.
-#> Warning: `supp_flag` from the `ds_vars` table only contains missing values.
-#> Warning: `common` from the `var_spec` table only contains missing values.
-#> Warning: `where` from the `value_spec` table only contains missing values.
-#> Warning: `dataset` from the `supp` table only contains missing values.
-#> Warning: `variable` from the `supp` table only contains missing values.
-#> Warning: `idvar` from the `supp` table only contains missing values.
-#> Warning: `qeval` from the `supp` table only contains missing values.
+#> Warning: 'ds_vars' has incorrect column names. It should be: dataset, variable, key_seq,
+#> order, mandatory, core, supp_flag
+#> Warning: Other checks were not performed, because column names were incorrect
 #> ✔ ADSL dataset successfully selected
-#> 
 data <- read_xpt(metatools_example("adsl.xpt"))
 check_ct_col(data, spec, TRT01PN)
 #> # A tibble: 254 × 51

@@ -42,13 +42,10 @@ library(safetyData)
 library(tibble)
 load(metacore_example("pilot_SDTM.rda"))
 spec <- metacore %>% select_dataset("AE")
-#> Warning: `core` from the `ds_vars` table only contains missing values.
-#> Warning: `format` from the `var_spec` table only contains missing values.
-#> Warning: `common` from the `var_spec` table only contains missing values.
-#> Warning: `sig_dig` from the `value_spec` table only contains missing values.
-#> Warning: `where` from the `value_spec` table only contains missing values.
+#> Warning: 'ds_vars' has incorrect column names. It should be: dataset, variable, key_seq,
+#> order, mandatory, core, supp_flag
+#> Warning: Other checks were not performed, because column names were incorrect
 #> ✔ AE dataset successfully selected
-#> 
 ae <- combine_supp(sdtm_ae, sdtm_suppae)
 make_supp_qual(ae, spec) %>% as_tibble()
 #> # A tibble: 1,191 × 10

@@ -2,10 +2,45 @@
 
 ## metatools 0.3.0
 
+- Enhancement: `verbose` Adds a verbose parameter to
+  [`build_from_derived()`](https://pharmaverse.github.io/metatools/reference/build_from_derived.md),
+  [`set_variable_labels()`](https://pharmaverse.github.io/metatools/reference/set_variable_labels.md),
+  and
+  [`build_qnam()`](https://pharmaverse.github.io/metatools/reference/build_qnam.md)
+  to allow users to suppress informational messages and warnings during
+  execution. Permissible values “message”, “warn”, “silent”.
+
+- Enhancement: `verbose` parameter also added to `check_ct_col` and
+  `check_ct_data`. Warnings cannot be suppressed for these functions to
+  prevent unnoticed data quality issues. Permissible values “message”,
+  “warn”. [\#136](https://github.com/pharmaverse/metatools/pull/136)
+
+- Enhancement:
+  [`add_labels()`](https://pharmaverse.github.io/metatools/reference/add_labels.md)
+  now prints out variables that do not exist in the dataset.
+  [\#113](https://github.com/pharmaverse/metatools/pull/113)
+
+- Bugfix issue where
+  [`create_var_from_codelist()`](https://pharmaverse.github.io/metatools/reference/create_var_from_codelist.md)
+  would throw an error when `strict=TRUE` and `input_var` was numeric.
+  [\#111](https://github.com/pharmaverse/metatools/pull/108)
+
 - Bugfix issue in
   [`create_var_from_codelist()`](https://pharmaverse.github.io/metatools/reference/create_var_from_codelist.md)
-  where supplied codelist contains negative numeric values.
-  ([\#111](https://github.com/pharmaverse/metatools/issues/111))
+  where supplied codelist contains negative numeric
+  values.[\#102](https://github.com/pharmaverse/metatools/pull/102)
+
+- Bugfix logic for detecting variable mismatches in
+  [`set_variable_labels()`](https://pharmaverse.github.io/metatools/reference/set_variable_labels.md).
+  [\#112](https://github.com/pharmaverse/metatools/pull/112)
+
+- Bugfix `combine_supp_join()` no longer throws an error when rows exist
+  in the supp that do not correspond to a record in the core dataset.
+  [\#115](https://github.com/pharmaverse/metatools/pull/115)
+
+- Various updates and refinements to documentation. - GitHub workflows
+  for package styling and spelling enabled.
+  [\#128](https://github.com/pharmaverse/metatools/pull/128)
 
 ## metatools 0.2.0
 
