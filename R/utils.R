@@ -87,3 +87,9 @@ get_vlm_where <- function(metacore, var, dataset = NULL) {
       unique() %>%
       stats::na.omit()
 }
+
+format_blank_str <- function(x) {
+   x_chr <- as.character(x)
+   x_chr[x_chr == ""] <- '""'
+   x_chr
+}
