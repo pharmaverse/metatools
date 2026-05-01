@@ -9,6 +9,7 @@ datasets as well as checking datasets against the metadata in metacore.
 You can install the latest released version of metatools from CRAN with:
 
 ``` r
+
 install.packages("metatools")
 ```
 
@@ -16,6 +17,7 @@ And the current development version from
 [GitHub](https://github.com/pharmaverse/metatools) with:
 
 ``` r
+
 devtools::install_github("pharmaverse/metatools")
 ```
 
@@ -25,6 +27,7 @@ Here is a basic example of some functions to build datasets and create
 new columns.
 
 ``` r
+
 library(metatools)
 library(metacore)
 library(haven)
@@ -83,6 +86,7 @@ adsl %>%
 Metatools can also be used to run checks
 
 ``` r
+
 data <- read_xpt(metatools_example("adsl.xpt"))
 
 # Checks can be run on a single column

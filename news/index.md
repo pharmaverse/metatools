@@ -2,6 +2,8 @@
 
 ## metatools 0.3.0
 
+CRAN release: 2026-04-28
+
 - Enhancement: `verbose` Adds a verbose parameter to
   [`build_from_derived()`](https://pharmaverse.github.io/metatools/reference/build_from_derived.md),
   [`set_variable_labels()`](https://pharmaverse.github.io/metatools/reference/set_variable_labels.md),

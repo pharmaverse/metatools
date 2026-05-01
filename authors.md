@@ -24,7 +24,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/pharmaverse/metatools/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/pharmaverse/metatools/blob/0.3.0/DESCRIPTION)
 
 Hobby L, Fillmore C, Denney B, Stackhouse M, Stoilova J, Senior T
 (2026). *metatools: Enable the Use of 'metacore' to Help Create and

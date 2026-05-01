@@ -37,6 +37,7 @@ a CDISC formatted SUPP dataset
 ## Examples
 
 ``` r
+
 library(metacore)
 library(safetyData)
 library(tibble)

@@ -59,6 +59,7 @@ Dataframe with labels applied
 ## Examples
 
 ``` r
+
 mc <- metacore::spec_to_metacore(
   metacore::metacore_example("p21_mock.xlsx"),
   quiet = TRUE
