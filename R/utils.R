@@ -73,3 +73,17 @@ validate_verbose <- function(verbose, arg = rlang::caller_arg(verbose), call = r
     }
   )
 }
+
+get_vlm_where <- function(metacore, var, dataset = NULL) {
+   vs <- metacore$value_spec
+
+   if (!is.null(dataset)) {
+      vs <- dplyr::filter(vs, .data$dataset == dataset)
+   }
+
+   vs %>%
+      dplyr::filter(.data$variable == var) %>%
+      dplyr::pull(.data$where) %>%
+      unique() %>%
+      stats::na.omit()
+}
