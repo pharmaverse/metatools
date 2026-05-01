@@ -63,42 +63,55 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "m
       verbose <- "message"
     },
     error = function(e) {
-      verbose <- validate_verbose(verbose, call = rlang::env_parent())
+       verbose <- validate_verbose(verbose, call = rlang::env_parent())
     }
   )
 
-  var_name <- rlang::as_name(rlang::ensym(var))
+   var_name <- rlang::as_name(rlang::ensym(var))
 
-  bad_vals <- get_bad_ct(
-    data = data,
-    metacore = metacore,
-    var = {{ var }},
-    na_acceptable = na_acceptable
-  )
+   bad_vals <- get_bad_ct(
+      data = data,
+      metacore = metacore,
+      var = {{ var }},
+      na_acceptable = na_acceptable
+   )
 
-  if (length(bad_vals) == 0) {
-    if (.internal) {
-      return(TRUE)
-    } else if (verbose == "message") {
-      return(data)
-    }
-    return(invisible(data))
-  }
+   if (length(bad_vals) == 0) {
+      if (.internal) {
+         return(TRUE)
+      } else if (verbose == "message") {
+         return(data)
+      }
+      return(invisible(data))
+   }
 
-  # Format values nicely for display
-  bad_vals_fmt <- paste0("'", bad_vals, "'")
-  codelist <- metacore$value_spec |>
-    filter(variable == var_name) |>
-    pull(code_id)
+   if (is.list(bad_vals)) {
+      msg <- unlist(lapply(names(bad_vals), function(nm) {
+         vals <- paste0("'", bad_vals[[nm]], "'", collapse = ", ")
+         paste0(nm, ": ", vals)
+      }))
 
-  cli_warn(c(
-    "x" = "Invalid controlled terminology detected",
-    "i" = "Variable: {var_name} | Codelist: {codelist}",
-    "i" = "Values not permitted {bad_vals_fmt}",
-    ""
-  ))
+      cli_warn(c(
+         "x" = "Invalid controlled terminology detected",
+         "i" = "Variable: {var_name}",
+         setNames(msg, rep("i", length(msg))),
+         ""
+      ))
 
-  invisible(FALSE)
+   } else {
+      bad_vals_fmt <- paste0("'", bad_vals, "'", collapse = ", ")
+      codelist <- metacore$value_spec |>
+         dplyr::filter(variable == var_name) |>
+         dplyr::pull(code_id)
+
+      cli_warn(c(
+         "x" = "Invalid controlled terminology detected",
+         "i" = "Variable: {var_name} | Codelist: {codelist}",
+         "i" = "Values not permitted: {bad_vals_fmt}",
+         ""
+      ))
+   }
+   invisible(FALSE)
 }
 
 #' Gets vector of control terminology which should be there
