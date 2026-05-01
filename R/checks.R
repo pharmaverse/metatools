@@ -132,35 +132,86 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "m
 #' get_bad_ct(data, spec, "DCSREAS", na_acceptable = FALSE)
 #'
 get_bad_ct <- function(data, metacore, var, na_acceptable = NULL) {
-  verify_DatasetMeta(metacore)
-  col_name_str <- as_label(enexpr(var)) %>%
-    str_remove_all("\"")
-  if (!col_name_str %in% names(data)) {
-    stop(paste(col_name_str, "not found in dataset. Please check and try again"), call. = FALSE)
-  }
-  ct <- get_control_term(metacore, {{ var }})
-  if (is.vector(ct)) {
-    check <- ct
-  } else if ("code" %in% names(ct)) {
-    check <- ct %>% pull(code)
-  } else {
-    stop("We currently don't have the ability to check against external libraries", call. = FALSE)
-  }
-  core <- metacore$ds_vars %>%
-    filter(variable == col_name_str) %>%
-    pull(core)
-  attr(core, "label") <- NULL
-  test <- ifelse(is.null(na_acceptable), !identical(core, "Required"), na_acceptable)
-  if (test) {
-    if (all(is.character(check))) {
-      check <- c(check, NA_character_, "")
-    } else {
-      check <- c(check, NA)
-    }
-  }
-  test <- pull(data, {{ var }}) %in% check
-  pull(data, {{ var }})[!test] %>%
-    unique()
+   verify_DatasetMeta(metacore)
+
+   col_name_str <- as_label(enexpr(var)) %>%
+      str_remove_all("\"")
+
+   if (!col_name_str %in% names(data)) {
+      stop(paste(col_name_str, "not found in dataset. Please check and try again"), call. = FALSE)
+   }
+
+   ct <- get_control_term(metacore, {{ var }})
+
+   core <- metacore$ds_vars %>%
+      filter(variable == col_name_str) %>%
+      pull(core)
+
+   attr(core, "label") <- NULL
+
+   na_ok <- ifelse(is.null(na_acceptable), !identical(core, "Required"), na_acceptable)
+
+   # ---- CASE 1: No VLM ----
+   if (!is.list(ct) || "code" %in% names(ct)) {
+
+      check <- if (is.vector(ct)) {
+         ct
+      } else {
+         ct %>% pull(code)
+      }
+
+      if (na_ok) {
+         check <- if (is.character(check)) c(check, NA_character_, "") else c(check, NA)
+      }
+
+      vals <- pull(data, {{ var }})
+      return(unique(vals[!vals %in% check]))
+   }
+
+   # ---- CASE 2: VLM present ----
+   return(get_bad_ct_vlm(data, metacore, col_name_str, na_ok))
+}
+
+get_bad_ct_vlm <- function(data, metacore, var, na_ok) {
+   bad_vals <- c()
+   where_clauses <- get_vlm_where(metacore, var)
+
+   for (where_clause in where_clauses) {
+
+      # Parse e.g. "PARAMCD EQ ADURD"
+      parts <- stringr::str_split(where_clause, " ", simplify = TRUE)
+      var_name <- parts[1]
+      op       <- parts[2]
+      value    <- parts[3]
+
+      # Only EQ supported
+      if (op != "EQ") {
+         warning("Only EQ conditions currently supported")
+         next
+      }
+
+      # Subset data based on VLM condition
+      subset_data <- dplyr::filter(data, .data[[var_name]] == value)
+
+      if (nrow(subset_data) == 0) next
+
+      # Get CT for this specific VLM slice
+      ct_sub <- get_control_term(metacore, {{ var }}, where = where_clause)
+
+      check <- dplyr::pull(ct_sub, code)
+
+      if (na_ok) {
+         check <- if (is.character(check)) {
+            c(check, NA_character_, "")
+         } else {
+            c(check, NA)
+         }
+      }
+
+      vals <- dplyr::pull(subset_data, .data[[var]])
+      bad_vals[[paste("Codelist:", where_clause)]] <- unique(vals[!vals %in% check])
+   }
+   bad_vals[lengths(bad_vals) > 0]
 }
 
 
