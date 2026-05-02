@@ -118,7 +118,6 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "m
 #' get_bad_ct(data, spec, "DCSREAS", na_acceptable = FALSE)
 #'
 get_bad_ct <- function(data, metacore, var, na_acceptable = NULL, .internal = FALSE) {
-   browser()
    verify_DatasetMeta(metacore)
    col_name_str <- as_label(enexpr(var)) %>%
       str_remove_all("\"")
@@ -254,7 +253,7 @@ get_bad_ct_vlm <- function(data, metacore, var, na_acceptable = NULL, .internal 
 
       check <- dplyr::pull(ct, code)
 
-      if (na_acceptable) {
+      if (na_ok) {
          check <- if (is.character(check)) {
             c(check, NA_character_, "")
          } else {
@@ -267,7 +266,8 @@ get_bad_ct_vlm <- function(data, metacore, var, na_acceptable = NULL, .internal 
    }
 
    bad_vals <- bad_vals[lengths(bad_vals) > 0]
-   if (.internal) {
+
+   if (length(bad_vals) == 0) {
       return(invisible(bad_vals))
    }
 
