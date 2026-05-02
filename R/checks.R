@@ -204,6 +204,32 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL, .internal = FA
    }
 }
 
+#' Get bad controlled terminology values for a variable with value level metadata
+#'
+#' Checks a variable against the controlled terminology defined by value level
+#' metadata (VLM) in a metacore specification. For each VLM `where` clause
+#' associated with the variable, the function subsets the data, retrieves the
+#' relevant codelist, and returns any values found in the dataset that are not
+#' permitted by that codelist.
+#'
+#' @param data Data to check.
+#' @param metacore A metacore object containing the dataset and value level
+#'   metadata specification.
+#' @param var Name of the variable to check.
+#' @param na_acceptable Logical scalar indicating whether missing values should be
+#'   accepted. If `TRUE`, `NA` and `""` are treated as valid for character
+#'   controlled terminology and `NA` for non-character controlled terminology.
+#'
+#' @return A named list containing only the VLM codelists with invalid values.
+#'   Each element is named `"Codelist: <where_clause>"` and contains the unique
+#'   invalid values found for that VLM condition. If no invalid values are found,
+#'   an empty list is returned.
+#'
+#' @details
+#' The function currently supports only VLM conditions using the `EQ` operator.
+#' Any other operator triggers a warning and is skipped.
+#'
+#' @export
 get_bad_ct_vlm <- function(data, metacore, var, na_acceptable = NULL, .internal = FALSE) {
    bad_vals <- c()
    where_clauses <- get_vlm_where(metacore, var)
