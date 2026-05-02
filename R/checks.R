@@ -85,33 +85,6 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "m
       }
       return(invisible(data))
    }
-
-   if (is.list(bad_vals)) {
-      msg <- unlist(lapply(names(bad_vals), function(nm) {
-         vals <- paste0("'", bad_vals[[nm]], "'", collapse = ", ")
-         paste0(nm, ": ", vals)
-      }))
-
-      cli_warn(c(
-         "x" = "Invalid controlled terminology detected",
-         "i" = "Variable: {var_name}",
-         setNames(msg, rep("i", length(msg))),
-         ""
-      ))
-
-   } else {
-      codelist <- metacore$value_spec |>
-         dplyr::filter(variable == var_name) |>
-         dplyr::pull(code_id)
-
-      cli_warn(c(
-         "x" = "Invalid controlled terminology detected",
-         "i" = "Variable: {var_name} | Codelist: {codelist}",
-         "i" = "Values not permitted: {bad_vals}",
-         ""
-      ))
-   }
-   invisible(FALSE)
 }
 
 #' Gets vector of control terminology which should be there
@@ -145,6 +118,7 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "m
 #' get_bad_ct(data, spec, "DCSREAS", na_acceptable = FALSE)
 #'
 get_bad_ct <- function(data, metacore, var, na_acceptable = NULL, .internal = FALSE) {
+   browser()
    verify_DatasetMeta(metacore)
    col_name_str <- as_label(enexpr(var)) %>%
       str_remove_all("\"")
@@ -152,8 +126,6 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL, .internal = FA
    if (!col_name_str %in% names(data)) {
       stop(paste(col_name_str, "not found in dataset. Please check and try again"), call. = FALSE)
    }
-
-   ct <- get_control_term(metacore, {{ var }})
 
    core <- metacore$ds_vars %>%
       filter(variable == col_name_str) %>%
@@ -163,8 +135,15 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL, .internal = FA
 
    na_ok <- ifelse(is.null(na_acceptable), !identical(core, "Required"), na_acceptable)
 
+   value_spec <- metacore$value_spec |> filter(variable == col_name_str)
+
+   if (all(is.na(value_spec$code_id))) {
+      return(TRUE)
+   }
+
    # ---- CASE 1: No VLM ----
-   if (is.data.frame(ct)) {
+   if (nrow(value_spec) == 1) {
+      ct <- get_control_term(metacore, {{ var }})
 
       check <- if (is.vector(ct)) {
          ct
@@ -192,15 +171,16 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL, .internal = FA
       ct_name <- metacore$value_spec |> filter(variable == col_name_str) |> pull(code_id)
 
       cli_warn(c(
-         "x" = "Invalid controlled terminology found",
-         "i" = "Variable: {.val {col_name_str}} | Codelist: {.val {ct_name}}",
-         "i" = "{bad_vals}"
+         "x" = "Invalid controlled terminology detected",
+         "i" = "Variable: {col_name_str} | Codelist: {ct_name}",
+         "i" = "Values not permitted: {bad_vals}",
+         ""
       ))
    }
 
    # ---- CASE 2: VLM present ----
-   if (is.list(ct)) {
-      return(get_bad_ct_vlm(data, metacore, col_name_str, na_ok, .internal = TRUE))
+   else if (nrow(value_spec) > 1) {
+      return(get_bad_ct_vlm(data, metacore, {{ col_name_str }}, na_ok, .internal = TRUE))
    }
 }
 
@@ -231,6 +211,22 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL, .internal = FA
 #'
 #' @export
 get_bad_ct_vlm <- function(data, metacore, var, na_acceptable = NULL, .internal = FALSE) {
+   verify_DatasetMeta(metacore)
+   col_name_str <- as_label(enexpr(var)) %>%
+      str_remove_all("\"")
+
+   if (!col_name_str %in% names(data)) {
+      stop(paste(col_name_str, "not found in dataset. Please check and try again"), call. = FALSE)
+   }
+
+   core <- metacore$ds_vars %>%
+      filter(variable == col_name_str) %>%
+      pull(core)
+
+   attr(core, "label") <- NULL
+
+   na_ok <- ifelse(is.null(na_acceptable), !identical(core, "Required"), na_acceptable)
+
    bad_vals <- c()
    where_clauses <- get_vlm_where(metacore, var)
 
@@ -254,9 +250,9 @@ get_bad_ct_vlm <- function(data, metacore, var, na_acceptable = NULL, .internal 
       if (nrow(subset_data) == 0) next
 
       # Get CT for this specific VLM slice
-      ct_sub <- get_control_term(metacore, {{ var }}, where = where_clause)
+      ct <- get_control_term(metacore, {{ var }}, where = where_clause)
 
-      check <- dplyr::pull(ct_sub, code)
+      check <- dplyr::pull(ct, code)
 
       if (na_acceptable) {
          check <- if (is.character(check)) {
@@ -286,7 +282,6 @@ get_bad_ct_vlm <- function(data, metacore, var, na_acceptable = NULL, .internal 
       setNames(msg, rep("i", length(msg))),
       ""
    ))
-   return()
 }
 
 
