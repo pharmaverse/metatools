@@ -73,7 +73,8 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "m
       data = data,
       metacore = metacore,
       var = {{ var }},
-      na_acceptable = na_acceptable
+      na_acceptable = na_acceptable,
+      .internal = TRUE
    )
 
    if (length(bad_vals) == 0) {
@@ -99,7 +100,6 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "m
       ))
 
    } else {
-      bad_vals_fmt <- paste0("'", bad_vals, "'", collapse = ", ")
       codelist <- metacore$value_spec |>
          dplyr::filter(variable == var_name) |>
          dplyr::pull(code_id)
@@ -107,7 +107,7 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "m
       cli_warn(c(
          "x" = "Invalid controlled terminology detected",
          "i" = "Variable: {var_name} | Codelist: {codelist}",
-         "i" = "Values not permitted: {bad_vals_fmt}",
+         "i" = "Values not permitted: {bad_vals}",
          ""
       ))
    }
@@ -144,9 +144,8 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "m
 #' get_bad_ct(data, spec, "DCSREAS")
 #' get_bad_ct(data, spec, "DCSREAS", na_acceptable = FALSE)
 #'
-get_bad_ct <- function(data, metacore, var, na_acceptable = NULL) {
+get_bad_ct <- function(data, metacore, var, na_acceptable = NULL, .internal = FALSE) {
    verify_DatasetMeta(metacore)
-
    col_name_str <- as_label(enexpr(var)) %>%
       str_remove_all("\"")
 
@@ -165,12 +164,18 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL) {
    na_ok <- ifelse(is.null(na_acceptable), !identical(core, "Required"), na_acceptable)
 
    # ---- CASE 1: No VLM ----
-   if (!is.list(ct) || "code" %in% names(ct)) {
+   if (is.data.frame(ct)) {
 
       check <- if (is.vector(ct)) {
          ct
-      } else {
+      } else if ("code" %in% names(ct)) {
          ct %>% pull(code)
+      } else {
+         cli_warn(c(
+            "x" = "Could not check controlled terminology for {.val {col_name_str}}",
+            "i" = "We currently don't have the ability to check against external libraries. "
+         ), call = rlang::env_parent())
+         return(NULL)
       }
 
       if (na_ok) {
@@ -178,14 +183,28 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL) {
       }
 
       vals <- pull(data, {{ var }})
-      return(unique(vals[!vals %in% check]))
+      bad_vals <- unique(vals[!vals %in% check]) |> format_blank_str()
+
+      if (.internal) {
+         return(bad_vals)
+      }
+
+      ct_name <- metacore$value_spec |> filter(variable == col_name_str) |> pull(code_id)
+
+      cli_warn(c(
+         "x" = "Invalid controlled terminology found",
+         "i" = "Variable: {.val {col_name_str}} | Codelist: {.val {ct_name}}",
+         "i" = "{bad_vals}"
+      ))
    }
 
    # ---- CASE 2: VLM present ----
-   return(get_bad_ct_vlm(data, metacore, col_name_str, na_ok))
+   if (is.list(ct)) {
+      return(get_bad_ct_vlm(data, metacore, col_name_str, na_ok, .internal = TRUE))
+   }
 }
 
-get_bad_ct_vlm <- function(data, metacore, var, na_ok) {
+get_bad_ct_vlm <- function(data, metacore, var, na_acceptable = NULL, .internal = FALSE) {
    bad_vals <- c()
    where_clauses <- get_vlm_where(metacore, var)
 
@@ -213,7 +232,7 @@ get_bad_ct_vlm <- function(data, metacore, var, na_ok) {
 
       check <- dplyr::pull(ct_sub, code)
 
-      if (na_ok) {
+      if (na_acceptable) {
          check <- if (is.character(check)) {
             c(check, NA_character_, "")
          } else {
@@ -224,7 +243,24 @@ get_bad_ct_vlm <- function(data, metacore, var, na_ok) {
       vals <- dplyr::pull(subset_data, .data[[var]])
       bad_vals[[paste("Codelist:", where_clause)]] <- unique(vals[!vals %in% check])
    }
-   bad_vals[lengths(bad_vals) > 0]
+
+   bad_vals <- bad_vals[lengths(bad_vals) > 0]
+   if (.internal) {
+      return(invisible(bad_vals))
+   }
+
+   msg <- unlist(lapply(names(bad_vals), function(nm) {
+      vals <- paste0("'", bad_vals[[nm]], "'", collapse = ", ")
+      paste0(nm, ": ", vals)
+   }))
+
+   cli_warn(c(
+      "x" = "Invalid controlled terminology detected",
+      "i" = "Variable: {var_name}",
+      setNames(msg, rep("i", length(msg))),
+      ""
+   ))
+   return()
 }
 
 
