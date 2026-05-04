@@ -246,21 +246,11 @@ get_bad_ct_vlm <- function(data, metacore, var, na_acceptable = NULL, .internal 
    where_clauses <- get_vlm_where(metacore, var)
 
    for (where_clause in where_clauses) {
+      browser()
+      filter_expr <- build_vlm_filter(where_clause)
 
-      # Parse e.g. "PARAMCD EQ ADURD"
-      parts <- stringr::str_split(where_clause, " ", simplify = TRUE)
-      var_name <- parts[1]
-      op       <- parts[2]
-      value    <- parts[3]
-
-      # Only EQ supported
-      if (op != "EQ") {
-         warning("Only EQ conditions currently supported")
-         next
-      }
-
-      # Subset data based on VLM condition
-      subset_data <- dplyr::filter(data, .data[[var_name]] == value)
+      if (is.null(filter_expr)) return(bad_vals)
+      subset_data <- dplyr::filter(data, !!filter_expr)
 
       if (nrow(subset_data) == 0) next
 

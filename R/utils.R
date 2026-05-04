@@ -93,3 +93,64 @@ format_blank_str <- function(x) {
    x_chr[x_chr == ""] <- '""'
    x_chr
 }
+
+strip_dot_prefix <- function(x) {
+   sub(".*\\.", "", x)
+}
+
+build_vlm_filter <- function(where) {
+
+   parts <- stringr::str_split(where, "\\s+", simplify = TRUE)
+
+   var <- strip_dot_prefix(parts[1])
+   op  <- toupper(parts[2])
+   val <- parts[3]
+
+   # Detect numeric
+   is_num <- suppressWarnings(!is.na(as.numeric(val)))
+   val_parsed <- if (is_num) as.numeric(val) else val
+
+   op_map <- c(
+      EQ = "==", "==" = "==", "=" = "==",
+      NE = "!=", "!=" = "!=",
+      GT = ">",  ">"  = ">",
+      LT = "<",  "<"  = "<",
+      GE = ">=", ">=" = ">=",
+      LE = "<=", "<=" = "<=",
+      IN = "IN",
+      NOTIN = "NOTIN"
+   )
+
+   op_resolved <- op_map[op]
+
+   if (is.na(op_resolved)) {
+      cli_warn(c(
+         "x" = "The operator {.val {op}} found in the VLM where clause {.val {where}} is not a valid CDISC operator",
+         "i" = "Please check the {.var where} column of your {.var metacore$value_spec} table",
+         "i" = "Checks against the controlled terminology for the column {.var {var}} will be skipped",
+         "i" = "You can use the {.arg omit_vars} argument to disable checks for this variable"
+      ))
+      return(NULL)
+   }
+
+   # IN / NOTIN
+   if (op_resolved %in% c("IN", "NOTIN")) {
+      vals <- stringr::str_split(val, ",")[[1]] |> trimws()
+      vals <- type.convert(vals, as.is = TRUE)
+
+      expr <- rlang::expr(.data[[!!var]] %in% !!vals)
+
+      if (op_resolved == "NOTIN") {
+         expr <- rlang::expr(! (!!expr))
+      }
+
+      return(expr)
+   }
+
+   # Build the filter condition
+   rlang::call2(
+      op_resolved,
+      rlang::expr(.data[[!!var]]),
+      val_parsed
+   )
+}
