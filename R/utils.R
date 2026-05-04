@@ -98,30 +98,27 @@ strip_dot_prefix <- function(x) {
    sub(".*\\.", "", x)
 }
 
-build_vlm_filter <- function(where) {
+build_vlm_filter <- function(where_clause) {
 
-   parts <- stringr::str_split(where, "\\s+", simplify = TRUE)
+   parts <- stringr::str_split(where_clause, "\\s+", simplify = TRUE)
 
-   var <- strip_dot_prefix(parts[1])
+   var <- parts[1]
    op  <- toupper(parts[2])
-   val <- parts[3]
-
-   # Detect numeric
-   is_num <- suppressWarnings(!is.na(as.numeric(val)))
-   val_parsed <- if (is_num) as.numeric(val) else val
+   val <- paste(parts[3:length(parts)], collapse = " ")
+   val <- trimws(val)
 
    op_map <- c(
-      EQ = "==", "==" = "==", "=" = "==",
+      EQ = "==", "=" = "==", "==" = "==",
       NE = "!=", "!=" = "!=",
       GT = ">",  ">"  = ">",
       LT = "<",  "<"  = "<",
       GE = ">=", ">=" = ">=",
       LE = "<=", "<=" = "<=",
-      IN = "IN",
-      NOTIN = "NOTIN"
+      IN = "%in%",
+      NOTIN = "!%in%"
    )
 
-   op_resolved <- op_map[op]
+   op_resolved <- unname(op_map[op])
 
    if (is.na(op_resolved)) {
       cli_warn(c(
@@ -133,24 +130,56 @@ build_vlm_filter <- function(where) {
       return(NULL)
    }
 
-   # IN / NOTIN
-   if (op_resolved %in% c("IN", "NOTIN")) {
-      vals <- stringr::str_split(val, ",")[[1]] |> trimws()
-      vals <- type.convert(vals, as.is = TRUE)
+   # ---- IN / NOTIN ----
+   if (op %in% c("IN", "NOTIN")) {
+
+      vals <- parse_vlm_values(val)
 
       expr <- rlang::expr(.data[[!!var]] %in% !!vals)
 
-      if (op_resolved == "NOTIN") {
+      if (op == "NOTIN") {
          expr <- rlang::expr(! (!!expr))
       }
 
       return(expr)
    }
 
-   # Build the filter condition
+   # ---- scalar comparisons ----
+   is_num <- suppressWarnings(!is.na(as.numeric(val)))
+   val_parsed <- if (is_num) as.numeric(val) else val
+
    rlang::call2(
       op_resolved,
       rlang::expr(.data[[!!var]]),
       val_parsed
    )
+}
+
+parse_vlm_values <- function(val) {
+
+   val <- trimws(val)
+
+   # VLM passed with correct syntax, already c(...)
+   if (grepl("^c\\s*\\(.*\\)$", val)) {
+
+      expr <- rlang::parse_expr(val)
+      vals <- as.list(expr)[-1]
+
+      out <- vapply(vals, function(x) {
+         if (is.symbol(x)) {
+            as.character(x)
+         } else {
+            rlang::as_string(x)
+         }
+      }, character(1))
+
+      return(out)
+   }
+
+   # Try to correct invalid syntax
+   vals <- stringr::str_remove_all(val, "[()]")
+   vals <- stringr::str_split(vals, "[,\\s]+")[[1]]
+   vals <- vals[vals != ""]
+
+   vals
 }

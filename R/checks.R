@@ -246,11 +246,21 @@ get_bad_ct_vlm <- function(data, metacore, var, na_acceptable = NULL, .internal 
    where_clauses <- get_vlm_where(metacore, var)
 
    for (where_clause in where_clauses) {
-      browser()
       filter_expr <- build_vlm_filter(where_clause)
 
       if (is.null(filter_expr)) return(bad_vals)
-      subset_data <- dplyr::filter(data, !!filter_expr)
+
+      tryCatch(
+         subset_data <- dplyr::filter(data, !!filter_expr),
+         error = function(e) {
+            cli_warn(c(
+               "x" = "Unable to build filter condition from the where clause {.val {where_clause}}",
+               "i" = "Please check the {.var where} column of your {.var metacore$value_spec} table",
+               "i" = "Checks against the controlled terminology for the column {.var {col_name_str}} will be skipped",
+               "i" = "You can use the {.arg omit_vars} argument to disable checks for this variable"
+            ))
+         }
+      )
 
       if (nrow(subset_data) == 0) next
 
