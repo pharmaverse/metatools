@@ -51,6 +51,10 @@
 check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "message", .internal = FALSE) {
   verify_DatasetMeta(metacore)
 
+   if (!lifecycle::is_present(var)) {
+      cli::cli_abort(c("x" = "Argument {.var var} must be present"))
+   }
+
   # Verbose cannot be `silent` as the point of this function is to warn the user
   tryCatch(
     {
@@ -77,14 +81,22 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "m
       .internal = TRUE
    )
 
-   if (length(bad_vals) == 0) {
-      if (.internal) {
-         return(TRUE)
-      } else if (verbose == "message") {
-         return(data)
-      }
-      return(invisible(data))
+   # If .internal==TRUE return TRUE/FALSE
+   if (.internal) {
+      return(length(bad_vals) == 0)
    }
+
+   # If .internal==FALSE, i.e., called by user: return data
+   if (length(bad_vals) == 0 & verbose == "message") {
+      cli::cli_inform(c(
+         "v" = "All controlled terminology checks passed"
+      ))
+   }
+
+   if (verbose == "message") {
+      return(data)
+   }
+   return(invisible(data))
 }
 
 #' Gets vector of control terminology which should be there
@@ -119,11 +131,16 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "m
 #'
 get_bad_ct <- function(data, metacore, var, na_acceptable = NULL, .internal = FALSE) {
    verify_DatasetMeta(metacore)
+
+   if (!lifecycle::is_present(var)) {
+      cli::cli_abort(c("x" = "Argument {.var var} must be present"))
+   }
+
    col_name_str <- as_label(enexpr(var)) %>%
       str_remove_all("\"")
 
    if (!col_name_str %in% names(data)) {
-      stop(paste(col_name_str, "not found in dataset. Please check and try again"), call. = FALSE)
+      cli::cli_abort(c("x" = "Column {.var {col_name_str}} not found in dataset"))
    }
 
    core <- metacore$ds_vars %>%
@@ -163,18 +180,17 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL, .internal = FA
       vals <- pull(data, {{ var }})
       bad_vals <- unique(vals[!vals %in% check]) |> format_blank_str()
 
-      if (.internal) {
-         return(bad_vals)
+      if (length(bad_vals) > 0) {
+         ct_name <- metacore$value_spec |> filter(variable == col_name_str) |> pull(code_id)
+
+         cli_warn(c(
+            "x" = "Invalid controlled terminology detected",
+            "i" = "Variable: {col_name_str} | Codelist: {ct_name}",
+            "i" = "Values not permitted: {bad_vals}",
+            ""
+         ))
       }
-
-      ct_name <- metacore$value_spec |> filter(variable == col_name_str) |> pull(code_id)
-
-      cli_warn(c(
-         "x" = "Invalid controlled terminology detected",
-         "i" = "Variable: {col_name_str} | Codelist: {ct_name}",
-         "i" = "Values not permitted: {bad_vals}",
-         ""
-      ))
+      return(bad_vals)
    }
 
    # ---- CASE 2: VLM present ----
@@ -267,21 +283,20 @@ get_bad_ct_vlm <- function(data, metacore, var, na_acceptable = NULL, .internal 
 
    bad_vals <- bad_vals[lengths(bad_vals) > 0]
 
-   if (length(bad_vals) == 0) {
-      return(invisible(bad_vals))
+   if (length(bad_vals) > 0) {
+      msg <- unlist(lapply(names(bad_vals), function(nm) {
+         vals <- paste0("'", bad_vals[[nm]], "'", collapse = ", ")
+         paste0(nm, ": ", vals)
+      }))
+
+      cli_warn(c(
+         "x" = "Invalid controlled terminology detected",
+         "i" = "Variable: {var_name}",
+         setNames(msg, rep("i", length(msg))),
+         ""
+      ))
    }
-
-   msg <- unlist(lapply(names(bad_vals), function(nm) {
-      vals <- paste0("'", bad_vals[[nm]], "'", collapse = ", ")
-      paste0(nm, ": ", vals)
-   }))
-
-   cli_warn(c(
-      "x" = "Invalid controlled terminology detected",
-      "i" = "Variable: {var_name}",
-      setNames(msg, rep("i", length(msg))),
-      ""
-   ))
+   return(bad_vals)
 }
 
 
