@@ -55,28 +55,15 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "m
       cli::cli_abort(c("x" = "Argument {.var var} must be present"))
    }
 
-  # Verbose cannot be `silent` as the point of this function is to warn the user
-  tryCatch(
-    {
-      arg <- match.arg(verbose, "silent")
-      cli_warn(c(
-        "x" = "Argument {.arg verbose} cannot be {.val {arg}} for {.fn check_ct_data}",
-        "i" = "Must be one of: {.val message}, {.val warn}",
-        "i" = "Defaulting to {.val message}"
-      ))
-      verbose <- "message"
-    },
-    error = function(e) {
-       verbose <- validate_verbose(verbose, call = rlang::env_parent())
-    }
-  )
+   # Verbose cannot be `silent` as the point of this function is to warn the user
+   verbose <- validate_verbose(verbose, disallow = "silent", call = rlang::env_parent())
 
    var_name <- rlang::as_name(rlang::ensym(var))
 
    bad_vals <- get_bad_ct(
       data = data,
       metacore = metacore,
-      var = {{ var }},
+      var = var_name,
       na_acceptable = na_acceptable,
       .internal = TRUE
    )
@@ -356,20 +343,7 @@ check_ct_data <- function(data, metacore, na_acceptable = NULL, omit_vars = NULL
   verify_DatasetMeta(metacore)
 
   # Verbose cannot be `silent` as the point of this function is to warn the user
-  tryCatch(
-    {
-      arg <- match.arg(verbose, "silent")
-      cli_warn(c(
-        "x" = "Argument {.arg verbose} cannot be {.val {arg}} for {.fn check_ct_data}",
-        "i" = "Must be one of: {.val message}, {.val warn}",
-        "i" = "Defaulting to {.val message}"
-      ))
-      verbose <- "message"
-    },
-    error = function(e) {
-      verbose <- validate_verbose(verbose, call = rlang::env_parent())
-    }
-  )
+   verbose <- validate_verbose(verbose, disallow = "silent", call = rlang::env_parent())
 
   codes_in_data <- metacore$value_spec %>%
     dplyr::filter(variable %in% names(data), !is.na(code_id)) %>%

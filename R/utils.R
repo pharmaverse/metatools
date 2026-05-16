@@ -59,11 +59,57 @@ check_warn <- function(verbose) {
   verbose %in% c("message", "warn")
 }
 
-#' Validate verbose parameter
-#' @param verbose Verbosity level to validate
+#' Validate a verbosity argument
+#'
+#' Validates a verbosity option against the supported values
+#' `"message"`, `"warn"`, and `"silent"`. Specific values can be
+#' excluded using the `invalid` argument.
+#'
+#' This is primarily intended for internal argument validation.
+#'
+#' @param verbose A character scalar specifying the verbosity level.
+#'   Must be one of `"message"`, `"warn"`, or `"silent"`,
+#'   unless excluded via `invalid`.
+#' @param invalid Optional character vector of verbosity values to
+#'   disallow. Any supplied values are removed from the set of valid
+#'   choices before validation.
+#' @param arg The name of the argument being validated. Used for
+#'   error messaging.
+#' @param call The execution environment used for error reporting.
+#'
+#' @return
+#' A character scalar containing the validated verbosity value.
+#'
+#' @examples
+#' validate_verbose("message")
+#'
+#' validate_verbose("warn")
+#'
+#' # Disallow "silent"
+#' validate_verbose("silent", invalid = "silent")
+#'
+#' # Restrict to only "message"
+#' validate_verbose("message", invalid = c("warn", "silent"))
+#'
 #' @noRd
-validate_verbose <- function(verbose, arg = rlang::caller_arg(verbose), call = rlang::caller_env()) {
+validate_verbose <- function(verbose, disallow = NULL, arg = rlang::caller_arg(verbose),
+                             call = rlang::caller_env()) {
+   browser()
   choices <- c("message", "warn", "silent")
+
+  if (!is.null(disallow)) {
+     choices <- setdiff(choices, disallow)
+
+     if (verbose %in% disallow) {
+        cli::cli_warn(c(
+           "x" = "Argument {.arg {arg}} cannot be {.val {verbose}}.",
+           "i" = "Must be one of: {.val {choices}}.",
+           "i" = "Defaulting to {.val {choices[[1]]}}."
+        ))
+        return(choices[[1]])
+     }
+  }
+
   tryCatch(
     match.arg(verbose, choices),
     error = function(e) {
