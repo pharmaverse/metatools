@@ -94,7 +94,6 @@ check_warn <- function(verbose) {
 #' @noRd
 validate_verbose <- function(verbose, disallow = NULL, arg = rlang::caller_arg(verbose),
                              call = rlang::caller_env()) {
-   browser()
   choices <- c("message", "warn", "silent")
 
   if (!is.null(disallow)) {
