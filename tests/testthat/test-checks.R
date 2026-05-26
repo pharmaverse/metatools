@@ -15,15 +15,36 @@ test_that("get_bad_ct works correctly", {
   # test na_acceptable
   expect_equal(get_bad_ct(data, spec, "DCSREAS"), character(0))
   expect_equal(get_bad_ct(data, spec, "DCSREAS", TRUE), character(0))
-  expect_equal(get_bad_ct(data, spec, "DCSREAS", FALSE), "")
 
-  expect_equal(get_bad_ct(data, spec_mod, "COMP8FL"), "")
+  expect_warning(
+     expect_equal(
+        get_bad_ct(data, spec, "DCSREAS", FALSE),
+        ""
+     )
+  )
+
+  expect_warning(
+     expect_equal(
+        get_bad_ct(data, spec_mod, "COMP8FL"),
+        ""
+     )
+  )
+
   expect_equal(get_bad_ct(data, spec_mod, "COMP8FL", TRUE), character(0))
-  expect_equal(get_bad_ct(data, spec_mod, "COMP8FL", FALSE), "")
+  expect_warning(
+     expect_equal(
+        get_bad_ct(data, spec_mod, "COMP8FL", FALSE),
+        ""
+     )
+  )
 
-  data_na <- data %>%
-    mutate(COMP8FL = if_else(dplyr::row_number() == 1, NA_character_, COMP8FL))
-  expect_equal(get_bad_ct(data_na, spec_mod, "COMP8FL"), c(NA_character_, ""))
+  data_na <- mutate(data, COMP8FL = if_else(dplyr::row_number() == 1, NA_character_, COMP8FL))
+  expect_warning(
+     expect_equal(
+        get_bad_ct(data_na, spec_mod, "COMP8FL"),
+        c(NA_character_, "")
+     )
+  )
 })
 
 test_that("check_ct_col works correctly", {
@@ -40,7 +61,9 @@ test_that("check_ct_col works correctly", {
 
   # Check verbose warning issued when `verbose = "silent"` or partial match "s"
   expect_warning(check_ct_col(data, spec, ARM, verbose = "silent"))
-  expect_warning(check_ct_col(data, spec, ARM, verbose = "s"))
+  expect_warning(expect_message(
+     check_ct_col(data, spec, ARM, verbose = "s")
+  ))
 
   # Test permitted Values
   spec2 <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), verbose = "silent")
@@ -50,7 +73,7 @@ test_that("check_ct_col works correctly", {
   # Test external dictionaries
   data2 <- tibble::tibble(AELLT = "Hello")
   ae <- select_dataset(spec2, "AE", verbose = "silent")
-  expect_error(
+  expect_warning(
     check_ct_col(data2, ae, AELLT),
     "We currently don't have the ability to check against external libraries"
   )

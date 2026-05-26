@@ -94,43 +94,28 @@ check_warn <- function(verbose) {
 #' @noRd
 validate_verbose <- function(verbose, disallow = NULL, arg = rlang::caller_arg(verbose),
                              call = rlang::caller_env()) {
-  choices <- c("message", "warn", "silent")
+   choices <- c("message", "warn", "silent")
 
-  if (!is.null(disallow)) {
-     choices <- setdiff(choices, disallow)
+   tryCatch({
+      match <- match.arg(verbose, choices)
 
-     if (verbose %in% disallow) {
-        cli::cli_warn(c(
-           "x" = "Argument {.arg {arg}} cannot be {.val {verbose}}.",
-           "i" = "Must be one of: {.val {choices}}.",
-           "i" = "Defaulting to {.val {choices[[1]]}}."
-        ))
-        return(choices[[1]])
-     }
-  }
-
-  tryCatch(
-    match.arg(verbose, choices),
-    error = function(e) {
+      if (match %in% disallow) {
+         choices <- setdiff(choices, disallow)
+         cli::cli_warn(c(
+            "x" = "Argument {.arg {arg}} cannot be {.val {verbose}}.",
+            "i" = "Must be one of: {.val {choices}}.",
+            "i" = "Defaulting to {.val {choices[[1]]}}."
+         ))
+         return(choices[[1]])
+      }
+   },
+   error = function(e) {
       cli_abort(c(
-        "x" = "{.arg {arg}} should be one of: {cli::ansi_collapse(choices, last = ', ')}"
+         "x" = "{.arg {arg}} should be one of: {.val {choices}}"
       ), call = call)
-    }
-  )
-}
-
-get_vlm_where <- function(metacore, var, dataset = NULL) {
-   vs <- metacore$value_spec
-
-   if (!is.null(dataset)) {
-      vs <- dplyr::filter(vs, .data$dataset == dataset)
    }
-
-   vs %>%
-      dplyr::filter(.data$variable == var) %>%
-      dplyr::pull(.data$where) %>%
-      unique() %>%
-      stats::na.omit()
+   )
+   match
 }
 
 format_blank_str <- function(x) {
@@ -141,90 +126,4 @@ format_blank_str <- function(x) {
 
 strip_dot_prefix <- function(x) {
    sub(".*\\.", "", x)
-}
-
-build_vlm_filter <- function(where_clause) {
-
-   parts <- stringr::str_split(where_clause, "\\s+", simplify = TRUE)
-
-   var <- parts[1]
-   op  <- toupper(parts[2])
-   val <- paste(parts[3:length(parts)], collapse = " ")
-   val <- trimws(val)
-
-   op_map <- c(
-      EQ = "==", "=" = "==", "==" = "==",
-      NE = "!=", "!=" = "!=",
-      GT = ">",  ">"  = ">",
-      LT = "<",  "<"  = "<",
-      GE = ">=", ">=" = ">=",
-      LE = "<=", "<=" = "<=",
-      IN = "%in%",
-      NOTIN = "!%in%"
-   )
-
-   op_resolved <- unname(op_map[op])
-
-   if (is.na(op_resolved)) {
-      cli_warn(c(
-         "x" = "The operator {.val {op}} found in the VLM where clause {.val {where}} is not a valid CDISC operator",
-         "i" = "Please check the {.var where} column of your {.var metacore$value_spec} table",
-         "i" = "Checks against the controlled terminology for the column {.var {var}} will be skipped",
-         "i" = "You can use the {.arg omit_vars} argument to disable checks for this variable"
-      ))
-      return(NULL)
-   }
-
-   # ---- IN / NOTIN ----
-   if (op %in% c("IN", "NOTIN")) {
-
-      vals <- parse_vlm_values(val)
-
-      expr <- rlang::expr(.data[[!!var]] %in% !!vals)
-
-      if (op == "NOTIN") {
-         expr <- rlang::expr(! (!!expr))
-      }
-
-      return(expr)
-   }
-
-   # ---- scalar comparisons ----
-   is_num <- suppressWarnings(!is.na(as.numeric(val)))
-   val_parsed <- if (is_num) as.numeric(val) else val
-
-   rlang::call2(
-      op_resolved,
-      rlang::expr(.data[[!!var]]),
-      val_parsed
-   )
-}
-
-parse_vlm_values <- function(val) {
-
-   val <- trimws(val)
-
-   # VLM passed with correct syntax, already c(...)
-   if (grepl("^c\\s*\\(.*\\)$", val)) {
-
-      expr <- rlang::parse_expr(val)
-      vals <- as.list(expr)[-1]
-
-      out <- vapply(vals, function(x) {
-         if (is.symbol(x)) {
-            as.character(x)
-         } else {
-            rlang::as_string(x)
-         }
-      }, character(1))
-
-      return(out)
-   }
-
-   # Try to correct invalid syntax
-   vals <- stringr::str_remove_all(val, "[()]")
-   vals <- stringr::str_split(vals, "[,\\s]+")[[1]]
-   vals <- vals[vals != ""]
-
-   vals
 }

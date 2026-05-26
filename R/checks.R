@@ -49,24 +49,28 @@
 #' check_ct_col(data, spec, TRT01PN)
 #' check_ct_col(data, spec, "TRT01PN")
 check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "message", .internal = FALSE) {
-  verify_DatasetMeta(metacore)
-
-   if (!lifecycle::is_present(var)) {
-      cli::cli_abort(c("x" = "Argument {.var var} must be present"))
-   }
-
    # Verbose cannot be `silent` as the point of this function is to warn the user
    verbose <- validate_verbose(verbose, disallow = "silent", call = rlang::env_parent())
 
-   # Call helper to get non-permissible values in data
-   var_name <- rlang::as_name(rlang::ensym(var))
+   # Validate the column provided in `var`
+   var <- prepare_ct_check(data, metacore, {{ var }})
 
-   bad_vals <- get_bad_ct(
-      data = data,
-      metacore = metacore,
-      var = var_name,
-      na_acceptable = na_acceptable,
-      .internal = TRUE
+   # Call helper to get non-permissible values in data
+   bad_vals <- tryCatch(
+      get_bad_ct(
+         data = data,
+         metacore = metacore,
+         var = var,
+         na_acceptable = na_acceptable,
+         .internal = TRUE
+      ),
+      external_library = function(e) {
+         cli_warn(c(
+            "x" = "Could not check controlled terminology for {.val {var}}",
+            "i" = "We currently don't have the ability to check against external libraries. "
+         ), call = rlang::env_parent())
+         return(invisible(data))
+      }
    )
 
    # If .internal==TRUE return TRUE/FALSE
@@ -77,7 +81,7 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "m
    # If .internal==FALSE, i.e., called by user: return data
    if (length(bad_vals) == 0 & verbose == "message") {
       cli::cli_inform(c(
-         "v" = "Controlled terminology checks passed for {.var {var_name}}."
+         "v" = "Controlled terminology checks passed for {.var {var}}."
       ))
    }
 
@@ -119,64 +123,49 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "m
 #' get_bad_ct(data, spec, "DCSREAS", na_acceptable = FALSE)
 #'
 get_bad_ct <- function(data, metacore, var, na_acceptable = NULL, .internal = FALSE) {
-   # Validate arguments and prepare metadata for check
-   meta <- prepare_ct_check(
-      data = data,
-      metacore = metacore,
-      var = {{ var }},
-      na_acceptable = na_acceptable
-   )
 
-   col_name_str <- meta$col_name
-   na_ok <- meta$na_ok
+   # If called internally do not re-perform validation of `var`
+   if (!.internal) {
+      var <- prepare_ct_check(data, metacore, {{ var }})
+   }
 
-   # Extract value_spec to get variables with CT
    value_spec <- metacore$value_spec |>
-      dplyr::filter(.data$variable == col_name_str)
+      dplyr::filter(.data$variable == {{ var }})
 
    if (all(is.na(value_spec$code_id))) {
-      return(TRUE)
+      return(list())
    }
 
-   #  Edge case: VLM present
-   else if (nrow(value_spec) > 1) {
-      return(get_bad_ct_vlm(data, metacore, {{ col_name_str }}, na_ok, .internal = TRUE))
+   # Edge case: Variable has VLM information
+   if (nrow(value_spec) > 1) {
+      return(get_bad_ct_vlm(data, metacore, {{ var }}, na_acceptable))
    }
 
-   # Base case: no VLM
-   ct <- get_control_term(metacore, {{ var }})
+   # Base case: Variable has no VLM information
+   ctx <- ct_context(data, metacore, {{ var }}, na_acceptable)
 
-   # Get codes to check
-   check <- if (is.vector(ct)) {
-      ct
-   } else if ("code" %in% names(ct)) {
-      ct %>% pull(code)
-   } else {
-      cli_warn(c(
-         "x" = "Could not check controlled terminology for {.val {col_name_str}}",
-         "i" = "We currently don't have the ability to check against external libraries. "
-      ), call = rlang::env_parent())
-      return(NULL)
+   ct <- get_control_term(metacore, !!ctx$var)
+
+   if (!"code" %in% names(ct)) {
+      cli_abort(message = NULL, class = "external_library")
    }
 
-   # Add missing to CT if permissible
-   check <- allow_missing_ct(check, na_ok)
+   if (ctx$na_ok) {
+      check <- if (is.character(check)) c(check, NA_character_, "") else c(check, NA)
+   }
 
-   # Check values against CT
-   vals <- pull(data, {{ var }})
-   bad_vals <- unique(vals[!vals %in% check]) |> format_blank_str()
+   vals <- dplyr::pull(data, .data[[ctx$var]])
+   bad <- unique(vals[!vals %in% check])
 
-   if (length(bad_vals) > 0) {
-      ct_name <- metacore$value_spec |> filter(variable == col_name_str) |> pull(code_id)
-
-      cli_warn(c(
+   if (length(bad)) {
+      cli::cli_warn(c(
          "x" = "Invalid controlled terminology detected",
-         "i" = "Variable: {col_name_str} | Codelist: {ct_name}",
-         "i" = "Values not permitted: {bad_vals}",
-         ""
+         "i" = "Variable: {ctx$var}",
+         "i" = "Values not permitted: {bad}"
       ))
    }
-   return(bad_vals)
+
+   return(bad)
 }
 
 #' Get bad controlled terminology values for a variable with value level metadata
@@ -206,122 +195,29 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL, .internal = FA
 #'
 #' @export
 get_bad_ct_vlm <- function(data, metacore, var, na_acceptable = NULL, .internal = FALSE) {
-   meta <- prepare_ct_check(
-      data = data,
-      metacore = metacore,
-      var = {{ var }},
-      na_acceptable = na_acceptable
-   )
 
-   col_name_str <- meta$col_name
-   na_ok <- meta$na_ok
+   # If called internally do not re-perform validation of `var`
+   if (!.internal) {
+      prepare_ct_check(data, metacore, {{ var }})
+   }
 
-   where_clauses <- get_vlm_where(metacore, var)
+   # Get controlled terminology context
+   ctx <- ct_context(data, metacore, {{ var }}, na_acceptable)
 
-   bad_vals <- purrr::map(where_clauses, function(where_clause) {
-
-      filter_expr <- build_vlm_filter(where_clause)
-
-      if (is.null(filter_expr)) return(NULL)
-
-      subset_data <- tryCatch(
-         dplyr::filter(data, !!filter_expr),
-         error = function(e) {
-            cli::cli_warn(c(
-               "x" = "Unable to build filter condition from the where clause {.val {where_clause}}",
-               "i" = "Please check the {.var where} column of your {.var metacore$value_spec} table",
-               "i" = "Checks against the controlled terminology for the column {.var {col_name_str}} will be skipped",
-               "i" = "You can use the {.arg omit_vars} argument to disable checks for this variable"
-            ))
-            return(NULL)
-         }
-      )
-
-      if (is.null(subset_data) || nrow(subset_data) == 0) return(NULL)
-
-      ct <- get_control_term(metacore, {{ var }}, where = where_clause)
-      check <- dplyr::pull(ct, code)
-
-      check <- allow_missing_ct(check, na_ok)
-
-      vals <- dplyr::pull(subset_data, .data[[var]])
-      bad <- unique(vals[!vals %in% check])
-
-      if (length(bad) == 0) return(NULL)
-
-      setNames(list(bad), paste("Codelist:", where_clause))
-   }) |>
-      purrr::flatten()
-
-   bad_vals <- bad_vals[lengths(bad_vals) > 0]
-
-   if (length(bad_vals) > 0) {
-      msg <- unlist(lapply(names(bad_vals), function(nm) {
-         vals <- paste0("'", bad_vals[[nm]], "'", collapse = ", ")
-         paste0(nm, ": ", vals)
-      }))
-
-      cli_warn(c(
-         "x" = "Invalid controlled terminology detected",
-         "i" = "Variable: {var}",
-         setNames(msg, rep("i", length(msg))),
-         ""
+   # If user specifies a column with no VLM return
+   if (isFALSE(ctx$vlm)) {
+      cli::cli_inform(c(
+         "i" = "The column {.var {var}} in the dataset {.val {metacore$ds_spec$dataset}}
+         has no defined VLM. Try the function {.fn get_bad_ct} instead."
       ))
-   }
-   return(bad_vals)
-}
-
-#' Prepare metadata for controlled terminology checks
-#' @noRd
-prepare_ct_check <- function(data, metacore, var, na_acceptable = NULL) {
-
-   verify_DatasetMeta(metacore)
-
-   if (!lifecycle::is_present(var)) {
-      cli::cli_abort(c(
-         "x" = "Argument {.arg var} must be present"
-      ))
+      return(invisible())
    }
 
-   col_name <- rlang::as_label(rlang::enexpr(var)) |>
-      stringr::str_remove_all("\"")
+   where_clauses <- vlm_clauses(metacore, ctx$var)
 
-   if (!col_name %in% names(data)) {
-      cli::cli_abort(c(
-         "x" = "Column {.var {col_name}} not found in dataset"
-      ))
-   }
+   results <- run_vlm_pipeline(ctx, where_clauses)
 
-   core <- metacore$ds_vars |>
-      dplyr::filter(.data$variable == col_name) |>
-      dplyr::pull(.data$core)
-
-   attr(core, "label") <- NULL
-
-   na_ok <- if (is.null(na_acceptable)) {
-      !identical(core, "Required")
-   } else {
-      na_acceptable
-   }
-
-   list(
-      col_name = col_name,
-      core = core,
-      na_ok = na_ok
-   )
-}
-
-allow_missing_ct <- function(check, na_ok) {
-
-   if (!na_ok) {
-      return(check)
-   }
-
-   if (is.character(check)) {
-      c(check, NA_character_, "")
-   } else {
-      c(check, NA)
-   }
+   summarise_vlm_results(results, ctx$var)
 }
 
 #' Check Control Terminology for a Dataset
