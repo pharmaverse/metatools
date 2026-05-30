@@ -1,101 +1,52 @@
-#' Prepare a variable name for CT evaluation
+#' Resolve a column name for CT checks
 #'
-#' Resolves a user-supplied variable (either unquoted or quoted) into a
-#' standard character column name and performs basic validation required
-#' for controlled terminology (CT) checks.
+#' Converts a user-supplied variable (bare name or string) into a validated
+#' character column name.
 #'
-#' This function is intended as a lightweight helper used at the start of
-#' CT validation pipelines to ensure the requested variable exists and is
-#' properly formatted for downstream processing.
+#' @param data A data.frame to check against.
+#' @param var Column name, supplied as a bare name or string.
 #'
-#' @param data Data to check.
-#' @param metacore A metacore object containing dataset metadata.
-#' @param var A column name provided either as:
-#'   - an unquoted variable name (tidy evaluation), or
-#'   - a string (e.g. "ARM")
-#'
-#' @return A character string giving the resolved column name.
-#'
-#' @details
-#' The function:
-#' \itemize{
-#'   \item Validates that `metacore` is a valid dataset-level object
-#'   \item Converts `var` into a character column name
-#'   \item Ensures the variable argument is not empty
-#'   \item Checks that the column exists in the dataset
-#' }
-#'
-#' @seealso
-#' \code{\link{verify_DatasetMeta}}
-#'
-#' @examples
-#' \dontrun{
-#' prepare_ct_check(metacore, ARM)
-#' prepare_ct_check(metacore, "ARM")
-#' }
+#' @return A character string containing the validated column name.
 #'
 #' @noRd
-prepare_ct_check <- function(data, metacore, var) {
-   verify_DatasetMeta(metacore)
-
-   # Check data is supplied
+resolve_var <- function(data, var = NULL) {
    if (!is.data.frame(data)) {
-      cli::cli_abort(c(
-         "x" = "Argument {.arg data} must be a dataframe"
-      ))
+      cli::cli_abort(c("x" = "Argument {.arg data} must be a data frame"))
    }
 
-   # Check argument was supplied
-   if (missing(var)) {
-      cli::cli_abort(c(
-         "x" = "Argument {.arg var} must be provided"
-      ))
+   # Capture both string and symbols
+   var_str <- as.character(rlang::ensym(var))
+
+   if (length(var_str) == 0 || !nzchar(var_str)) {
+      cli::cli_abort(c("x" = "Argument {.arg var} must be provided as a string or bare column name"))
    }
 
-   # Capture NSE or string safely
-   var_expr <- rlang::enexpr(var)
-   var <- rlang::as_string(rlang::ensym(var_expr))
-
-   # Basic validation
-   if (length(var) == 0 || !nzchar(var)) {
-      cli::cli_abort(c(
-         "x" = "Argument {.arg var} must resolve to at least one column name"
-      ))
+   if (!var_str %in% names(data)) {
+      cli::cli_abort(c("x" = "Column {.var {var_str}} not found in dataset"))
    }
 
-   # Check column exists
-   if (!var %in% names(data)) {
-      cli::cli_abort(c(
-         "x" = "Column {.var {var}} not found in dataset"
-      ))
-   }
-   var
+   var_str
 }
 
 #' Build controlled terminology evaluation context
 #'
-#' Creates a standardized evaluation context used across controlled
-#' terminology (CT) and value-level metadata (VLM) validation.
-#'
-#' This function centralises:
-#' - dataset variable resolution
-#' - metadata lookup for CDISC "core" requirement
-#' - NA handling rules
-#' - shared objects required by downstream pipeline functions
+#' Constructs a standardised context object used for controlled terminology
+#' (CT) and value-level metadata (VLM) validation.
 #'
 #' @param data A dataset to validate.
 #' @param metacore A metacore object containing dataset metadata.
-#' @param var Column name.
-#' @param na_acceptable Logical. If `NULL`, NA handling is inferred from
-#'   the variable's CDISC "core" requirement.
+#' @param var Column name (character string; already resolved).
+#' @param na_acceptable Logical indicating whether missing values are allowed,
+#'   or `NULL` to infer from CDISC "core" metadata.
 #'
 #' @return A list containing:
 #' \describe{
 #'   \item{data}{Input dataset}
 #'   \item{metacore}{Metacore object}
-#'   \item{var}{Resolved variable name (character)}
-#'   \item{core}{CDISC core requirement for variable}
-#'   \item{na_ok}{Logical indicating whether NA/blank values are allowed}
+#'   \item{var}{Validated column name}
+#'   \item{vlm}{Logical; whether variable has value-level metadata}
+#'   \item{core}{CDISC core requirement for the variable}
+#'   \item{na_ok}{Logical; whether NA/blank values are permitted}
 #' }
 #'
 #' @noRd
@@ -155,38 +106,43 @@ vlm_clauses <- function(metacore, var) {
    vs <- metacore$value_spec
 
    vs |>
-      dplyr::filter(.data$variable == var) |>
-      dplyr::pull(.data$where) |>
+      filter(variable == var) |>
+      pull(where) |>
       unique() |>
-      stats::na.omit()
+      na.omit()
 }
 
-#' Compile a VLM where-clause into a filter expression
+#' Compile a VLM where-clause into an evaluable expression
 #'
-#' Converts a CDISC-style where clause string into an R expression
-#' suitable for evaluation in `dplyr::filter()`.
+#' Parses a CDISC-style VLM where-clause and converts it into an R expression
+#' suitable for use in dplyr filtering operations.
 #'
-#' @param where_clause Character string in format:
-#'   "VAR OP VALUE"
+#' @param where_clause Character string specifying a VLM rule in the form
+#'   `"VAR OP VALUE"`.
+#' @param var Variable name (currently unused, reserved for future alignment).
 #'
-#' @param var Optional variable override (currently unused but reserved
-#'   for future alignment with external variable mapping systems).
-#'
-#' @return An R expression or `NULL` if the clause cannot be parsed.
+#' @return An R language object representing the condition, or `NULL` if the
+#'   clause cannot be parsed or contains an unsupported operator.
 #'
 #' @details
-#' Supported operators:
-#' EQ, NE, GT, LT, GE, LE, IN, NOTIN
+#' Supports the following operators:
+#' \itemize{
+#'   \item EQ, =, ==
+#'   \item NE, !=
+#'   \item GT, LT, GE, LE
+#'   \item IN, NOTIN
+#' }
 #'
-#' Examples:
-#' - "AGE GE 18"
-#' - "SEX IN c('M','F')"
+#' Multi-value expressions (IN / NOTIN) are parsed into vector membership
+#' checks.
+#'
+#' Unsupported operators are skipped with a warning.
 #'
 #' @noRd
 compile_vlm_clause <- function(where_clause, var) {
 
    # Split clause into components
-   parts <- stringr::str_split(where_clause, "\\s+", simplify = TRUE)
+   parts <- str_split(where_clause, "\\s+", simplify = TRUE)
 
    var_name <- toupper(parts[1])
    op <- toupper(parts[2])
@@ -208,7 +164,7 @@ compile_vlm_clause <- function(where_clause, var) {
 
    # Fail gracefully for unsupported operators
    if (is.na(op_resolved)) {
-      cli::cli_warn(c(
+      cli_warn(c(
          "x" = "Unsupported operator {.val {op}} in clause {.val {where_clause}}",
          "i" = "Clause will be skipped"
       ))
@@ -221,11 +177,11 @@ compile_vlm_clause <- function(where_clause, var) {
 
       vals <- parse_vlm_values(val)
 
-      expr <- rlang::expr(.data[[!!var_name]] %in% !!vals)
+      expr <- expr(.data[[!!var_name]] %in% !!vals)
 
       # NOTIN becomes negated membership test
       if (op == "NOTIN") {
-         expr <- rlang::expr(! (!!expr))
+         expr <- expr(! (!!expr))
       }
 
       return(expr)
@@ -236,29 +192,33 @@ compile_vlm_clause <- function(where_clause, var) {
    is_num <- suppressWarnings(!is.na(as.numeric(val)))
    val <- if (is_num) as.numeric(val) else val
 
-   rlang::call2(
+   call2(
       op_resolved,
-      rlang::expr(.data[[!!var_name]]),
+      expr(.data[[!!var_name]]),
       val
    )
 }
 
-#' Evaluate a single VLM clause against dataset and CT rules
+#' Evaluate a single VLM clause against dataset and controlled terminology
 #'
-#' Executes a single VLM rule:
-#' 1. Compiles the where-clause into a filter expression
-#' 2. Subsets the dataset
-#' 3. Retrieves controlled terminology (CT)
-#' 4. Compares observed values against allowed CT values
+#' Applies a single VLM where-clause to the dataset, compares observed values
+#' against allowed controlled terminology, and returns any violations.
 #'
 #' @param ctx A CT evaluation context created by `ct_context()`.
-#' @param where_clause A single VLM where-clause string.
+#' @param where_clause Character string containing a VLM rule expression.
 #'
 #' @return
-#' - `NULL` if no violations are found or clause is invalid
-#' - A list with:
-#'   - clause: original where-clause
-#'   - bad_values: vector of invalid values
+#' `NULL` if no violations are found; otherwise a list containing:
+#' \describe{
+#'   \item{clause}{The evaluated where-clause}
+#'   \item{bad_values}{Vector of values not permitted by CT}
+#' }
+#'
+#' @details
+#' - Safely evaluates the clause against the dataset
+#' - Retrieves allowed controlled terminology for the clause context
+#' - Compares observed values against allowed codes
+#' - Returns only violations (clean results are dropped)
 #'
 #' @noRd
 eval_vlm_clause <- function(ctx, where_clause) {
@@ -269,9 +229,9 @@ eval_vlm_clause <- function(ctx, where_clause) {
 
    # Apply filter safely (guard against malformed expressions)
    subset_data <- tryCatch(
-      dplyr::filter(ctx$data, !!expr),
+      filter(ctx$data, !!expr),
       error = function(e) {
-         cli::cli_warn(c(
+         cli_warn(c(
             "x" = "Failed to evaluate VLM clause {.val {where_clause}}",
             "i" = "Skipping clause for variable {.var {ctx$var}}"
          ))
@@ -285,10 +245,10 @@ eval_vlm_clause <- function(ctx, where_clause) {
    }
 
    # Retrieve controlled terminology for this clause context
-   ct <- get_control_term(ctx$metacore, ctx$var, where = where_clause)
-   check <- dplyr::pull(ct, code)
+   ct <- get_control_term(ctx$metacore, !!ctx$var, where = where_clause)
+   check <- pull(ct, code)
 
-   # Standardised NA handling across CT systems
+   # Standardised NA handling
    if (ctx$na_ok) {
       check <- if (is.character(check)) {
          c(check, NA_character_, "")
@@ -298,10 +258,10 @@ eval_vlm_clause <- function(ctx, where_clause) {
    }
 
    # Identify values not present in allowed CT set
-   vals <- dplyr::pull(subset_data, .data[[ctx$var]])
+   vals <- pull(subset_data, .data[[ctx$var]])
    bad <- unique(vals[!vals %in% check])
 
-   # Return NULL for clean results (keeps pipeline simple)
+   # Return NULL for clean results
    if (!length(bad)) return(NULL)
 
    list(
@@ -310,21 +270,24 @@ eval_vlm_clause <- function(ctx, where_clause) {
    )
 }
 
-#' Summarise VLM evaluation results and emit warning
+#' Summarise VLM evaluation results
 #'
-#' Aggregates results from multiple VLM clause evaluations and
-#' generates a structured warning message if violations exist.
+#' Aggregates results from multiple VLM clause evaluations and produces a
+#' structured summary of controlled terminology violations.
 #'
-#' @param results A list of clause evaluation outputs from
+#' @param results A list of clause-level evaluation results returned by
 #'   `eval_vlm_clause()`.
 #' @param var Variable name being evaluated.
 #'
-#' @return A named list of bad values grouped by clause,
-#'   or an empty list if no violations exist.
+#' @return
+#' A named list where each element corresponds to a VLM clause and contains
+#' the values that violate controlled terminology rules. Returns an empty list
+#' if no violations are found.
 #'
 #' @details
-#' - Collapses clause-level results into named structure
-#' - Emits a single consolidated CLI warning
+#' - Groups violations by VLM clause
+#' - Formats a consolidated CLI warning message
+#' - Returns structured output for programmatic use
 #'
 #' @noRd
 summarise_vlm_results <- function(results, var) {
@@ -340,31 +303,34 @@ summarise_vlm_results <- function(results, var) {
 
    # Format human-readable warning message
    msg <- unlist(lapply(names(bad_vals), function(nm) {
-      vals <- paste0("'", bad_vals[[nm]], "'", collapse = ", ")
-      paste0(nm, ": ", vals)
+      vals <- bad_vals[[nm]]
+      paste0(
+         nm, ": ",
+         toString(cli::format_inline("{.val {vals}}"))
+      )
    }))
 
    # Emit single consolidated warning
    cli::cli_warn(c(
       "x" = "Invalid controlled terminology detected",
-      "i" = "Variable: {var}",
-      setNames(msg, rep("i", length(msg)))
+      "i" = "Variable: {.var {var}}",
+      setNames(msg, rep("i", length(msg))),
+      ""
    ))
 
    bad_vals
 }
 
-#' Run full VLM evaluation pipeline
+#' Run VLM evaluation pipeline
 #'
-#' Executes all VLM clauses for a variable by:
-#' 1. Iterating over each where-clause
-#' 2. Evaluating clause against dataset + CT rules
-#' 3. Removing NULL (non-violations)
+#' Executes all VLM where-clauses for a variable by evaluating each clause
+#' against the dataset and controlled terminology rules.
 #'
-#' @param ctx CT evaluation context from `ct_context()`.
+#' @param ctx A CT evaluation context created by `ct_context()`.
 #' @param where_clauses Character vector of VLM where-clauses.
 #'
-#' @return A list of clause-level violation results.
+#' @return A list of non-NULL clause evaluation results representing VLM
+#' violations. If no violations are found, returns an empty list.
 #'
 #' @details
 #' Pipeline flow:
@@ -377,4 +343,62 @@ run_vlm_pipeline <- function(ctx, where_clauses) {
       eval_vlm_clause(ctx, clause)
    }) |>
       purrr::compact()
+}
+
+check_vars_in_data <- function(vars, vars_name, data) {
+   missing_vars <- setdiff(vars, names(data))
+   if (length(missing_vars) > 1) {
+      cli_warn(c(
+         "!" = "Not all variables from {.arg {vars_name}} are in the data and will not be checked",
+         "i" = "Variables not present in the data: {.val {missing_vars}}",
+         ""
+      ),
+      call. = FALSE
+      )
+   }
+   return(setdiff(vars, missing_vars))
+}
+
+#' Print Messages to Console
+#'
+#' This function prints formatted messages to the console, either as errors (stopping
+#' execution) or as warnings. It is designed as a helper function to provide informative
+#' messages during validation checks.
+#'
+#' @param messages A character vector of messages to be printed. Each element corresponds
+#'   to a separate message.
+#' @param data_list A list of character vectors. Each element in the list corresponds
+#'   to a message in `messages` and provides associated data (e.g., column names).
+#'   If an element in `messages` has no corresponding data, include a `NULL`.
+#' @param strict A logical value indicating whether to print messages as
+#'   errors (\code{TRUE}, default) or warnings (\code{FALSE}).
+#'
+#' @details The function constructs a formatted message string including the calling
+#' function's name, the individual messages provided in `messages`, and associated data
+#' from `data_list`. The function uses \code{switch} to call either `stop()` or `warning()`
+#' based on `strict` and prints the full message string to the console.
+#'
+#' @return None. The function's primary purpose is its side effect of printing a message.
+#' It does not return a meaningful value.
+#'
+#' @noRd
+#'
+print_to_console <- function(messages, data_list, strict = TRUE) {
+   calling_function <- paste(deparse(sys.call(-1)), collapse = " ")
+   output_string <- paste0("In: [", calling_function, "]")
+
+   for (i in seq_along(messages)) {
+      message <- paste0(messages[i], ": ",
+                        paste(data_list[[i]], collapse = ", "),
+                        sep = "\n"
+      )
+
+      output_string <- paste(output_string, message, sep = "\n\n")
+   }
+
+   options(deparse.max.lines = 2000L)
+   switch(as.character(strict),
+          "TRUE"  = cli::cli_abort(c(output_string), call = NULL),
+          "FALSE" = cli::cli_warn(c(output_string), call = NULL)
+   )
 }

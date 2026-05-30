@@ -1,115 +1,24 @@
-#' Check Control Terminology for a Single Column
+#' Check Variable Names
 #'
-#' This function checks the column in the dataset only contains the control
-#' terminology as defined by the metacore specification
+#' This function checks the variables in the dataset against the variables
+#' defined in the metacore specifications. If everything matches the function
+#' will print a message stating everything is as expected. If there
+#' are additional or missing variables an error will explain the discrepancies
+#' @param data Dataset to check
+#' @param metacore metacore object that only contains the specifications for the
+#'   dataset of interest.
+#' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
+#'   specify the dataset. This is only needed if the metacore object provided
+#'   hasn't already been subsetted.\cr
+#'   Note: Deprecated in version 0.2.0. The `dataset_name` argument will be removed
+#'   in a future release. Please use `metacore::select_dataset` to subset the
+#'   `metacore` object to obtain metadata for a single dataset.
+#' @param strict A logical value indicating whether to perform strict
+#'   validation on the input dataset. If \code{TRUE} (default), errors will be raised
+#'   if validation fails. If \code{FALSE}, warnings will be issued instead, allowing
+#'   the function execution to continue event with invalid data.
 #'
-#' @param data Data to check
-#'
-#' @param metacore A metacore object to get the codelist from. If the variable
-#'   has different codelists for different datasets the metacore object will
-#'   need to be subsetted using `select_dataset` from the metacore package.
-#'
-#' @param var Name of variable to check
-#'
-#' @param na_acceptable Logical value, set to `NULL` by default, so the
-#'   acceptability of missing values is based on if the core for the variable is
-#'   "Required" in the `metacore` object. If set to `TRUE` then will pass check
-#'   if values are in the control terminology or are missing. If set to
-#'   `FALSE`then NA will not be acceptable.
-#'
-#' @param verbose `character` string controlling the verbosity of the output.
-#'   Possible values are `"message"` (for general information and success messages)
-#'   and `"warn"` (for warnings). Partial matching is allowed.
-#'   **Important**: `"silent"` is explicitly **not** a valid option for `verbose` in
-#'   this function. The primary purpose of `check_ct_data` is to identify and
-#'   warn the user about non-compliant or problematic control terminology. Allowing
-#'   the suppression of these warnings would bypass the function's intent and could
-#'   lead to unnoticed data quality issues. If `verbose = "silent"` is provided, it will
-#'   be coerced to `"message"` with a warning.
-#'
-#' @param .internal Logical value indicating whether the function is being
-#'   called internally by another package function. If `TRUE`, the function
-#'   suppresses user-facing messages and instead returns a logical indicator
-#'   of whether any controlled terminology violations were detected. This
-#'   argument is intended for internal use only and should not be set by
-#'   end users.
-#'
-#' @return Given data if column only contains control terms. If not, will error
-#'   given the values which should not be in the column
-#'
-#' @export
-#'
-#' @examples
-#' library(metacore)
-#' library(haven)
-#' library(magrittr)
-#' load(metacore_example("pilot_ADaM.rda"))
-#' spec <- metacore %>% select_dataset("ADSL")
-#' data <- read_xpt(metatools_example("adsl.xpt"))
-#' check_ct_col(data, spec, TRT01PN)
-#' check_ct_col(data, spec, "TRT01PN")
-check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "message", .internal = FALSE) {
-   # Verbose cannot be `silent` as the point of this function is to warn the user
-   verbose <- validate_verbose(verbose, disallow = "silent", call = rlang::env_parent())
-
-   # Validate the column provided in `var`
-   var <- prepare_ct_check(data, metacore, {{ var }})
-
-   # Call helper to get non-permissible values in data
-   bad_vals <- tryCatch(
-      get_bad_ct(
-         data = data,
-         metacore = metacore,
-         var = var,
-         na_acceptable = na_acceptable,
-         .internal = TRUE
-      ),
-      external_library = function(e) {
-         cli_warn(c(
-            "x" = "Could not check controlled terminology for {.val {var}}",
-            "i" = "We currently don't have the ability to check against external libraries. "
-         ), call = rlang::env_parent())
-         return(invisible(data))
-      }
-   )
-
-   # If .internal==TRUE return TRUE/FALSE
-   if (.internal) {
-      return(length(bad_vals) == 0)
-   }
-
-   # If .internal==FALSE, i.e., called by user: return data
-   if (length(bad_vals) == 0 & verbose == "message") {
-      cli::cli_inform(c(
-         "v" = "Controlled terminology checks passed for {.var {var}}."
-      ))
-   }
-
-   # Print dataset if "message" else return silently
-   if (verbose == "message") {
-      return(data)
-   }
-   return(invisible(data))
-}
-
-#' Gets vector of control terminology which should be there
-#'
-#' This function checks the column in the dataset only contains the control
-#' terminology as defined by the metacore specification. It will return all
-#' values not found in the control terminology
-#'
-#' @param data Data to check
-#' @param metacore A metacore object to get the codelist from. If the variable
-#'   has different codelists for different datasets the metacore object will
-#'   need to be subsetted using `select_dataset` from the metacore package.
-#' @param var Name of variable to check
-#' @param na_acceptable Logical value, set to `NULL` by default, so the
-#'   acceptability of missing values is based on if the core for the variable is
-#'   "Required" in the `metacore` object. If set to `TRUE` then will pass check
-#'   if values are in the control terminology or are missing. If set to
-#'   `FALSE` then NA will not be acceptable.
-#'
-#' @return vector
+#' @return message if the dataset matches the specification and the dataset, and error otherwise
 #' @export
 #'
 #' @examples
@@ -119,105 +28,49 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "m
 #' load(metacore_example("pilot_ADaM.rda"))
 #' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
-#' get_bad_ct(data, spec, "DCSREAS")
-#' get_bad_ct(data, spec, "DCSREAS", na_acceptable = FALSE)
-#'
-get_bad_ct <- function(data, metacore, var, na_acceptable = NULL, .internal = FALSE) {
+#' check_variables(data, spec)
+#' data["DUMMY_COL"] <- NA
+#' check_variables(data, spec, strict = FALSE)
+check_variables <- function(data, metacore, dataset_name = deprecated(), strict = FALSE) {
+   if (is_present(dataset_name)) {
+      lifecycle::deprecate_warn(
+         when = "0.2.0",
+         what = "check_variables(dataset_name)",
+         details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
+      Please use {.fn metacore::select_dataset} to subset the {.obj metacore} object to obtain
+      metadata for a single dataset.")))
+      )
+      metacore <- make_lone_dataset(metacore, dataset_name)
+   }
+   verify_DatasetMeta(metacore)
 
-   # If called internally do not re-perform validation of `var`
-   if (!.internal) {
-      var <- prepare_ct_check(data, metacore, {{ var }})
+   var_list <- metacore$ds_vars %>%
+      filter(is.na(supp_flag) | !(supp_flag)) %>%
+      pull(variable)
+
+   missing <- var_list %>% discard(~ . %in% names(data))
+   extra <- names(data) %>% discard(~ . %in% var_list)
+
+   messages <- character(0)
+   data_list <- list()
+
+   if (length(missing) > 0) {
+      messages <- c(messages, "The following variables are missing")
+      data_list <- c(data_list, list(missing))
    }
 
-   value_spec <- metacore$value_spec |>
-      dplyr::filter(.data$variable == {{ var }})
-
-   if (all(is.na(value_spec$code_id))) {
-      return(list())
+   if (length(extra) > 0) {
+      messages <- c(messages, "The following variables do not belong")
+      data_list <- c(data_list, list(extra))
    }
 
-   # Edge case: Variable has VLM information
-   if (nrow(value_spec) > 1) {
-      return(get_bad_ct_vlm(data, metacore, {{ var }}, na_acceptable))
+   if (length(messages) > 0) {
+      print_to_console(messages, data_list, strict = {{ strict }})
+   } else {
+      message("No missing or extra variables")
    }
 
-   # Base case: Variable has no VLM information
-   ctx <- ct_context(data, metacore, {{ var }}, na_acceptable)
-
-   ct <- get_control_term(metacore, !!ctx$var)
-
-   if (!"code" %in% names(ct)) {
-      cli_abort(message = NULL, class = "external_library")
-   }
-
-   if (ctx$na_ok) {
-      check <- if (is.character(check)) c(check, NA_character_, "") else c(check, NA)
-   }
-
-   vals <- dplyr::pull(data, .data[[ctx$var]])
-   bad <- unique(vals[!vals %in% check])
-
-   if (length(bad)) {
-      cli::cli_warn(c(
-         "x" = "Invalid controlled terminology detected",
-         "i" = "Variable: {ctx$var}",
-         "i" = "Values not permitted: {bad}"
-      ))
-   }
-
-   return(bad)
-}
-
-#' Get bad controlled terminology values for a variable with value level metadata
-#'
-#' Checks a variable against the controlled terminology defined by value level
-#' metadata (VLM) in a metacore specification. For each VLM `where` clause
-#' associated with the variable, the function subsets the data, retrieves the
-#' relevant codelist, and returns any values found in the dataset that are not
-#' permitted by that codelist.
-#'
-#' @param data Data to check.
-#' @param metacore A metacore object containing the dataset and value level
-#'   metadata specification.
-#' @param var Name of the variable to check.
-#' @param na_acceptable Logical scalar indicating whether missing values should be
-#'   accepted. If `TRUE`, `NA` and `""` are treated as valid for character
-#'   controlled terminology and `NA` for non-character controlled terminology.
-#'
-#' @return A named list containing only the VLM codelists with invalid values.
-#'   Each element is named `"Codelist: <where_clause>"` and contains the unique
-#'   invalid values found for that VLM condition. If no invalid values are found,
-#'   an empty list is returned.
-#'
-#' @details
-#' The function currently supports only VLM conditions using the `EQ` operator.
-#' Any other operator triggers a warning and is skipped.
-#'
-#' @export
-get_bad_ct_vlm <- function(data, metacore, var, na_acceptable = NULL, .internal = FALSE) {
-
-   # If called internally do not re-perform validation of `var`
-   if (!.internal) {
-      prepare_ct_check(data, metacore, {{ var }})
-   }
-
-   # Get controlled terminology context
-   ctx <- ct_context(data, metacore, {{ var }}, na_acceptable)
-
-   # If user specifies a column with no VLM return
-   if (isFALSE(ctx$vlm)) {
-      cli::cli_inform(c(
-         "i" = "The column {.var {var}} in the dataset {.val {metacore$ds_spec$dataset}}
-         has no defined VLM. Try the function {.fn get_bad_ct} instead."
-      ))
-      return(invisible())
-   }
-
-   where_clauses <- vlm_clauses(metacore, ctx$var)
-
-   results <- run_vlm_pipeline(ctx, where_clauses)
-
-   summarise_vlm_results(results, ctx$var)
+   data
 }
 
 #' Check Control Terminology for a Dataset
@@ -273,102 +126,180 @@ get_bad_ct_vlm <- function(data, metacore, var, na_acceptable = NULL, .internal 
 #' check_ct_data(data, spec, na_acceptable = c("DSRAEFL", "DCSREAS"), omit_vars = "DISCONFL")
 #' }
 check_ct_data <- function(data, metacore, na_acceptable = NULL, omit_vars = NULL, verbose = "message") {
-  verify_DatasetMeta(metacore)
+   verify_DatasetMeta(metacore)
 
-  # Verbose cannot be `silent` as the point of this function is to warn the user
+   # Verbose cannot be `silent` as the point of this function is to warn the user
    verbose <- validate_verbose(verbose, disallow = "silent", call = rlang::env_parent())
 
-  codes_in_data <- metacore$value_spec %>%
-    dplyr::filter(variable %in% names(data), !is.na(code_id)) %>%
-    dplyr::pull(code_id) %>%
-    unique()
+   codes_in_data <- metacore$value_spec %>%
+      dplyr::filter(variable %in% names(data), !is.na(code_id)) %>%
+      dplyr::pull(code_id) %>%
+      unique()
 
-  # Remove any codes that have external libraries
-  codes_to_check <- metacore$codelist %>%
-    dplyr::filter(type != "external_library", code_id %in% codes_in_data) %>%
-    dplyr::select(code_id)
+   # Remove any codes that have external libraries
+   codes_to_check <- metacore$codelist %>%
+      dplyr::filter(type != "external_library", code_id %in% codes_in_data) %>%
+      dplyr::select(code_id)
 
-  # Convert list of codes to variables
-  cols_to_check <- metacore$value_spec %>%
-    dplyr::inner_join(codes_to_check, by = "code_id", relationship = "many-to-many") %>%
-    dplyr::filter(variable %in% names(data)) %>%
-    dplyr::pull(variable) %>%
-    unique()
+   # Convert list of codes to variables
+   cols_to_check <- metacore$value_spec %>%
+      dplyr::inner_join(codes_to_check, by = "code_id", relationship = "many-to-many") %>%
+      dplyr::filter(variable %in% names(data)) %>%
+      dplyr::pull(variable) %>%
+      unique()
 
-  # Subset cols_to_check by omit_vars
-  if (is.character(omit_vars)) {
-    check_vars_in_data(omit_vars, "omit_vars", data)
-    cols_to_check <- setdiff(cols_to_check, omit_vars)
-  }
+   # Subset cols_to_check by omit_vars
+   if (is.character(omit_vars)) {
+      omit_vars <- check_vars_in_data(omit_vars, "omit_vars", data)
+      cols_to_check <- setdiff(cols_to_check, omit_vars)
+   }
 
-  # Validate na_acceptable
-  if (!is.null(na_acceptable) &&
-    !is.logical(na_acceptable) &&
-    !is.character(na_acceptable)) {
-    cli::cli_abort(
-      "na_acceptable must be NULL, logical, or character."
-    )
-  }
+   # Validate na_acceptable
+   if (!is.null(na_acceptable) &&
+       !is.logical(na_acceptable) &&
+       !is.character(na_acceptable)) {
+      cli::cli_abort(
+         "na_acceptable must be NULL, logical, or character."
+      )
+   }
 
-  # Run checks and collect flags
-  results <- purrr::map_lgl(cols_to_check, function(x) {
-    if (is.character(na_acceptable)) {
-      na_flag <- x %in% na_acceptable
-    } else if (is.logical(na_acceptable) || is.null(na_acceptable)) {
-      na_flag <- na_acceptable
-    }
-    check_ct_col(data, metacore, rlang::sym(x), na_flag, "message", .internal = TRUE)
-  })
+   # Run checks and collect flags
+   results <- purrr::map_lgl(cols_to_check, function(x) {
+      if (is.character(na_acceptable)) {
+         na_flag <- x %in% na_acceptable
+      } else if (is.logical(na_acceptable) || is.null(na_acceptable)) {
+         na_flag <- na_acceptable
+      }
+      check_ct_col(data, metacore, x, na_flag, "message", .internal = TRUE)
+   })
 
-  # If no warnings triggered
-  if (all(results) && verbose == "message") {
-    cli::cli_inform(c(
-      "v" = "All controlled terminology checks passed"
-    ))
-  }
+   # If no warnings triggered
+   if (all(results) && verbose == "message") {
+      cli::cli_inform(c(
+         "v" = "All controlled terminology checks passed"
+      ))
+   }
 
-  # Print dataset Y/N?
-  if (verbose == "message") {
-    return(data)
-  }
+   # Print dataset Y/N?
+   if (verbose == "message") {
+      return(data)
+   }
 
-  invisible(data)
+   invisible(data)
 }
 
-check_vars_in_data <- function(vars, vars_name, data) {
-  if (!all(vars %in% names(data))) {
-    stop(
-      paste0(
-        "Not all variables from ", vars_name, " are in the data: ",
-        paste0(setdiff(vars, names(data)), collapse = ",")
+#' Check Control Terminology for a Single Column
+#'
+#' This function checks the column in the dataset only contains the control
+#' terminology as defined by the metacore specification
+#'
+#' @param data Data to check
+#'
+#' @param metacore A metacore object to get the codelist from. If the variable
+#'   has different codelists for different datasets the metacore object will
+#'   need to be subsetted using `select_dataset` from the metacore package.
+#'
+#' @param var Name of variable to check
+#'
+#' @param na_acceptable Logical value, set to `NULL` by default, so the
+#'   acceptability of missing values is based on if the core for the variable is
+#'   "Required" in the `metacore` object. If set to `TRUE` then will pass check
+#'   if values are in the control terminology or are missing. If set to
+#'   `FALSE`then NA will not be acceptable.
+#'
+#' @param verbose `character` string controlling the verbosity of the output.
+#'   Possible values are `"message"` (for general information and success messages)
+#'   and `"warn"` (for warnings). Partial matching is allowed.
+#'   **Important**: `"silent"` is explicitly **not** a valid option for `verbose` in
+#'   this function. The primary purpose of `check_ct_data` is to identify and
+#'   warn the user about non-compliant or problematic control terminology. Allowing
+#'   the suppression of these warnings would bypass the function's intent and could
+#'   lead to unnoticed data quality issues. If `verbose = "silent"` is provided, it will
+#'   be coerced to `"message"` with a warning.
+#'
+#' @param .internal Logical value indicating whether the function is being
+#'   called internally by another package function. If `TRUE`, the function
+#'   suppresses user-facing messages and instead returns a logical indicator
+#'   of whether any controlled terminology violations were detected. This
+#'   argument is intended for internal use only and should not be set by
+#'   end users.
+#'
+#' @return Given data if column only contains control terms. If not, will error
+#'   given the values which should not be in the column
+#'
+#' @export
+#'
+#' @examples
+#' library(metacore)
+#' library(haven)
+#' library(magrittr)
+#' load(metacore_example("pilot_ADaM.rda"))
+#' spec <- metacore %>% select_dataset("ADSL")
+#' data <- read_xpt(metatools_example("adsl.xpt"))
+#' check_ct_col(data, spec, TRT01PN)
+#' check_ct_col(data, spec, "TRT01PN")
+check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "message", .internal = FALSE) {
+   verbose <- validate_verbose(verbose, disallow = "silent", call = rlang::env_parent())
+
+   if (!.internal) {
+      verify_DatasetMeta(metacore)
+      var <- resolve_var(data, {{ var }})
+   }
+
+   bad_vals <- tryCatch(
+      get_bad_ct(
+         data = data,
+         metacore = metacore,
+         var = var,
+         na_acceptable = na_acceptable,
+         .internal = TRUE
       ),
-      call. = FALSE
-    )
-  }
-  return(NULL)
+      external_library = function(e) {
+         cli_warn(c(
+            "x" = "Could not check controlled terminology for {.val {var}}",
+            "i" = "We currently don't have the ability to check against external libraries."
+         ),
+         call = rlang::env_parent())
+
+         return(invisible(data))
+      }
+   )
+
+   if (.internal) {
+      return(length(bad_vals) == 0)
+   }
+
+   if (length(bad_vals) == 0 && verbose == "message") {
+      cli::cli_inform(c(
+         "v" = "Controlled terminology checks passed for {.var {var}}."
+      ))
+   }
+
+   if (verbose == "message") {
+      return(data)
+   }
+
+   invisible(data)
 }
 
-#' Check Variable Names
+#' Gets vector of control terminology which should be there
 #'
-#' This function checks the variables in the dataset against the variables
-#' defined in the metacore specifications. If everything matches the function
-#' will print a message stating everything is as expected. If there
-#' are additional or missing variables an error will explain the discrepancies
-#' @param data Dataset to check
-#' @param metacore metacore object that only contains the specifications for the
-#'   dataset of interest.
-#' @param dataset_name `r lifecycle::badge("deprecated")` Optional string to
-#'   specify the dataset. This is only needed if the metacore object provided
-#'   hasn't already been subsetted.\cr
-#'   Note: Deprecated in version 0.2.0. The `dataset_name` argument will be removed
-#'   in a future release. Please use `metacore::select_dataset` to subset the
-#'   `metacore` object to obtain metadata for a single dataset.
-#' @param strict A logical value indicating whether to perform strict
-#'   validation on the input dataset. If \code{TRUE} (default), errors will be raised
-#'   if validation fails. If \code{FALSE}, warnings will be issued instead, allowing
-#'   the function execution to continue event with invalid data.
+#' This function checks the column in the dataset only contains the control
+#' terminology as defined by the metacore specification. It will return all
+#' values not found in the control terminology
 #'
-#' @return message if the dataset matches the specification and the dataset, and error otherwise
+#' @param data Data to check
+#' @param metacore A metacore object to get the codelist from. If the variable
+#'   has different codelists for different datasets the metacore object will
+#'   need to be subsetted using `select_dataset` from the metacore package.
+#' @param var Name of variable to check
+#' @param na_acceptable Logical value, set to `NULL` by default, so the
+#'   acceptability of missing values is based on if the core for the variable is
+#'   "Required" in the `metacore` object. If set to `TRUE` then will pass check
+#'   if values are in the control terminology or are missing. If set to
+#'   `FALSE` then NA will not be acceptable.
+#'
+#' @return vector
 #' @export
 #'
 #' @examples
@@ -378,93 +309,117 @@ check_vars_in_data <- function(vars, vars_name, data) {
 #' load(metacore_example("pilot_ADaM.rda"))
 #' spec <- metacore %>% select_dataset("ADSL")
 #' data <- read_xpt(metatools_example("adsl.xpt"))
-#' check_variables(data, spec)
-#' data["DUMMY_COL"] <- NA
-#' check_variables(data, spec, strict = FALSE)
-check_variables <- function(data, metacore, dataset_name = deprecated(), strict = FALSE) {
-  if (is_present(dataset_name)) {
-    lifecycle::deprecate_warn(
-      when = "0.2.0",
-      what = "check_variables(dataset_name)",
-      details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
-      Please use {.fn metacore::select_dataset} to subset the {.obj metacore} object to obtain
-      metadata for a single dataset.")))
-    )
-    metacore <- make_lone_dataset(metacore, dataset_name)
-  }
-  verify_DatasetMeta(metacore)
+#' get_bad_ct(data, spec, "DCSREAS")
+#' get_bad_ct(data, spec, "DCSREAS", na_acceptable = FALSE)
+#'
+get_bad_ct <- function(data, metacore, var, na_acceptable = NULL, .internal = FALSE) {
+   if (!.internal) {
+      verify_DatasetMeta(metacore)
+      var <- resolve_var(data, {{ var }})
+   }
 
-  var_list <- metacore$ds_vars %>%
-    filter(is.na(supp_flag) | !(supp_flag)) %>%
-    pull(variable)
+   value_spec <- dplyr::filter(metacore$value_spec, variable == var)
 
-  missing <- var_list %>% discard(~ . %in% names(data))
-  extra <- names(data) %>% discard(~ . %in% var_list)
+   if (all(is.na(value_spec$code_id))) {
+      return(list())
+   }
 
-  messages <- character(0)
-  data_list <- list()
+   if (nrow(value_spec) > 1) {
+      return(get_bad_ct_vlm(data, metacore, var, na_acceptable, .internal = TRUE))
+   }
 
-  if (length(missing) > 0) {
-    messages <- c(messages, "The following variables are missing")
-    data_list <- c(data_list, list(missing))
-  }
+   ctx <- ct_context(data, metacore, var, na_acceptable)
 
-  if (length(extra) > 0) {
-    messages <- c(messages, "The following variables do not belong")
-    data_list <- c(data_list, list(extra))
-  }
+   ct <- get_control_term(metacore, {{ var }})
 
-  if (length(messages) > 0) {
-    print_to_console(messages, data_list, strict = {{ strict }})
-  } else {
-    message("No missing or extra variables")
-  }
+   if (!"code" %in% names(ct)) {
+      cli_abort(
+         message = NULL,
+         class = "external_library"
+      )
+   }
 
-  data
+   check <- dplyr::pull(ct, code)
+
+   if (ctx$na_ok) {
+      check <- if (is.character(check)) {
+         c(check, NA_character_, "")
+      } else {
+         c(check, NA)
+      }
+   }
+
+   vals <- dplyr::pull(data, .data[[var]])
+
+   bad <- unique(vals[!vals %in% check])
+
+   if (length(bad)) {
+      cli::cli_warn(c(
+         "x" = "Invalid controlled terminology detected",
+         "i" = "Variable: {.var {var}}",
+         "i" = "Values not permitted: {.val {bad}}",
+         ""
+      ))
+   }
+
+   bad
 }
 
-#' Print Messages to Console
+#' Get bad controlled terminology values for a variable with value level metadata
 #'
-#' This function prints formatted messages to the console, either as errors (stopping
-#' execution) or as warnings. It is designed as a helper function to provide informative
-#' messages during validation checks.
+#' Checks a variable against the controlled terminology defined by value level
+#' metadata (VLM) in a metacore specification. For each VLM `where` clause
+#' associated with the variable, the function subsets the data, retrieves the
+#' relevant codelist, and returns any values found in the dataset that are not
+#' permitted by that codelist.
 #'
-#' @param messages A character vector of messages to be printed. Each element corresponds
-#'   to a separate message.
-#' @param data_list A list of character vectors. Each element in the list corresponds
-#'   to a message in `messages` and provides associated data (e.g., column names).
-#'   If an element in `messages` has no corresponding data, include a `NULL`.
-#' @param strict A logical value indicating whether to print messages as
-#'   errors (\code{TRUE}, default) or warnings (\code{FALSE}).
+#' @param data Data to check.
+#' @param metacore A metacore object containing the dataset and value level
+#'   metadata specification.
+#' @param var Name of the variable to check.
+#' @param na_acceptable Logical scalar indicating whether missing values should be
+#'   accepted. If `TRUE`, `NA` and `""` are treated as valid for character
+#'   controlled terminology and `NA` for non-character controlled terminology.
 #'
-#' @details The function constructs a formatted message string including the calling
-#' function's name, the individual messages provided in `messages`, and associated data
-#' from `data_list`. The function uses \code{switch} to call either `stop()` or `warning()`
-#' based on `strict` and prints the full message string to the console.
+#' @return A named list containing only the VLM codelists with invalid values.
+#'   Each element is named `"Codelist: <where_clause>"` and contains the unique
+#'   invalid values found for that VLM condition. If no invalid values are found,
+#'   an empty list is returned.
 #'
-#' @return None. The function's primary purpose is its side effect of printing a message.
-#' It does not return a meaningful value.
+#' @details
+#' The function currently supports only VLM conditions using the `EQ` operator.
+#' Any other operator triggers a warning and is skipped.
 #'
-#' @noRd
-#'
-print_to_console <- function(messages, data_list, strict = TRUE) {
-  calling_function <- paste(deparse(sys.call(-1)), collapse = " ")
-  output_string <- paste0("In: [", calling_function, "]")
+#' @export
+get_bad_ct_vlm <- function(
+      data,
+      metacore,
+      var,
+      na_acceptable = NULL,
+      .internal = FALSE
+) {
+   if (!.internal) {
+      verify_DatasetMeta(metacore)
+      var <- resolve_var(data, {{ var }})
+   }
 
-  for (i in seq_along(messages)) {
-    message <- paste0(messages[i], ": ",
-      paste(data_list[[i]], collapse = ", "),
-      sep = "\n"
-    )
+   ctx <- ct_context(data, metacore, var, na_acceptable)
 
-    output_string <- paste(output_string, message, sep = "\n\n")
-  }
+   if (isFALSE(ctx$vlm)) {
+      cli::cli_inform(c(
+         "i" = "The column {.var {var}} in the dataset {.val {metacore$ds_spec$dataset}} has no defined VLM.",
+         "i" = "Try the function {.fn get_bad_ct} instead."
+      ))
 
-  options(deparse.max.lines = 2000L)
-  switch(as.character(strict),
-    "TRUE"  = cli::cli_abort(c(output_string), call = NULL),
-    "FALSE" = cli::cli_warn(c(output_string), call = NULL)
-  )
+      return(invisible())
+   }
+
+   # If VLM detected then get the available where clauses and run VLM pipeline
+   where_clauses <- vlm_clauses(metacore, ctx$var)
+
+   results <- run_vlm_pipeline(ctx, where_clauses)
+
+   summarise_vlm_results(results, ctx$var)
 }
 
 #' Check Uniqueness of Records by Key
@@ -495,40 +450,40 @@ print_to_console <- function(messages, data_list, strict = TRUE) {
 #' data <- read_xpt(metatools_example("adsl.xpt"))
 #' check_unique_keys(data, spec)
 check_unique_keys <- function(data, metacore, dataset_name = deprecated()) {
-  if (is_present(dataset_name)) {
-    lifecycle::deprecate_warn(
-      when = "0.2.0",
-      what = "check_unique_keys(dataset_name)",
-      details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
+   if (is_present(dataset_name)) {
+      lifecycle::deprecate_warn(
+         when = "0.2.0",
+         what = "check_unique_keys(dataset_name)",
+         details = cli_inform(c("i" = col_red("The {.arg dataset_name} argument will be removed in a future release.
       Please use {.fn metacore::select_dataset} to subset the {.obj metacore} object to obtain
       metadata for a single dataset.")))
-    )
-    metacore <- make_lone_dataset(metacore, dataset_name)
-  }
-  verify_DatasetMeta(metacore)
-  keys <- get_keys(metacore, expr(!!metacore$ds_spec$dataset))
-  var_list <- keys %>%
-    pull(variable)
-  missing <- var_list %>%
-    discard(~ . %in% names(data))
-  if (length(missing) > 0) {
-    stop(paste0(
-      "The following variable keys are missing in the dataset:\n",
-      paste0(missing, collapse = "\n")
-    ))
-  }
-  grouped <- data %>%
-    group_by(pick(!!keys$variable)) %>%
-    add_count() %>%
-    filter(.data$n != 1)
-  if (nrow(grouped) == 0) {
-    message("Keys uniquely identify records")
-  } else {
-    stop(paste0(
-      "Keys do not uniquely identify records\n",
-      "variable keys:\n",
-      paste0(var_list, collapse = "\n")
-    ))
-  }
-  data
+      )
+      metacore <- make_lone_dataset(metacore, dataset_name)
+   }
+   verify_DatasetMeta(metacore)
+   keys <- get_keys(metacore, expr(!!metacore$ds_spec$dataset))
+   var_list <- keys %>%
+      pull(variable)
+   missing <- var_list %>%
+      discard(~ . %in% names(data))
+   if (length(missing) > 0) {
+      stop(paste0(
+         "The following variable keys are missing in the dataset:\n",
+         paste0(missing, collapse = "\n")
+      ))
+   }
+   grouped <- data %>%
+      group_by(pick(!!keys$variable)) %>%
+      add_count() %>%
+      filter(.data$n != 1)
+   if (nrow(grouped) == 0) {
+      message("Keys uniquely identify records")
+   } else {
+      stop(paste0(
+         "Keys do not uniquely identify records\n",
+         "variable keys:\n",
+         paste0(var_list, collapse = "\n")
+      ))
+   }
+   data
 }
