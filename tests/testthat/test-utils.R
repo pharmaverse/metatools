@@ -2,7 +2,7 @@
 options(cli.default_handler = function(...) {})
 
 test_that("metatools_example", {
-  expect_equal(metatools_example(), c("adsl.xpt", "dm.xpt"))
+  expect_equal(metatools_example(), c("adex.xpt", "adsl.xpt", "dm.xpt"))
   expect_equal(
     file.exists(metatools_example("dm.xpt")),
     TRUE
