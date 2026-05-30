@@ -12,98 +12,128 @@ spec_mod <- metacore::metacore(spec$ds_spec, mod_ds_vars, spec$var_spec, spec$va
 spec_mod <- select_dataset(spec_mod, "ADSL", verbose = "silent")
 
 test_that("get_bad_ct works correctly", {
-  # test na_acceptable
+   # Dateset not provided
+   expect_error(get_bad_ct(character(0), spec), "must be a data frame")
+
+   # Test no var provided
+   expect_error(get_bad_ct(data, spec), "must be provided as a string or bare column name")
+
+  # Test na_acceptable with valid CT
   expect_equal(get_bad_ct(data, spec, "DCSREAS"), character(0))
   expect_equal(get_bad_ct(data, spec, "DCSREAS", TRUE), character(0))
 
-  expect_warning(
-     expect_equal(
-        get_bad_ct(data, spec, "DCSREAS", FALSE),
-        ""
-     )
-  )
+  # Test na_acceptable with invalid CT
+  get_bad_ct(data, spec_mod, "COMP8FL", TRUE) |>
+     expect_equal(character(0))
 
-  expect_warning(
-     expect_equal(
-        get_bad_ct(data, spec_mod, "COMP8FL"),
-        ""
-     )
-  )
+  get_bad_ct(data, spec_mod, "COMP8FL", FALSE) |>
+     expect_equal("") |>
+     expect_warning("Invalid controlled terminology detected")
 
-  expect_equal(get_bad_ct(data, spec_mod, "COMP8FL", TRUE), character(0))
-  expect_warning(
-     expect_equal(
-        get_bad_ct(data, spec_mod, "COMP8FL", FALSE),
-        ""
-     )
-  )
+  # Test empty string not permitted
+  get_bad_ct(data, spec, "DCSREAS", FALSE) |>
+     expect_equal("") |>
+     expect_warning("Invalid controlled terminology detected")
 
+  get_bad_ct(data, spec_mod, "COMP8FL") |>
+     expect_equal("") |>
+     expect_warning("Invalid controlled terminology detected")
+
+  # Check more than one value returned
   data_na <- mutate(data, COMP8FL = if_else(dplyr::row_number() == 1, NA_character_, COMP8FL))
-  expect_warning(
-     expect_equal(
-        get_bad_ct(data_na, spec_mod, "COMP8FL"),
-        c(NA_character_, "")
-     )
-  )
+  get_bad_ct(data_na, spec_mod, "COMP8FL") |>
+     expect_equal(c(NA_character_, "")) |>
+     expect_warning("Invalid controlled terminology detected")
+
+  # Check bad ct can be retrieved for VLM
+  adex_spec <- select_dataset(vlm_spec, "ADEX", verbose = "silent")
+  get_bad_ct(adex, adex_spec, "AVALCAT1") |>
+     expect_type("list") |>
+     expect_warning("Invalid controlled terminology detected")
+
+  # Test .internal skips string validation (returns error as var not resolved to string)
+  get_bad_ct(data, spec, ARM, .internal = TRUE) |>
+     expect_error("object 'ARM' not found")
 })
+
 
 test_that("check_ct_col works correctly", {
-  # Check it works with a character col
-  expect_equal(check_ct_col(data, spec, ARM), data)
-  # Check it works with a numeric col
-  expect_equal(check_ct_col(data, spec, TRT01PN), data)
-  # Check it works when passes a string
-  expect_equal(check_ct_col(data, spec, "TRT01PN"), data)
+   # Check it works with a character col (bare name)
+   check_ct_col(data, spec, ARM) |>
+      expect_equal(data) |>
+      expect_message("Controlled terminology checks passed")
 
-  # Check verbose parameters work (warn) and partial match (w)
-  expect_silent(check_ct_col(data, spec, ARM, verbose = "warn"))
-  expect_silent(check_ct_col(data, spec, ARM, verbose = "w"))
+   # Check it works with a character col (string)
+   check_ct_col(data, spec, "TRT01PN") |>
+      expect_equal(data) |>
+      expect_message("Controlled terminology checks passed")
 
-  # Check verbose warning issued when `verbose = "silent"` or partial match "s"
-  expect_warning(check_ct_col(data, spec, ARM, verbose = "silent"))
-  expect_warning(expect_message(
-     check_ct_col(data, spec, ARM, verbose = "s")
-  ))
+   # Check it works with a numeric col
+   check_ct_col(data, spec, TRT01PN) |>
+      expect_equal(data) |>
+      expect_message("Controlled terminology checks passed")
 
-  # Test permitted Values
-  spec2 <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), verbose = "silent")
-  dm <- select_dataset(spec2, "DM", verbose = "silent")
-  expect_equal(check_ct_col(data, dm, ARM), data)
+   # Check verbose parameters work (warn) and partial match (w)
+   expect_silent(check_ct_col(data, spec, ARM, verbose = "warn"))
+   expect_silent(check_ct_col(data, spec, ARM, verbose = "w"))
 
-  # Test external dictionaries
-  data2 <- tibble::tibble(AELLT = "Hello")
-  ae <- select_dataset(spec2, "AE", verbose = "silent")
-  expect_warning(
-    check_ct_col(data2, ae, AELLT),
-    "We currently don't have the ability to check against external libraries"
-  )
+   # Check verbose warning issued when `verbose = "silent"` or partial match "s"
+   check_ct_col(data, spec, ARM, verbose = "silent") |>
+      expect_warning("Must be one of") |>
+      expect_message("Controlled terminology checks passed")
 
-  # Test a column that isn't in the dataset
-  expect_error(
-    check_ct_col(data, ae, AELLT),
-    "AELLT not found in dataset. Please check and try again"
-  )
+   check_ct_col(data, spec, ARM, verbose = "s") |>
+      expect_warning("Must be one of") |>
+      expect_message("Controlled terminology checks passed")
 
-  # Test NA acceptable
-  expect_error(check_ct_col(data, dm, COMP8FL, FALSE))
+   # Test external dictionaries
+   spec2 <- metacore::spec_to_metacore(metacore::metacore_example("p21_mock.xlsx"), verbose = "silent")
+   data2 <- tibble::tibble(AELLT = "Hello")
+   ae <- select_dataset(spec2, "AE", verbose = "silent")
+   check_ct_col(data2, ae, AELLT) |>
+      expect_warning("We currently don't have the ability to check against external libraries")
 
-  expect_equal(check_ct_col(data, dm, ARM, TRUE), data)
-  data_w_miss <- data %>%
-    mutate(TRT01PN = if_else(dplyr::row_number() == 3, NA_real_, TRT01PN))
-  expect_warning(check_ct_col(data_w_miss, spec, TRT01PN, FALSE))
-  expect_equal(get_bad_ct(data_w_miss, spec, TRT01PN, FALSE), NA_real_)
-  expect_equal(check_ct_col(data_w_miss, spec, TRT01PN, TRUE), data_w_miss)
-  ### Test with  a required column ###
-  # Required without missing
-  expect_equal(check_ct_col(data, spec_mod, TRT01PN), data)
-  # Required with missing
-  expect_warning(check_ct_col(data, spec_mod, COMP8FL))
-  expect_equal(get_bad_ct(data, spec_mod, COMP8FL), "")
-  expect_equal(check_ct_col(data, spec_mod, COMP8FL, TRUE), data)
+   # Test a column that isn't in the dataset
+   check_ct_col(data, ae, INVALID) |>
+      expect_error("not found in dataset")
+
+   # Test NA acceptable (empty string)
+   invisible(check_ct_col(data, spec_mod, "COMP8FL", TRUE)) |>
+      expect_message("Controlled terminology checks passed")
+
+   invisible(check_ct_col(data, spec_mod, "COMP8FL", FALSE)) |>
+      expect_warning("Values not permitted: \"\"")
+
+   invisible(check_ct_col(data, spec_mod, "COMP8FL")) |>
+      expect_warning("Values not permitted: \"\"") # use metadata from ds_vars$core
+
+   # Test NA acceptable (NA)
+  data_w_miss <- mutate(data, TRT01PN = if_else(dplyr::row_number() == 3, NA_real_, TRT01PN))
+  invisible(check_ct_col(data_w_miss, spec, TRT01PN, FALSE)) |>
+     expect_warning("Values not permitted: NA")
+
+  # Test returns dataframe
+  check_ct_col(data_w_miss, spec, TRT01PN, TRUE) |>
+     expect_identical(data_w_miss) |>
+     expect_message("Controlled terminology checks passed")
+
+  # Test internal call returns TRUE/FALSE
+  # .internal check must be performed with string variable as conversion is skipped
+  check_ct_col(data, spec, "ARM", .internal = TRUE) |>
+     expect_true()
+
+  check_ct_col(data, spec_mod, "COMP8FL", FALSE, .internal = TRUE) |>
+     expect_false() |>
+     expect_warning("Invalid controlled terminology detected")
+
+  # Test .internal skips string validation (returns error as var not resolved to string)
+  check_ct_col(data, spec, ARM, .internal = TRUE) |>
+     expect_error("object 'ARM' not found")
 })
 
+
 test_that("check_ct_data works correctly", {
-  # Checking error for multiple words in multiple columns
+  # Checking error for multiple words in a column
   data_multi_word <- data %>%
     mutate(
       TRT01P = case_when(
@@ -113,52 +143,60 @@ test_that("check_ct_data works correctly", {
       ),
       TRT01A = TRT01P
     )
-  expect_warning(check_ct_data(data_multi_word |> select(TRT01P), spec))
 
-  expect_warning(check_ct_data(data |> select(COMP8FL), spec, FALSE))
+  check_ct_data(data_multi_word |> select(TRT01P), spec) |>
+     expect_warning(regexp = "Values not permitted.*Hello.*World")
 
-  # Check data returned
-  expect_equal(check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N")), data)
-  expect_equal(check_ct_data(data, spec, TRUE, omit_vars = c("AGEGR2", "AGEGR2N")), data)
-  expect_warning(check_ct_data(data |> select(AGEGR2), spec_mod))
-  expect_equal(check_ct_data(data, spec_mod, TRUE, omit_vars = c("AGEGR2", "AGEGR2N")), data)
+  # Checking error for multiple words in multiple columns
+  data_multi_word <- mutate(data_multi_word, TRT01A = "Invalid")
+  check_ct_data(data_multi_word |> select(TRT01P, TRT01A), spec) |>
+     expect_warning(regexp = "Values not permitted.*Hello.*World") |>
+     expect_warning(regexp = "Values not permitted.*Invalid")
+
+  # Check data returned (with omit vars)
+  check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N")) |>
+     expect_equal(data) |>
+     expect_message("All controlled terminology checks passed")
+
+  # Check data returned (no omit vars lead to warning)
+  check_ct_data(data, spec) |>
+     expect_equal(data) |>
+     expect_warning(regexp = "Values not permitted:.*18-64 years.*65-80 years.*>80 years")
+
+  # Check check_ct_data ran across entire dataset
+  check_ct_data(adex, adex_spec) |>
+     expect_equal(adex) |>
+     expect_warning(regexp = "Codelist: PARAMCD EQ NUMINJM.*Invalid 1.*Invalid 2") |>
+     expect_warning(regexp = "Values not permitted.*TABLET") |>
+     expect_warning(regexp = "Values not permitted.*QW")
 
   # Check verbose parameter
-  expect_message(
-    {
-      ret <- check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N"), verbose = "message")
-    },
-    regexp = "All controlled terminology checks passed"
-  )
+  check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N"), verbose = "message") |>
+     expect_message(regexp = "All controlled terminology checks passed")
 
   expect_silent(check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N"), verbose = "warn"))
   expect_silent(check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N"), verbose = "w"))
 
-  ret <- check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N"), verbose = "silent") |>
-    expect_message("All controlled terminology checks passed") |>
-    expect_warning("Argument")
+  # Cannnot be "silent"
+  check_ct_data(data, spec, omit_vars = c("AGEGR2", "AGEGR2N"), verbose = "silent") |>
+     expect_message("All controlled terminology checks passed") |>
+     expect_warning("Argument `verbose` cannot be.*silent")
 
-  ret <- check_ct_data(data, spec, na_acceptable = c("DCSREAS", "COMP8FL", "BMIBLGR1"), verbose = "silent") |>
-    expect_warning("Argument") |>
-    expect_warning("Invalid controlled terminology detected")
+  check_ct_data(data, spec, na_acceptable = c("DCSREAS", "COMP8FL", "BMIBLGR1"), verbose = "silent") |>
+     expect_warning("Argument `verbose` cannot be.*silent") |>
+     expect_warning("Invalid controlled terminology detected")
 
   # Check character vector input for na_acceptable:
   expect_warning(check_ct_data(data, spec, na_acceptable = c("DCSREAS", "COMP8FL", "BMIBLGR1")))
   expect_error(check_ct_data(data, spec, 1))
 
-  # Check omit_vars:
-  expect_error(check_ct_data(data, spec, omit_vars = c("A", "B")))
-  expect_warning(check_ct_data(data, spec, FALSE, omit_vars = c("DCSREAS", "COMP8FL", "BMIBLGR1")))
-  expect_equal(
-    check_ct_data(
-      data,
-      spec_mod,
-      na_acceptable = NULL,
-      omit_vars = c("AGEGR2", "AGEGR2N", "COMP8FL")
-    ),
-    data
-  )
+  # Check omit_vars contains variables not present in the data
+  check_ct_data(data, spec, omit_vars = c("MISSING_A", "MISSING_B")) |>
+     expect_equal(data) |>
+     expect_warning(regexp = "Variables not present in the data.*MISSING_A.*MISSING_B") |>
+     expect_warning(regexp = "Values not permitted:.*18-64 years.*65-80 years.*>80 years")
 })
+
 
 test_that("variable_check works correctly", {
   expect_equal(check_variables(data, spec), data)
