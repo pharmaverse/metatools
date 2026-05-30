@@ -4,7 +4,7 @@
 \alias{get_bad_ct}
 \title{Gets vector of control terminology which should be there}
 \usage{
-get_bad_ct(data, metacore, var, na_acceptable = NULL)
+get_bad_ct(data, metacore, var, na_acceptable = NULL, .internal = FALSE)
 }
 \arguments{
 \item{data}{Data to check}
