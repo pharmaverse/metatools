@@ -31,7 +31,7 @@ library(metacore)
 library(safetyData)
 library(tibble)
 load(metacore_example("pilot_SDTM.rda"))
-spec <- metacore \%>\% select_dataset("AE")
+spec <- metacore \%>\% select_dataset("AE", verbose = "silent")
 ae <- combine_supp(sdtm_ae, sdtm_suppae)
 make_supp_qual(ae, spec) \%>\% as_tibble()
 }

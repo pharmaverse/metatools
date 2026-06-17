@@ -17,6 +17,13 @@ metadata specification.}
 \item{na_acceptable}{Logical scalar indicating whether missing values should be
 accepted. If \code{TRUE}, \code{NA} and \code{""} are treated as valid for character
 controlled terminology and \code{NA} for non-character controlled terminology.}
+
+\item{.internal}{Logical value indicating whether the function is being
+called internally by another package function. If \code{TRUE}, the function
+suppresses user-facing messages and instead returns a logical indicator
+of whether any controlled terminology violations were detected. This
+argument is intended for internal use only and should not be set by
+end users.}
 }
 \value{
 A named list containing only the VLM codelists with invalid values.

@@ -20,6 +20,13 @@ acceptability of missing values is based on if the core for the variable is
 "Required" in the \code{metacore} object. If set to \code{TRUE} then will pass check
 if values are in the control terminology or are missing. If set to
 \code{FALSE} then NA will not be acceptable.}
+
+\item{.internal}{Logical value indicating whether the function is being
+called internally by another package function. If \code{TRUE}, the function
+suppresses user-facing messages and instead returns a logical indicator
+of whether any controlled terminology violations were detected. This
+argument is intended for internal use only and should not be set by
+end users.}
 }
 \value{
 vector

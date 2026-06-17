@@ -199,6 +199,56 @@ compile_vlm_clause <- function(where_clause, var) {
    )
 }
 
+#' Parse a VLM IN / NOTIN value list into a character vector
+#'
+#' Converts the value portion of a CDISC-style `IN` or `NOTIN` where-clause
+#' into a character vector suitable for membership testing.
+#'
+#' @param val Character string containing the raw value list extracted from a
+#'   VLM where-clause (e.g. `"c(A, B, C)"` or `"(A, B, C)"`).
+#'
+#' @return A character vector of individual values.
+#'
+#' @details
+#' Two input formats are accepted:
+#' \itemize{
+#'   \item **Valid R syntax** — strings of the form `c(...)` are parsed
+#'     directly via [rlang::parse_expr()]; symbols are coerced to character.
+#'   \item **Bare / corrected syntax** — parentheses are stripped and the
+#'     remaining text is split on commas or whitespace runs, with empty strings
+#'     discarded.
+#' }
+#'
+#' @noRd
+parse_vlm_values <- function(val) {
+
+   val <- trimws(val)
+
+   # VLM passed with correct syntax, already c(...)
+   if (grepl("^c\\s*\\(.*\\)$", val)) {
+
+      expr <- rlang::parse_expr(val)
+      vals <- as.list(expr)[-1]
+
+      out <- vapply(vals, function(x) {
+         if (is.symbol(x)) {
+            as.character(x)
+         } else {
+            rlang::as_string(x)
+         }
+      }, character(1))
+
+      return(out)
+   }
+
+   # Try to correct invalid syntax
+   vals <- stringr::str_remove_all(val, "[()]")
+   vals <- stringr::str_split(vals, "[,\\s]+")[[1]]
+   vals <- vals[vals != ""]
+
+   vals
+}
+
 #' Evaluate a single VLM clause against dataset and controlled terminology
 #'
 #' Applies a single VLM where-clause to the dataset, compares observed values

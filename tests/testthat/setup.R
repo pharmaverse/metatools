@@ -5,7 +5,7 @@ suppae_spec <- metacore::select_dataset(p21_spec, "SUPPAE", verbose = "silent")
 vlm_spec <- metacore::spec_to_metacore("vlm_test_spec.xlsx", where_sep_sheet = FALSE, verbose = "silent")
 adex_spec <- metacore::select_dataset(vlm_spec, "ADEX", verbose = "silent")
 
-adex <- haven::read_xpt("../../inst/extdata/adex.xpt")
+adex <- haven::read_xpt(system.file("extdata", "adex.xpt", package = "metatools"))
 
 
 # # TODO: delete later

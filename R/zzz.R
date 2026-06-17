@@ -27,7 +27,8 @@ globalVariables(c(
   "supp_flag",
   "type",
   "variable",
-  "merge_on"
+  "merge_on",
+  "where"
 ))
 
 

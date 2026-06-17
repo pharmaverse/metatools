@@ -1,7 +1,7 @@
 #' Dash to Equation
 #'
 #' Converts strings that are #-# style to a logical expression (but in a string format)
-#' @param string
+#' @param string A string to convert
 #'
 #' @return string
 #' @noRd

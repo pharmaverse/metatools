@@ -298,7 +298,12 @@ check_ct_col <- function(data, metacore, var, na_acceptable = NULL, verbose = "m
 #'   "Required" in the `metacore` object. If set to `TRUE` then will pass check
 #'   if values are in the control terminology or are missing. If set to
 #'   `FALSE` then NA will not be acceptable.
-#'
+#' @param .internal Logical value indicating whether the function is being
+#'   called internally by another package function. If `TRUE`, the function
+#'   suppresses user-facing messages and instead returns a logical indicator
+#'   of whether any controlled terminology violations were detected. This
+#'   argument is intended for internal use only and should not be set by
+#'   end users.
 #' @return vector
 #' @export
 #'
@@ -380,6 +385,12 @@ get_bad_ct <- function(data, metacore, var, na_acceptable = NULL, .internal = FA
 #' @param na_acceptable Logical scalar indicating whether missing values should be
 #'   accepted. If `TRUE`, `NA` and `""` are treated as valid for character
 #'   controlled terminology and `NA` for non-character controlled terminology.
+#' @param .internal Logical value indicating whether the function is being
+#'   called internally by another package function. If `TRUE`, the function
+#'   suppresses user-facing messages and instead returns a logical indicator
+#'   of whether any controlled terminology violations were detected. This
+#'   argument is intended for internal use only and should not be set by
+#'   end users.
 #'
 #' @return A named list containing only the VLM codelists with invalid values.
 #'   Each element is named `"Codelist: <where_clause>"` and contains the unique
